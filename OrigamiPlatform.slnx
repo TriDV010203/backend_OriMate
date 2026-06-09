@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="OrigamiPlatform.API/OrigamiPlatform.API.csproj" />
+  <Project Path="OrigamiPlatform.Application/OrigamiPlatform.Application.csproj" />
+  <Project Path="OrigamiPlatform.Domain/OrigamiPlatform.Domain.csproj" />
+  <Project Path="OrigamiPlatform.Infrastructure/OrigamiPlatform.Infrastructure.csproj" />
+</Solution>
