@@ -1,14 +1,18 @@
+using OrigamiPlatform.Domain.Enums;
+
 namespace OrigamiPlatform.Domain.Entities;
 
 public class FamilySubscription
 {
     public Guid Id { get; set; }
-    public Guid OwnerId { get; set; }
+    public Guid UserId { get; set; }
+    public Guid TransactionId { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
-    public bool IsActive { get; set; }
+    public SubscriptionStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
 
-    public User Owner { get; set; } = null!;
+    public User User { get; set; } = null!;
+    public Transaction Transaction { get; set; } = null!;
+    public ICollection<FamilyProject> Projects { get; set; } = new List<FamilyProject>();
 }

@@ -4,7 +4,6 @@ namespace OrigamiPlatform.Domain.Entities;
 
 public class Like
 {
-    public Guid Id { get; set; }
     public Guid UserId { get; set; }
     public TargetType TargetType { get; set; }
     public Guid TargetId { get; set; }

@@ -5,11 +5,11 @@ namespace OrigamiPlatform.Domain.Entities;
 public class User
 {
     public Guid Id { get; set; }
-    public string Username { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public AccountStatus Status { get; set; }
-    public bool IsDeleted { get; set; }
+    public string? VerificationToken { get; set; }
+    public DateTime? TokenExpiry { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 
