@@ -11,7 +11,7 @@ public class FamilyProjectMemberConfiguration : IEntityTypeConfiguration<FamilyP
         builder.HasKey(m => m.Id);
         builder.Property(m => m.Id).ValueGeneratedNever();
 
-        builder.Property(m => m.Status).HasConversion<string>();
+        builder.Property(m => m.Status).HasConversion<string>().HasMaxLength(20);
 
         builder.HasOne(m => m.Project)
                .WithMany(p => p.Members)

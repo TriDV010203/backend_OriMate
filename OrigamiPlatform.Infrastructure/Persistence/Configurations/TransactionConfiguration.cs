@@ -12,8 +12,8 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
         builder.Property(t => t.Id).ValueGeneratedNever();
 
         builder.Property(t => t.Amount).HasColumnType("decimal(18,2)").IsRequired();
-        builder.Property(t => t.TransactionType).HasConversion<string>();
-        builder.Property(t => t.Status).HasConversion<string>();
+        builder.Property(t => t.TransactionType).HasConversion<string>().HasMaxLength(30);
+        builder.Property(t => t.Status).HasConversion<string>().HasMaxLength(30);
         builder.Property(t => t.ReferenceCode).HasMaxLength(100);
 
         builder.HasOne(t => t.User)

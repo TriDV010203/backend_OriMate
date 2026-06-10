@@ -11,7 +11,7 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
         builder.HasKey(c => c.Id);
         builder.Property(c => c.Id).ValueGeneratedNever();
 
-        builder.Property(c => c.TargetType).HasConversion<string>();
+        builder.Property(c => c.TargetType).HasConversion<string>().HasMaxLength(20);
         builder.Property(c => c.Content).HasMaxLength(2000).IsRequired();
 
         builder.HasOne(c => c.Author)

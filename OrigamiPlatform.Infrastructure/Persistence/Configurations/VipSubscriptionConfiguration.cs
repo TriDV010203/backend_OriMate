@@ -11,7 +11,7 @@ public class VipSubscriptionConfiguration : IEntityTypeConfiguration<VipSubscrip
         builder.HasKey(v => v.Id);
         builder.Property(v => v.Id).ValueGeneratedNever();
 
-        builder.Property(v => v.Status).HasConversion<string>();
+        builder.Property(v => v.Status).HasConversion<string>().HasMaxLength(20);
 
         builder.HasOne(v => v.Subscriber)
                .WithMany(u => u.VipSubscriptions)

@@ -16,6 +16,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.PasswordHash).HasMaxLength(512).IsRequired();
         builder.Property(u => u.VerificationToken).HasMaxLength(256);
-        builder.Property(u => u.Status).HasConversion<string>();
+        builder.Property(u => u.Status).HasConversion<string>().HasMaxLength(20);
     }
 }

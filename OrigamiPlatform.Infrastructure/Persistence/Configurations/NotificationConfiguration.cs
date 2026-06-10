@@ -11,7 +11,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
         builder.HasKey(n => n.Id);
         builder.Property(n => n.Id).ValueGeneratedNever();
 
-        builder.Property(n => n.Type).HasConversion<string>();
+        builder.Property(n => n.Type).HasConversion<string>().HasMaxLength(30);
         builder.Property(n => n.Message).HasMaxLength(500).IsRequired();
         builder.Property(n => n.EntityType).HasMaxLength(100);
 

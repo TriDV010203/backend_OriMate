@@ -11,7 +11,7 @@ public class CommunityPostMediaConfiguration : IEntityTypeConfiguration<Communit
         builder.HasKey(m => m.Id);
         builder.Property(m => m.Id).ValueGeneratedNever();
 
-        builder.Property(m => m.MediaType).HasConversion<string>();
+        builder.Property(m => m.MediaType).HasConversion<string>().HasMaxLength(10);
         builder.Property(m => m.Url).HasMaxLength(512).IsRequired();
 
         builder.HasOne(m => m.Post)

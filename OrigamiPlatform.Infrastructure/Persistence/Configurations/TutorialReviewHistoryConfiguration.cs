@@ -11,9 +11,9 @@ public class TutorialReviewHistoryConfiguration : IEntityTypeConfiguration<Tutor
         builder.HasKey(r => r.Id);
         builder.Property(r => r.Id).ValueGeneratedNever();
 
-        builder.Property(r => r.ReviewerRole).HasConversion<string>();
-        builder.Property(r => r.FromStatus).HasConversion<string>();
-        builder.Property(r => r.ToStatus).HasConversion<string>();
+        builder.Property(r => r.ReviewerRole).HasConversion<string>().HasMaxLength(30);
+        builder.Property(r => r.FromStatus).HasConversion<string>().HasMaxLength(30);
+        builder.Property(r => r.ToStatus).HasConversion<string>().HasMaxLength(30);
         builder.Property(r => r.Action).HasMaxLength(100).IsRequired();
         builder.Property(r => r.Reason).HasMaxLength(1000);
 

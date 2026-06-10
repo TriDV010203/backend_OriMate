@@ -11,7 +11,7 @@ public class FamilySubscriptionConfiguration : IEntityTypeConfiguration<FamilySu
         builder.HasKey(s => s.Id);
         builder.Property(s => s.Id).ValueGeneratedNever();
 
-        builder.Property(s => s.Status).HasConversion<string>();
+        builder.Property(s => s.Status).HasConversion<string>().HasMaxLength(20);
 
         builder.HasOne(s => s.User)
                .WithMany()

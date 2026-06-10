@@ -9,7 +9,7 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
     public void Configure(EntityTypeBuilder<UserRole> builder)
     {
         builder.HasKey(r => new { r.UserId, r.Role });
-        builder.Property(r => r.Role).HasConversion<string>();
+        builder.Property(r => r.Role).HasConversion<string>().HasMaxLength(30);
 
         builder.HasOne(r => r.User)
                .WithMany(u => u.Roles)

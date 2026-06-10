@@ -18,8 +18,8 @@ public class TutorialConfiguration : IEntityTypeConfiguration<Tutorial>
 
         builder.Property(t => t.CoverImageUrl).HasMaxLength(512);
         builder.Property(t => t.Difficulty).HasMaxLength(50);
-        builder.Property(t => t.Type).HasConversion<string>();
-        builder.Property(t => t.Status).HasConversion<string>();
+        builder.Property(t => t.Type).HasConversion<string>().HasMaxLength(10);
+        builder.Property(t => t.Status).HasConversion<string>().HasMaxLength(30);
 
         builder.HasOne(t => t.Author)
                .WithMany(u => u.Tutorials)

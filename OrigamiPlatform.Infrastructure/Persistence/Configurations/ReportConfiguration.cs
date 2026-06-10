@@ -11,9 +11,9 @@ public class ReportConfiguration : IEntityTypeConfiguration<Report>
         builder.HasKey(r => r.Id);
         builder.Property(r => r.Id).ValueGeneratedNever();
 
-        builder.Property(r => r.TargetType).HasConversion<string>();
+        builder.Property(r => r.TargetType).HasConversion<string>().HasMaxLength(20);
         builder.Property(r => r.Reason).HasMaxLength(1000).IsRequired();
-        builder.Property(r => r.Status).HasConversion<string>();
+        builder.Property(r => r.Status).HasConversion<string>().HasMaxLength(20);
 
         builder.HasOne(r => r.Reporter)
                .WithMany()

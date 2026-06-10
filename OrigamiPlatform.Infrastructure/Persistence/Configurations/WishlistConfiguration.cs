@@ -10,7 +10,7 @@ public class WishlistConfiguration : IEntityTypeConfiguration<Wishlist>
     {
         // Composite PK: one wishlist entry per user per target
         builder.HasKey(w => new { w.UserId, w.TargetType, w.TargetId });
-        builder.Property(w => w.TargetType).HasConversion<string>();
+        builder.Property(w => w.TargetType).HasConversion<string>().HasMaxLength(20);
 
         builder.HasOne(w => w.User)
                .WithMany()

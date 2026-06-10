@@ -12,7 +12,7 @@ public class FamilyProjectConfiguration : IEntityTypeConfiguration<FamilyProject
         builder.Property(p => p.Id).ValueGeneratedNever();
 
         builder.Property(p => p.Name).HasMaxLength(200).IsRequired();
-        builder.Property(p => p.Status).HasConversion<string>();
+        builder.Property(p => p.Status).HasConversion<string>().HasMaxLength(20);
 
         builder.HasOne(p => p.Owner)
                .WithMany()

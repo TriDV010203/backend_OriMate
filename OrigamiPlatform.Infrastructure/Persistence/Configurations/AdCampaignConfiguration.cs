@@ -14,8 +14,8 @@ public class AdCampaignConfiguration : IEntityTypeConfiguration<AdCampaign>
         builder.Property(c => c.Name).HasMaxLength(200).IsRequired();
         builder.Property(c => c.DestinationUrl).HasMaxLength(512).IsRequired();
         builder.Property(c => c.RejectionReason).HasMaxLength(500);
-        builder.Property(c => c.PricingType).HasConversion<string>();
-        builder.Property(c => c.Status).HasConversion<string>();
+        builder.Property(c => c.PricingType).HasConversion<string>().HasMaxLength(10);
+        builder.Property(c => c.Status).HasConversion<string>().HasMaxLength(20);
         builder.Property(c => c.RatePerUnit).HasColumnType("decimal(18,2)").IsRequired();
         builder.Property(c => c.TotalBudget).HasColumnType("decimal(18,2)").IsRequired();
         builder.Property(c => c.BudgetRemaining).HasColumnType("decimal(18,2)").IsRequired();
