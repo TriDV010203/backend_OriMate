@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using OrigamiPlatform.Application.Commands.Auth;
 using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
 using OrigamiPlatform.Infrastructure.Services;
 
@@ -12,6 +13,7 @@ public static class DependencyInjection
     {
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ITutorialRepository, TutorialRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -20,6 +22,10 @@ public static class DependencyInjection
         // Handlers — Auth
         services.AddScoped<RegisterUserHandler>();
         services.AddScoped<LoginHandler>();
+
+        // Handlers — Tutorials
+        services.AddScoped<GetTutorialsHandler>();
+        services.AddScoped<GetTutorialBySlugHandler>();
 
         return services;
     }
