@@ -60,6 +60,6 @@ Thumbs.db
 
 ## Environment / secrets
 appsettings.*.json
-!appsettings.Development.json
+!appsettings.Example.json
 *.env
 .env
