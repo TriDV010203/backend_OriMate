@@ -18,10 +18,13 @@ public static class DependencyInjection
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
+        services.AddScoped<IEmailService, EmailService>();
 
         // Handlers — Auth
         services.AddScoped<RegisterUserHandler>();
         services.AddScoped<LoginHandler>();
+        services.AddScoped<VerifyEmailHandler>();
+        services.AddScoped<ResendVerificationHandler>();
 
         // Handlers — Tutorials
         services.AddScoped<GetTutorialsHandler>();
