@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
+using OrigamiPlatform.Domain.Enums;
 
 namespace OrigamiPlatform.Infrastructure.Persistence.Repositories;
 
@@ -36,4 +37,9 @@ public class UserRepository : IUserRepository
         _db.Users.Update(user);
         await _db.SaveChangesAsync(ct);
     }
+
+    public async Task<IReadOnlyList<User>> GetUsersByRoleAsync(UserRoleType role, CancellationToken ct = default)
+        => await _db.Users
+            .Where(u => u.Roles.Any(r => r.Role == role))
+            .ToListAsync(ct);
 }
