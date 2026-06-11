@@ -42,7 +42,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Repositories
         {
             return await _context.Reports
                 .Where(r => r.Status == ReportStatus.Pending)
-                .OrderBy(r => r.CreatedAt) // Sắp xếp cũ nhất lên đầu
+                .OrderBy(r => r.CreatedAt) 
                 .Skip(skip)
                 .Take(take)
                 .ToListAsync();

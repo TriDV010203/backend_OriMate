@@ -64,16 +64,15 @@ public class CreateCommunityPostHandler
                 {
                     Id = Guid.NewGuid(),
                     PostId = postId,
-                    Url = mediaItemDto.MediaUrl,    // Dùng đúng thuộc tính Url
+                    Url = mediaItemDto.MediaUrl,    
                     MediaType = mediaItemDto.MediaType,
-                    DisplayOrder = i,               // Cập nhật thứ tự hiển thị
+                    DisplayOrder = i,               
                     CreatedAt = now
                 });
             }
             post.Media = mediaList;
         }
 
-        // 5. Lưu vào Database
         await _posts.AddAsync(post);
 
         return post.Id;
