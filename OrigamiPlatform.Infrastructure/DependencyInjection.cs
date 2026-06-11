@@ -1,7 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using OrigamiPlatform.Application.Commands.Achievements;
 using OrigamiPlatform.Application.Commands.Auth;
+using OrigamiPlatform.Application.Commands.CommunityPosts;
+using OrigamiPlatform.Application.Commands.Likes;
+using OrigamiPlatform.Application.Commands.Reports;
 using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Application.Queries.CommunityPosts;
+using OrigamiPlatform.Application.Queries.Reports;
 using OrigamiPlatform.Application.Queries.Achievements;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
@@ -17,6 +22,12 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ITutorialRepository, TutorialRepository>();
         services.AddScoped<IAchievementRepository, AchievementRepository>();
+
+        // FT-09-Repositories
+        services.AddScoped<ICommunityPostRepository, CommunityPostRepository>();
+        services.AddScoped<ILikeRepository, LikeRepository>();
+        services.AddScoped<IReportRepository, ReportRepository>();
+        services.AddScoped<IBlockedWordRepository, BlockedWordRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -35,7 +46,12 @@ public static class DependencyInjection
         services.AddScoped<GetTutorialsHandler>();
         services.AddScoped<GetTutorialBySlugHandler>();
 
-        // Handlers — Achievements
+        services.AddScoped<CreateCommunityPostHandler>();
+        services.AddScoped<ToggleLikeHandler>();
+        services.AddScoped<SubmitReportHandler>();
+        services.AddScoped<HandleReportHandler>();
+        services.AddScoped<GetCommunityFeedHandler>();
+        services.AddScoped<GetPendingReportsHandler>();
         services.AddScoped<CreateAchievementHandler>();
         services.AddScoped<UpdateAchievementHandler>();
         services.AddScoped<DeleteAchievementHandler>();
