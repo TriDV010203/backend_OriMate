@@ -7,5 +7,10 @@ public enum NotificationType
     Comment,
     TutorialStatusChanged,
     FamilyInvite,
-    System
+    System,
+
+    // FT-04 Tutorial review workflow
+    NewTutorialPendingReview,
+    TutorialReadyForManagerApproval,
+    TutorialRevisionRequired
 }
