@@ -1,7 +1,17 @@
 using Microsoft.Extensions.DependencyInjection;
+using OrigamiPlatform.Application.Commands.Achievements;
 using OrigamiPlatform.Application.Commands.Auth;
+<<<<<<< HEAD
 using OrigamiPlatform.Application.Features.Tutorials.Services;
+=======
+using OrigamiPlatform.Application.Commands.CommunityPosts;
+using OrigamiPlatform.Application.Commands.Likes;
+using OrigamiPlatform.Application.Commands.Reports;
+>>>>>>> ec190ae1879136b564e62496137d1a5256c8caf3
 using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Application.Queries.CommunityPosts;
+using OrigamiPlatform.Application.Queries.Reports;
+using OrigamiPlatform.Application.Queries.Achievements;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
 using OrigamiPlatform.Infrastructure.Services;
@@ -15,6 +25,13 @@ public static class DependencyInjection
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ITutorialRepository, TutorialRepository>();
+        services.AddScoped<IAchievementRepository, AchievementRepository>();
+
+        // FT-09-Repositories
+        services.AddScoped<ICommunityPostRepository, CommunityPostRepository>();
+        services.AddScoped<ILikeRepository, LikeRepository>();
+        services.AddScoped<IReportRepository, ReportRepository>();
+        services.AddScoped<IBlockedWordRepository, BlockedWordRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -35,8 +52,21 @@ public static class DependencyInjection
         services.AddScoped<GetTutorialsHandler>();
         services.AddScoped<GetTutorialBySlugHandler>();
 
+<<<<<<< HEAD
         // Services — Tutorials FT-04
         services.AddScoped<ITutorialService, TutorialService>();
+=======
+        services.AddScoped<CreateCommunityPostHandler>();
+        services.AddScoped<ToggleLikeHandler>();
+        services.AddScoped<SubmitReportHandler>();
+        services.AddScoped<HandleReportHandler>();
+        services.AddScoped<GetCommunityFeedHandler>();
+        services.AddScoped<GetPendingReportsHandler>();
+        services.AddScoped<CreateAchievementHandler>();
+        services.AddScoped<UpdateAchievementHandler>();
+        services.AddScoped<DeleteAchievementHandler>();
+        services.AddScoped<GetUserAchievementsHandler>();
+>>>>>>> ec190ae1879136b564e62496137d1a5256c8caf3
 
         return services;
     }
