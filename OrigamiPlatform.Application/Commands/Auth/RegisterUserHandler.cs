@@ -56,6 +56,6 @@ public class RegisterUserHandler
         var (token, expiresAt) = _tokens.GenerateToken(user);
         var roles = user.Roles.Select(r => r.Role.ToString()).ToList();
 
-        return new AuthResponse(user.Id, user.Email, roles, token, expiresAt);
+        return new AuthResponse(user.Id, user.Email, cmd.DisplayName, roles, token, expiresAt);
     }
 }

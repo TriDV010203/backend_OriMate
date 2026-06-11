@@ -13,6 +13,7 @@ public class UserRepository : IUserRepository
     public Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)
         => _db.Users
             .Include(u => u.Roles)
+            .Include(u => u.Profile)
             .FirstOrDefaultAsync(u => u.Email == email, ct);
 
     public Task<bool> ExistsByEmailAsync(string email, CancellationToken ct = default)
