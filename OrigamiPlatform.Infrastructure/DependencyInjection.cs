@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using OrigamiPlatform.Application.Commands.Auth;
+using OrigamiPlatform.Application.Features.Tutorials.Services;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
@@ -19,6 +20,8 @@ public static class DependencyInjection
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IBlockedWordService, BlockedWordService>();
 
         // Handlers — Auth
         services.AddScoped<RegisterUserHandler>();
@@ -28,9 +31,12 @@ public static class DependencyInjection
         services.AddScoped<ForgotPasswordHandler>();
         services.AddScoped<ResetPasswordHandler>();
 
-        // Handlers — Tutorials
+        // Handlers — Tutorials (public)
         services.AddScoped<GetTutorialsHandler>();
         services.AddScoped<GetTutorialBySlugHandler>();
+
+        // Services — Tutorials FT-04
+        services.AddScoped<ITutorialService, TutorialService>();
 
         return services;
     }
