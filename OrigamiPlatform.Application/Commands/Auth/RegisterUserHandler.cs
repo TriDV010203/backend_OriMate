@@ -11,9 +11,14 @@ public class RegisterUserHandler
     private readonly IUserRepository _users;
     private readonly IPasswordHasher _hasher;
     private readonly ITokenService _tokens;
+    private readonly IEmailService _email;
 
-    public RegisterUserHandler(IUserRepository users, IPasswordHasher hasher, ITokenService tokens)
-        => (_users, _hasher, _tokens) = (users, hasher, tokens);
+    public RegisterUserHandler(
+        IUserRepository users,
+        IPasswordHasher hasher,
+        ITokenService tokens,
+        IEmailService email)
+        => (_users, _hasher, _tokens, _email) = (users, hasher, tokens, email);
 
     public async Task<AuthResponse> HandleAsync(RegisterUserCommand cmd, CancellationToken ct = default)
     {
@@ -22,18 +27,21 @@ public class RegisterUserHandler
 
         var userId = Guid.NewGuid();
         var now = DateTime.UtcNow;
+        var verificationToken = Guid.NewGuid().ToString("N");
 
         var user = new User
         {
             Id = userId,
             Email = cmd.Email.ToLowerInvariant(),
             PasswordHash = _hasher.Hash(cmd.Password),
-            Status = AccountStatus.Active,
+            Status = AccountStatus.Unverified,
+            VerificationToken = verificationToken,
+            TokenExpiry = now.AddHours(24),
             CreatedAt = now,
             Profile = new UserProfile
             {
                 UserId = userId,
-                DisplayName = cmd.Email.Split('@')[0],
+                DisplayName = cmd.DisplayName,
                 CreatedAt = now
             },
             Roles = new List<UserRole>
@@ -43,6 +51,7 @@ public class RegisterUserHandler
         };
 
         await _users.AddAsync(user, ct);
+        await _email.SendVerificationEmailAsync(user.Email, verificationToken, ct);
 
         var (token, expiresAt) = _tokens.GenerateToken(user);
         var roles = user.Roles.Select(r => r.Role.ToString()).ToList();
