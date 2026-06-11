@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
+using OrigamiPlatform.Application.Commands.Achievements;
 using OrigamiPlatform.Application.Commands.Auth;
 using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Application.Queries.Achievements;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
 using OrigamiPlatform.Infrastructure.Services;
@@ -14,6 +16,7 @@ public static class DependencyInjection
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ITutorialRepository, TutorialRepository>();
+        services.AddScoped<IAchievementRepository, AchievementRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -29,6 +32,12 @@ public static class DependencyInjection
         // Handlers — Tutorials
         services.AddScoped<GetTutorialsHandler>();
         services.AddScoped<GetTutorialBySlugHandler>();
+
+        // Handlers — Achievements
+        services.AddScoped<CreateAchievementHandler>();
+        services.AddScoped<UpdateAchievementHandler>();
+        services.AddScoped<DeleteAchievementHandler>();
+        services.AddScoped<GetUserAchievementsHandler>();
 
         return services;
     }
