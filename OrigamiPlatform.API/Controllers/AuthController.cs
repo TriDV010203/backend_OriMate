@@ -10,9 +10,16 @@ public class AuthController : ControllerBase
 {
     private readonly RegisterUserHandler _register;
     private readonly LoginHandler _login;
+    private readonly VerifyEmailHandler _verifyEmail;
+    private readonly ResendVerificationHandler _resendVerification;
 
-    public AuthController(RegisterUserHandler register, LoginHandler login)
-        => (_register, _login) = (register, login);
+    public AuthController(
+        RegisterUserHandler register,
+        LoginHandler login,
+        VerifyEmailHandler verifyEmail,
+        ResendVerificationHandler resendVerification)
+        => (_register, _login, _verifyEmail, _resendVerification)
+            = (register, login, verifyEmail, resendVerification);
 
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request, CancellationToken ct)
@@ -27,6 +34,21 @@ public class AuthController : ControllerBase
     {
         var result = await _login.HandleAsync(
             new LoginCommand(request.Email, request.Password), ct);
+        return Ok(result);
+    }
+
+    [HttpGet("verify-email")]
+    public async Task<IActionResult> VerifyEmail([FromQuery] string token, CancellationToken ct)
+    {
+        var result = await _verifyEmail.HandleAsync(new VerifyEmailCommand(token), ct);
+        return Ok(result);
+    }
+
+    [HttpPost("resend-verification")]
+    public async Task<IActionResult> ResendVerification(ResendVerificationRequest request, CancellationToken ct)
+    {
+        var result = await _resendVerification.HandleAsync(
+            new ResendVerificationCommand(request.Email), ct);
         return Ok(result);
     }
 }
