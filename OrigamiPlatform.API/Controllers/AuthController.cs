@@ -12,14 +12,18 @@ public class AuthController : ControllerBase
     private readonly LoginHandler _login;
     private readonly VerifyEmailHandler _verifyEmail;
     private readonly ResendVerificationHandler _resendVerification;
+    private readonly ForgotPasswordHandler _forgotPassword;
+    private readonly ResetPasswordHandler _resetPassword;
 
     public AuthController(
         RegisterUserHandler register,
         LoginHandler login,
         VerifyEmailHandler verifyEmail,
-        ResendVerificationHandler resendVerification)
-        => (_register, _login, _verifyEmail, _resendVerification)
-            = (register, login, verifyEmail, resendVerification);
+        ResendVerificationHandler resendVerification,
+        ForgotPasswordHandler forgotPassword,
+        ResetPasswordHandler resetPassword)
+        => (_register, _login, _verifyEmail, _resendVerification, _forgotPassword, _resetPassword)
+            = (register, login, verifyEmail, resendVerification, forgotPassword, resetPassword);
 
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request, CancellationToken ct)
@@ -49,6 +53,22 @@ public class AuthController : ControllerBase
     {
         var result = await _resendVerification.HandleAsync(
             new ResendVerificationCommand(request.Email), ct);
+        return Ok(result);
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken ct)
+    {
+        var result = await _forgotPassword.HandleAsync(
+            new ForgotPasswordCommand(request.Email), ct);
+        return Ok(result);
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken ct)
+    {
+        var result = await _resetPassword.HandleAsync(
+            new ResetPasswordCommand(request.Token, request.NewPassword), ct);
         return Ok(result);
     }
 }
