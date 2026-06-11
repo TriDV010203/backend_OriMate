@@ -1,3 +1,3 @@
 namespace OrigamiPlatform.Application.Commands.Auth;
 
-public record RegisterUserCommand(string Email, string Password);
+public record RegisterUserCommand(string Email, string Password, string DisplayName);

@@ -18,7 +18,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register(RegisterRequest request, CancellationToken ct)
     {
         var result = await _register.HandleAsync(
-            new RegisterUserCommand(request.Email, request.Password), ct);
+            new RegisterUserCommand(request.Email, request.Password, request.DisplayName), ct);
         return Ok(result);
     }
 
