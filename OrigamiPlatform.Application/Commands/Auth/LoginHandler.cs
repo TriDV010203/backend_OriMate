@@ -21,6 +21,9 @@ public class LoginHandler
         if (user is null || !_hasher.Verify(cmd.Password, user.PasswordHash))
             throw new DomainException("Invalid email or password.");
 
+        if (user.Status == AccountStatus.Unverified)
+            throw new ForbiddenException("Please verify your email before logging in.");
+
         if (user.Status == AccountStatus.Suspended)
             throw new ForbiddenException("Account is suspended.");
 
