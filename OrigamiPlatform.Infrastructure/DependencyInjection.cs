@@ -21,6 +21,7 @@ public static class DependencyInjection
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ITutorialRepository, TutorialRepository>();
+        services.AddScoped<IVipSubscriptionRepository, VipSubscriptionRepository>();
         services.AddScoped<IAchievementRepository, AchievementRepository>();
 
         // FT-09-Repositories

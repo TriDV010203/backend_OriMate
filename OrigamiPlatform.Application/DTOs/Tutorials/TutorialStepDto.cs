@@ -5,5 +5,6 @@ public record TutorialStepDto(
     int StepOrder,
     string Title,
     string Content,
-    string? MediaUrl
+    string? MediaUrl,
+    bool IsLocked = false
 );

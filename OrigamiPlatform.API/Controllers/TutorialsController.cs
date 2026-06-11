@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using OrigamiPlatform.Application.Queries.Tutorials;
 
@@ -22,11 +23,11 @@ public class TutorialsController : ControllerBase
         [FromQuery] string? difficulty,
         [FromQuery] string? type,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 12,
+        [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
         var result = await _getTutorials.HandleAsync(
-            new GetTutorialsQuery(search, categoryId, difficulty, type, page, pageSize), ct);
+            new GetTutorialsQuery(search, categoryId, difficulty, type, page, pageSize, GetCurrentUserId()), ct);
         return Ok(result);
     }
 
@@ -34,7 +35,13 @@ public class TutorialsController : ControllerBase
     public async Task<IActionResult> GetBySlug(string slug, CancellationToken ct)
     {
         var result = await _getTutorialBySlug.HandleAsync(
-            new GetTutorialBySlugQuery(slug), ct);
+            new GetTutorialBySlugQuery(slug, GetCurrentUserId()), ct);
         return Ok(result);
+    }
+
+    private Guid? GetCurrentUserId()
+    {
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+        return claim is null ? null : Guid.Parse(claim.Value);
     }
 }

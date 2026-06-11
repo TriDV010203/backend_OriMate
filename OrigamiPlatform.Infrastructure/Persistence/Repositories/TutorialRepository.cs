@@ -18,6 +18,7 @@ public class TutorialRepository : ITutorialRepository
         TutorialType? type,
         int page,
         int pageSize,
+        IReadOnlySet<Guid>? followedCreatorIds = null,
         CancellationToken ct = default)
     {
         var query = _db.Tutorials
@@ -41,8 +42,15 @@ public class TutorialRepository : ITutorialRepository
 
         var totalCount = await query.CountAsync(ct);
 
-        var items = await query
-            .OrderByDescending(t => t.PublishedAt)
+        // Boost tutorials from followed creators to the top, then sort by newest
+        var boostedIds = followedCreatorIds?.ToList() ?? new List<Guid>();
+        var ordered = boostedIds.Count > 0
+            ? query
+                .OrderByDescending(t => boostedIds.Contains(t.AuthorId))
+                .ThenByDescending(t => t.PublishedAt)
+            : query.OrderByDescending(t => t.PublishedAt);
+
+        var items = await ordered
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .AsSplitQuery()

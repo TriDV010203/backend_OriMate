@@ -12,5 +12,6 @@ public record TutorialListItemDto(
     string CategoryName,
     AuthorDto Author,
     int StepCount,
-    DateTime PublishedAt
+    DateTime PublishedAt,
+    bool IsVipLocked = false
 );

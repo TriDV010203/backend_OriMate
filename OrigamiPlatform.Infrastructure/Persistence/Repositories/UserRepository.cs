@@ -36,4 +36,13 @@ public class UserRepository : IUserRepository
         _db.Users.Update(user);
         await _db.SaveChangesAsync(ct);
     }
+
+    public async Task<HashSet<Guid>> GetFollowingIdsAsync(Guid userId, CancellationToken ct = default)
+    {
+        var ids = await _db.FollowRelationships
+            .Where(f => f.FollowerId == userId)
+            .Select(f => f.FollowingId)
+            .ToListAsync(ct);
+        return ids.ToHashSet();
+    }
 }
