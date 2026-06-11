@@ -23,15 +23,24 @@ public class EmailService : IEmailService
     public async Task SendVerificationEmailAsync(string toEmail, string verificationToken, CancellationToken ct = default)
     {
         var link = $"https://{_baseUrl}/api/auth/verify-email?token={verificationToken}";
+        await SendAsync(toEmail, "Verify your Origami Platform account",
+            $"Click the link below to verify your email address:\n\n{link}\n\nThis link expires in 24 hours.", ct);
+    }
 
+    public async Task SendPasswordResetEmailAsync(string toEmail, string resetToken, CancellationToken ct = default)
+    {
+        var link = $"https://{_baseUrl}/api/auth/reset-password?token={resetToken}";
+        await SendAsync(toEmail, "Reset your Origami Platform password",
+            $"Click the link below to reset your password:\n\n{link}\n\nThis link expires in 1 hour.\n\nIf you did not request a password reset, you can ignore this email.", ct);
+    }
+
+    private async Task SendAsync(string toEmail, string subject, string body, CancellationToken ct)
+    {
         var message = new MimeMessage();
         message.From.Add(MailboxAddress.Parse(_from));
         message.To.Add(MailboxAddress.Parse(toEmail));
-        message.Subject = "Verify your Origami Platform account";
-        message.Body = new TextPart("plain")
-        {
-            Text = $"Click the link below to verify your email address:\n\n{link}\n\nThis link expires in 24 hours."
-        };
+        message.Subject = subject;
+        message.Body = new TextPart("plain") { Text = body };
 
         using var client = new SmtpClient();
         await client.ConnectAsync(_smtpHost, _smtpPort, false, ct);

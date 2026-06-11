@@ -22,6 +22,9 @@ public class UserRepository : IUserRepository
     public Task<User?> GetByVerificationTokenAsync(string token, CancellationToken ct = default)
         => _db.Users.FirstOrDefaultAsync(u => u.VerificationToken == token, ct);
 
+    public Task<User?> GetByPasswordResetTokenAsync(string token, CancellationToken ct = default)
+        => _db.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == token, ct);
+
     public async Task AddAsync(User user, CancellationToken ct = default)
     {
         _db.Users.Add(user);
