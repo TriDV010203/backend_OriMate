@@ -1,8 +1,9 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrigamiPlatform.Application.Commands.Reports;
 using OrigamiPlatform.Application.DTOs.Reports;
+using OrigamiPlatform.Application.Queries.Reports;
+using System.Security.Claims;
 
 namespace OrigamiPlatform.API.Controllers;
 
@@ -48,5 +49,21 @@ public class ReportsController : ControllerBase
         await _handleReport.HandleAsync(command, ct);
 
         return Ok(new { Message = "Report handled successfully." });
+    }
+
+    // Đầu file nhớ thêm: using OrigamiPlatform.Application.Queries.Reports;
+
+    [HttpGet("pending")]
+    [Authorize(Roles = "Manager,Admin")] // Chỉ Quản lý mới được xem
+    public async Task<IActionResult> GetPendingReports(
+        [FromServices] GetPendingReportsHandler getReportsHandler,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var query = new GetPendingReportsQuery(page, pageSize);
+        var result = await getReportsHandler.HandleAsync(query, ct);
+
+        return Ok(result);
     }
 }

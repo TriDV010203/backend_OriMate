@@ -31,5 +31,11 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Repositories
             _context.Likes.Remove(like);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<int> GetLikeCountAsync(Guid targetId, TargetType targetType)
+        {
+            return await _context.Likes
+                .CountAsync(l => l.TargetId == targetId && l.TargetType == targetType);
+        }
     }
 }

@@ -4,6 +4,8 @@ using OrigamiPlatform.Application.Commands.CommunityPosts;
 using OrigamiPlatform.Application.Commands.Likes;
 using OrigamiPlatform.Application.Commands.Reports;
 using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Application.Queries.CommunityPosts;
+using OrigamiPlatform.Application.Queries.Reports;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
 using OrigamiPlatform.Infrastructure.Services;
@@ -41,6 +43,8 @@ public static class DependencyInjection
         services.AddScoped<ToggleLikeHandler>();
         services.AddScoped<SubmitReportHandler>();
         services.AddScoped<HandleReportHandler>();
+        services.AddScoped<GetCommunityFeedHandler>();
+        services.AddScoped<GetPendingReportsHandler>();
 
         return services;
     }

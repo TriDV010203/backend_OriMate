@@ -9,5 +9,6 @@ namespace OrigamiPlatform.Application.Interfaces
         Task<Like?> GetLikeAsync(Guid userId, Guid targetId, TargetType targetType);
         Task AddAsync(Like like);
         Task RemoveAsync(Like like);
+        Task<int> GetLikeCountAsync(Guid targetId, TargetType targetType);
     }
 }

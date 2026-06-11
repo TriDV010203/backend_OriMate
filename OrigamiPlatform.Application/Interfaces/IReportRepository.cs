@@ -10,5 +10,6 @@ namespace OrigamiPlatform.Application.Interfaces
         Task<Report> AddAsync(Report report);
         Task<Report?> GetByIdAsync(Guid id);
         Task UpdateAsync(Report report);
+        Task<List<Report>> GetPendingReportsAsync(int skip, int take);
     }
 }
