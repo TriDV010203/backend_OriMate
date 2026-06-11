@@ -1,5 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using OrigamiPlatform.Application.Commands.Auth;
+using OrigamiPlatform.Application.Commands.CommunityPosts;
+using OrigamiPlatform.Application.Commands.Likes;
+using OrigamiPlatform.Application.Commands.Reports;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
@@ -32,6 +35,12 @@ public static class DependencyInjection
         // Handlers — Tutorials
         services.AddScoped<GetTutorialsHandler>();
         services.AddScoped<GetTutorialBySlugHandler>();
+
+        // FT-09-Handlers
+        services.AddScoped<CreateCommunityPostHandler>();
+        services.AddScoped<ToggleLikeHandler>();
+        services.AddScoped<SubmitReportHandler>();
+        services.AddScoped<HandleReportHandler>();
 
         return services;
     }
