@@ -33,7 +33,7 @@ public class RegisterUserHandler
             Profile = new UserProfile
             {
                 UserId = userId,
-                DisplayName = cmd.Email.Split('@')[0],
+                DisplayName = cmd.DisplayName,
                 CreatedAt = now
             },
             Roles = new List<UserRole>
