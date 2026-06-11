@@ -31,9 +31,9 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Repositories
         {
             return await _context.CommunityPosts
                 .Include(p => p.Media)
-                .Include(p => p.Comments) // Include để đếm comment
-                .Where(p => p.IsVisible && !p.IsDeleted) // Chỉ lấy bài không bị ẩn/xóa
-                .OrderByDescending(p => p.CreatedAt)     // AC-01: Sorted by newest
+                .Include(p => p.Comments) 
+                .Where(p => p.IsVisible && !p.IsDeleted) 
+                .OrderByDescending(p => p.CreatedAt)     
                 .Skip(skip).Take(take)
                 .ToListAsync();
         }

@@ -2,12 +2,15 @@
 
 namespace OrigamiPlatform.Application.DTOs.CommunityPosts;
 
-// DTO cho Media gửi từ Client
 public class MediaItemDto
 {
     public string MediaUrl { get; set; } = string.Empty;
     public MediaType MediaType { get; set; }
 }
 
-// Request từ frontend gửi lên (không chứa UserId vì UserId sẽ lấy từ Token)
-public record CreateCommunityPostRequest(string Content, Guid? TutorialId, List<MediaItemDto>? MediaItems);
+public class CreateCommunityPostRequest
+{
+    public string Content { get; set; } = string.Empty;
+    public Guid? TutorialId { get; set; }
+    public List<MediaItemDto>? MediaItems { get; set; }
+}

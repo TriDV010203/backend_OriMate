@@ -33,11 +33,7 @@ public class SubmitReportHandler
             CreatedAt = DateTime.UtcNow
         };
 
-        // 3. Lưu database
         await _reports.AddAsync(report);
-
-        // Lưu ý: Việc notify cho Manager (AC-04) có thể được xử lý qua Event/SignalR, 
-        // nhưng ở mức độ API, lưu thành công vào DB (queue của Manager) là đã hoàn thành.
 
         return report.Id;
     }

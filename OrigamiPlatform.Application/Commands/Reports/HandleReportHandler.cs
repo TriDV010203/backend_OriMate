@@ -9,16 +9,13 @@ public class HandleReportHandler
 {
     private readonly IReportRepository _reports;
     private readonly ICommunityPostRepository _posts;
-    // private readonly IUserRepository _users; // Mở comment nếu bạn làm tính năng khóa tài khoản
 
     public HandleReportHandler(
         IReportRepository reports,
         ICommunityPostRepository posts)
-    // IUserRepository users)
     {
         _reports = reports;
         _posts = posts;
-        // _users = users;
     }
 
     public async Task HandleAsync(HandleReportCommand cmd, CancellationToken ct = default)
@@ -71,13 +68,7 @@ public class HandleReportHandler
             {
                 post.IsVisible = false;
                 post.IsDeleted = true;
-
-                // Ở Phase 1, repository ICommunityPostRepository chưa có hàm Update.
-                // Thường thì với Entity Framework, khi load entity ra (tracked), 
-                // chỉ cần SaveChanges() là được. Bạn có thể cần _reports.UpdateAsync(report) 
-                // lưu luôn cả db context chung, hoặc thêm UpdateAsync vào PostRepo nếu cần.
             }
         }
-        // Thể mở rộng cho Tutorial/Comment tại đây
     }
 }
