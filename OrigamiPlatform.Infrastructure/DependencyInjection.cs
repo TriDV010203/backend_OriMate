@@ -14,6 +14,7 @@ public static class DependencyInjection
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ITutorialRepository, TutorialRepository>();
+        services.AddScoped<IAchievementRepository, AchievementRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
