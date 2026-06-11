@@ -37,5 +37,15 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Repositories
             _context.Reports.Update(report);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<List<Report>> GetPendingReportsAsync(int skip, int take)
+        {
+            return await _context.Reports
+                .Where(r => r.Status == ReportStatus.Pending)
+                .OrderBy(r => r.CreatedAt) // Sắp xếp cũ nhất lên đầu
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync();
+        }
     }
 }
