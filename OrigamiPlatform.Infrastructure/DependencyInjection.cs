@@ -14,7 +14,12 @@ public static class DependencyInjection
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ITutorialRepository, TutorialRepository>();
-        services.AddScoped<ICommunityRepository, CommunityRepository>();
+
+        // FT-09-Repositories
+        services.AddScoped<ICommunityPostRepository, CommunityPostRepository>();
+        services.AddScoped<ILikeRepository, LikeRepository>();
+        services.AddScoped<IReportRepository, ReportRepository>();
+        services.AddScoped<IBlockedWordRepository, BlockedWordRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
