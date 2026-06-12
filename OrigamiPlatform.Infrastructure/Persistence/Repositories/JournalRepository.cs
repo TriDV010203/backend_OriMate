@@ -13,6 +13,7 @@ public class JournalRepository : IJournalRepository
 
     public Task<Journal?> GetByIdAsync(Guid id, CancellationToken ct = default)
         => _db.Journals
+            .AsNoTracking()
             .Include(j => j.LinkedTutorial)
             .FirstOrDefaultAsync(j => j.Id == id, ct);
 
@@ -24,6 +25,7 @@ public class JournalRepository : IJournalRepository
         CancellationToken ct = default)
     {
         var query = _db.Journals
+            .AsNoTracking()
             .Where(j => j.UserId == userId)
             .Include(j => j.LinkedTutorial)
             .AsQueryable();
