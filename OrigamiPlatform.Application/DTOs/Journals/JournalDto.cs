@@ -7,7 +7,7 @@ public record JournalDto(
     string? LinkedTutorialTitle,
     string? LinkedTutorialSlug,
     string Content,
-    string? ImageUrls,
+    List<string> ImageUrls,
     bool IsPublic,
     DateTime CreatedAt,
     DateTime? UpdatedAt
