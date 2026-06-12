@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ITutorialRepository, TutorialRepository>();
         services.AddScoped<IAchievementRepository, AchievementRepository>();
+        services.AddScoped<IJournalRepository, JournalRepository>();
 
         // FT-09-Repositories
         services.AddScoped<ICommunityPostRepository, CommunityPostRepository>();
