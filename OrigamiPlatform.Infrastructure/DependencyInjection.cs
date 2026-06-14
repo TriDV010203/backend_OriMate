@@ -30,6 +30,10 @@ public static class DependencyInjection
         services.AddScoped<IAchievementRepository, AchievementRepository>();
         services.AddScoped<IJournalRepository, JournalRepository>();
 
+        // FT-18 Family plan & projects
+        services.AddScoped<IFamilySubscriptionRepository, FamilySubscriptionRepository>();
+        services.AddScoped<IFamilyProjectRepository, FamilyProjectRepository>();
+
         // FT-09-Repositories
         services.AddScoped<ICommunityPostRepository, CommunityPostRepository>();
         services.AddScoped<ILikeRepository, LikeRepository>();
