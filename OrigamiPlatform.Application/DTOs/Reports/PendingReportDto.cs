@@ -8,5 +8,6 @@ public record PendingReportDto(
     TargetType TargetType,
     Guid TargetId,
     string Reason,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    string? TargetContent
 );

@@ -14,19 +14,16 @@ public class CreateCommunityPostHandler
 
     public async Task<Guid> HandleAsync(CreateCommunityPostCommand cmd, CancellationToken ct = default)
     {
-        // 1. Kiểm tra Boundary Values (BV-15) - Độ dài Text
         if (string.IsNullOrWhiteSpace(cmd.Content) || cmd.Content.Length > 1000)
         {
             throw new DomainException("Post content must be between 1 and 1,000 characters.");
         }
 
-        // 2. Kiểm tra Boundary Values (BV-16) - Số lượng Media
         if (cmd.MediaItems != null && cmd.MediaItems.Count > 10)
         {
             throw new DomainException("A post can have a maximum of 10 media items.");
         }
 
-        // 3. Kiểm tra Blocked Words (NAC-01)
         var blockedWords = await _blockedWords.GetAllBlockedWordsAsync();
         var lowerContent = cmd.Content.ToLowerInvariant();
 
@@ -38,7 +35,6 @@ public class CreateCommunityPostHandler
             }
         }
 
-        // 4. Map Command sang Entity dựa trên cấu trúc thực tế
         var postId = Guid.NewGuid();
         var now = DateTime.UtcNow;
 
@@ -53,7 +49,6 @@ public class CreateCommunityPostHandler
             CreatedAt = now
         };
 
-        // Khởi tạo danh sách Media nếu có
         if (cmd.MediaItems != null && cmd.MediaItems.Any())
         {
             var mediaList = new List<CommunityPostMedia>();
