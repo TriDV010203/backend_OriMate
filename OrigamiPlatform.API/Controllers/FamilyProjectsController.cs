@@ -16,11 +16,16 @@ public class FamilyProjectsController : ControllerBase
 {
     private readonly CreateFamilyProjectHandler _createProject;
     private readonly GetFamilyProjectHandler _getProject;
+    private readonly InviteFamilyMemberHandler _inviteMember;
+    private readonly RespondFamilyInvitationHandler _respondInvitation;
 
     public FamilyProjectsController(
         CreateFamilyProjectHandler createProject,
-        GetFamilyProjectHandler getProject)
-        => (_createProject, _getProject) = (createProject, getProject);
+        GetFamilyProjectHandler getProject,
+        InviteFamilyMemberHandler inviteMember,
+        RespondFamilyInvitationHandler respondInvitation)
+        => (_createProject, _getProject, _inviteMember, _respondInvitation)
+            = (createProject, getProject, inviteMember, respondInvitation);
 
     [HttpPost]
     public async Task<IActionResult> Create(CreateFamilyProjectRequest request, CancellationToken ct)
@@ -36,6 +41,36 @@ public class FamilyProjectsController : ControllerBase
     {
         var result = await _getProject.HandleAsync(
             new GetFamilyProjectQuery(projectId, GetCurrentUserId()), ct);
+
+        return Ok(result);
+    }
+
+    [HttpPost("{projectId:guid}/invitations")]
+    public async Task<IActionResult> Invite(
+        Guid projectId,
+        InviteFamilyMemberRequest request,
+        CancellationToken ct)
+    {
+        var result = await _inviteMember.HandleAsync(
+            new InviteFamilyMemberCommand(projectId, GetCurrentUserId(), request.Email), ct);
+
+        return Ok(result);
+    }
+
+    [HttpPost("{projectId:guid}/invitation/accept")]
+    public async Task<IActionResult> AcceptInvitation(Guid projectId, CancellationToken ct)
+    {
+        var result = await _respondInvitation.HandleAsync(
+            new RespondFamilyInvitationCommand(projectId, GetCurrentUserId(), Accept: true), ct);
+
+        return Ok(result);
+    }
+
+    [HttpPost("{projectId:guid}/invitation/decline")]
+    public async Task<IActionResult> DeclineInvitation(Guid projectId, CancellationToken ct)
+    {
+        var result = await _respondInvitation.HandleAsync(
+            new RespondFamilyInvitationCommand(projectId, GetCurrentUserId(), Accept: false), ct);
 
         return Ok(result);
     }

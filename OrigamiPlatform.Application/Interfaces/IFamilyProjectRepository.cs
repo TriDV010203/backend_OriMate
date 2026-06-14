@@ -13,4 +13,7 @@ public interface IFamilyProjectRepository
     Task<bool> IsFreePublishedTutorialAsync(Guid tutorialId, CancellationToken ct = default);
 
     Task AddAsync(FamilyProject project, CancellationToken ct = default);
+
+    Task AddMemberAsync(FamilyProjectMember member, CancellationToken ct = default);
+    Task UpdateMemberAsync(FamilyProjectMember member, CancellationToken ct = default);
 }

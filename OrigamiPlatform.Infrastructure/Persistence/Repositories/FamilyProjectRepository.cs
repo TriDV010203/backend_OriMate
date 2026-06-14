@@ -37,4 +37,16 @@ public class FamilyProjectRepository : IFamilyProjectRepository
         _db.FamilyProjects.Add(project);
         await _db.SaveChangesAsync(ct);
     }
+
+    public async Task AddMemberAsync(FamilyProjectMember member, CancellationToken ct = default)
+    {
+        _db.FamilyProjectMembers.Add(member);
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public async Task UpdateMemberAsync(FamilyProjectMember member, CancellationToken ct = default)
+    {
+        _db.FamilyProjectMembers.Update(member);
+        await _db.SaveChangesAsync(ct);
+    }
 }

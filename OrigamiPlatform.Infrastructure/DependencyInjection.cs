@@ -83,6 +83,8 @@ public static class DependencyInjection
         // Handlers — FT-18 Family projects
         services.AddScoped<CreateFamilyProjectHandler>();
         services.AddScoped<GetFamilyProjectHandler>();
+        services.AddScoped<InviteFamilyMemberHandler>();
+        services.AddScoped<RespondFamilyInvitationHandler>();
 
 
         return services;
