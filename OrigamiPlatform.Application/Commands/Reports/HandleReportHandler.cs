@@ -1,5 +1,6 @@
 ﻿using OrigamiPlatform.Application.DTOs.Reports;
 using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
 using OrigamiPlatform.Domain.Exceptions;
 
@@ -9,16 +10,19 @@ public class HandleReportHandler
 {
     private readonly IReportRepository _reports;
     private readonly ICommunityPostRepository _posts;
-    private readonly ICommentRepository _comments; 
+    private readonly ICommentRepository _comments;
+    private readonly ITutorialRepository _tutorials;
 
     public HandleReportHandler(
         IReportRepository reports,
         ICommunityPostRepository posts,
-        ICommentRepository comments)
+        ICommentRepository comments,
+    ITutorialRepository tutorials)
     {
         _reports = reports;
         _posts = posts;
-        _comments = comments; 
+        _comments = comments;
+        _tutorials = tutorials;
     }
 
     public async Task HandleAsync(HandleReportCommand cmd, CancellationToken ct = default)
@@ -60,8 +64,15 @@ public class HandleReportHandler
             var post = await _posts.GetByIdAsync(targetId);
             if (post != null)
             {
-                post.IsVisible = false;
                 post.IsDeleted = true;
+            }
+        }
+        else if (targetType == TargetType.Tutorial)
+        {
+            var tutorial = await _tutorials.GetByIdWithStepsAsync(targetId);
+            if (tutorial != null)
+            {
+                tutorial.IsDeleted = true;
             }
         }
         else if (targetType == TargetType.Comment)

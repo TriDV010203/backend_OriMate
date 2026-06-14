@@ -24,10 +24,8 @@ public class GetCommunityFeedHandler
 
         foreach (var post in posts)
         {
-            // Đếm Like
             var likeCount = await _likes.GetLikeCountAsync(post.Id, TargetType.CommunityPost);
 
-            // Kiểm tra User hiện tại có like bài này không
             bool isLiked = false;
             if (query.CurrentUserId.HasValue)
             {
@@ -35,7 +33,6 @@ public class GetCommunityFeedHandler
                 isLiked = likeRecord != null;
             }
 
-            // Map Entity sang DTO
             var dto = new CommunityPostDto(
                 Id: post.Id,
                 AuthorId: post.AuthorId,

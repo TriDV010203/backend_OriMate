@@ -48,7 +48,7 @@ public class AddCommentHandler
 
         await _comments.AddAsync(comment);
 
-        // TODO ở Phase sau (Notifications): Gọi INotificationService để bắn thông báo cho Tác giả bài viết
+        // TODO(Notifications): Gọi INotificationService để bắn thông báo cho Tác giả bài viết
 
         return comment.Id;
     }
