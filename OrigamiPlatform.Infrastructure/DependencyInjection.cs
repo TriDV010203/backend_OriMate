@@ -17,6 +17,8 @@ using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
 using OrigamiPlatform.Infrastructure.Services;
+using OrigamiPlatform.Application.Commands.Comments;
+using OrigamiPlatform.Application.Queries.Comments;
 
 namespace OrigamiPlatform.Infrastructure;
 
@@ -72,6 +74,9 @@ public static class DependencyInjection
         services.AddScoped<UpdateJournalHandler>();
         services.AddScoped<DeleteJournalHandler>();
         services.AddScoped<GetUserJournalsHandler>();
+        services.AddScoped<AddCommentHandler>();
+        services.AddScoped<DeleteCommentHandler>();
+        services.AddScoped<GetCommentsHandler>();
 
 
         return services;
