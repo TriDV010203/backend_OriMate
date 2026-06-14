@@ -63,3 +63,5 @@ appsettings.*.json
 !appsettings.Example.json
 *.env
 .env
+**/bin/
+**/obj/
