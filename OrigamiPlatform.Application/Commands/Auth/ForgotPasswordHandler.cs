@@ -1,5 +1,7 @@
 using OrigamiPlatform.Application.DTOs;
 using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Application.Validators.Auth;
+using OrigamiPlatform.Domain.Enums;
 
 namespace OrigamiPlatform.Application.Commands.Auth;
 
@@ -13,11 +15,13 @@ public class ForgotPasswordHandler
 
     public async Task<MessageResponse> HandleAsync(ForgotPasswordCommand cmd, CancellationToken ct = default)
     {
-        // Generic response regardless of whether email exists — prevents enumeration
-        const string genericResponse = "If that email is registered, a password reset link has been sent.";
+        // Generic response regardless of outcome — prevents email enumeration
+        const string genericResponse = "If that email exists, a reset link has been sent.";
+
+        ForgotPasswordRequestValidator.Validate(cmd.Email);
 
         var user = await _users.GetByEmailAsync(cmd.Email.ToLowerInvariant(), ct);
-        if (user is null)
+        if (user is null || user.Status == AccountStatus.Suspended)
             return new MessageResponse(genericResponse);
 
         var now = DateTime.UtcNow;
