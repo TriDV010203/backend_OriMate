@@ -12,7 +12,6 @@ namespace OrigamiPlatform.API.Controllers;
 [Route("api/comments")]
 public class CommentsController : ControllerBase
 {
-    // Lấy danh sách bình luận (Cho phép Guest xem - Không cần [Authorize])
     [HttpGet]
     public async Task<IActionResult> GetComments(
         [FromServices] GetCommentsHandler getComments,
@@ -27,7 +26,6 @@ public class CommentsController : ControllerBase
         return Ok(result);
     }
 
-    // Đăng bình luận (Bắt buộc đăng nhập - NAC-04)
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> AddComment(
@@ -42,7 +40,6 @@ public class CommentsController : ControllerBase
         return Ok(new { CommentId = commentId });
     }
 
-    // Xóa bình luận (Bắt buộc đăng nhập)
     [HttpDelete("{id:guid}")]
     [Authorize]
     public async Task<IActionResult> DeleteComment(
@@ -57,7 +54,6 @@ public class CommentsController : ControllerBase
         return Ok(new { Message = "Comment deleted successfully." });
     }
 
-    // --- Hàm hỗ trợ ---
     private Guid GetCurrentUserId()
     {
         var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
