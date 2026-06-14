@@ -123,6 +123,94 @@ public class TutorialsController : ControllerBase
         return Ok(new MessageResponse("Revision request sent to the tutorial author."));
     }
 
+    // ── Edit-after-publish ───────────────────────────────────────────────────
+
+    /// <summary>POST /api/tutorials/{id}/edit — Author creates a working copy of a published tutorial.</summary>
+    [HttpPost("{id:guid}/edit")]
+    [Authorize]
+    public async Task<IActionResult> CreateWorkingCopy(Guid id, CancellationToken ct)
+    {
+        var authorId = GetCurrentUserId();
+        var result = await _tutorialService.CreateWorkingCopyAsync(id, authorId, ct);
+        return Ok(result);
+    }
+
+    /// <summary>PUT /api/tutorials/{id}/edit-content — Author updates the working copy's content.</summary>
+    [HttpPut("{id:guid}/edit-content")]
+    [Authorize]
+    public async Task<IActionResult> UpdateWorkingCopy(
+        Guid id, [FromBody] UpdateTutorialRequest request, CancellationToken ct)
+    {
+        var authorId = GetCurrentUserId();
+        var result = await _tutorialService.UpdateWorkingCopyAsync(id, request, authorId, ct);
+        return Ok(result);
+    }
+
+    /// <summary>PUT /api/tutorials/{id}/submit-edit — Author submits working copy for contributor review.</summary>
+    [HttpPut("{id:guid}/submit-edit")]
+    [Authorize]
+    public async Task<IActionResult> SubmitEdit(Guid id, CancellationToken ct)
+    {
+        var authorId = GetCurrentUserId();
+        var result = await _tutorialService.SubmitEditAsync(id, authorId, ct);
+        return Ok(result);
+    }
+
+    /// <summary>PUT /api/tutorials/{id}/approve-edit — Manager approves edit: swaps content into original.</summary>
+    [HttpPut("{id:guid}/approve-edit")]
+    [Authorize(Roles = "Manager")]
+    public async Task<IActionResult> ManagerApproveEdit(Guid id, CancellationToken ct)
+    {
+        var managerId = GetCurrentUserId();
+        await _tutorialService.ManagerApproveEditAsync(id, managerId, ct);
+        return Ok(new MessageResponse("Tutorial edit approved and published."));
+    }
+
+    /// <summary>PUT /api/tutorials/{id}/reject-edit — Manager rejects edit, returns working copy to author.</summary>
+    [HttpPut("{id:guid}/reject-edit")]
+    [Authorize(Roles = "Manager")]
+    public async Task<IActionResult> ManagerRejectEdit(
+        Guid id, [FromBody] ManagerRejectRequest request, CancellationToken ct)
+    {
+        var managerId = GetCurrentUserId();
+        await _tutorialService.ManagerRejectEditAsync(id, managerId, request.Reason, ct);
+        return Ok(new MessageResponse("Tutorial edit rejected. Author has been notified."));
+    }
+
+    // ── Manager final approval ───────────────────────────────────────────────
+
+    /// <summary>PUT /api/tutorials/{id}/publish — Manager publishes a tutorial (BR-16).</summary>
+    [HttpPut("{id:guid}/publish")]
+    [Authorize(Roles = "Manager")]
+    public async Task<IActionResult> ManagerPublish(Guid id, CancellationToken ct)
+    {
+        var managerId = GetCurrentUserId();
+        await _tutorialService.ManagerPublishAsync(id, managerId, ct);
+        return Ok(new MessageResponse("Tutorial has been published successfully."));
+    }
+
+    /// <summary>PUT /api/tutorials/{id}/reject — Manager rejects a tutorial (BR-16, BR-18).</summary>
+    [HttpPut("{id:guid}/reject")]
+    [Authorize(Roles = "Manager")]
+    public async Task<IActionResult> ManagerReject(
+        Guid id, [FromBody] ManagerRejectRequest request, CancellationToken ct)
+    {
+        var managerId = GetCurrentUserId();
+        await _tutorialService.ManagerRejectAsync(id, managerId, request.Reason, ct);
+        return Ok(new MessageResponse("Tutorial has been rejected."));
+    }
+
+    /// <summary>DELETE /api/tutorials/{id} — Manager soft-removes a published tutorial (BR-16).</summary>
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Manager")]
+    public async Task<IActionResult> ManagerRemove(
+        Guid id, [FromBody] ManagerRemoveRequest? request, CancellationToken ct)
+    {
+        var managerId = GetCurrentUserId();
+        await _tutorialService.ManagerRemoveAsync(id, managerId, request?.Reason, ct);
+        return Ok(new MessageResponse("Tutorial has been removed."));
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private Guid GetCurrentUserId()
