@@ -18,7 +18,7 @@ public class GetTutorialBySlugHandler
 
         var steps = tutorial.Steps
             .OrderBy(s => s.StepOrder)
-            .Select(s => new TutorialStepDto(s.Id, s.StepOrder, s.Title, s.Content, s.MediaUrl))
+            .Select(s => new TutorialStepDto(s.Id, s.StepOrder, s.Description, s.ImageUrl))
             .ToList();
 
         return new TutorialDetailDto(
