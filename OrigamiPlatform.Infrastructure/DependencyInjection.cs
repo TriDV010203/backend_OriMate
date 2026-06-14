@@ -6,6 +6,7 @@ using OrigamiPlatform.Application.Commands.Journals;
 using OrigamiPlatform.Application.Features.Tutorials.Services;
 
 using OrigamiPlatform.Application.Commands.CommunityPosts;
+using OrigamiPlatform.Application.Commands.FamilyProjects;
 using OrigamiPlatform.Application.Commands.Likes;
 using OrigamiPlatform.Application.Commands.Reports;
 
@@ -13,6 +14,7 @@ using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
 using OrigamiPlatform.Application.Queries.Reports;
 using OrigamiPlatform.Application.Queries.Achievements;
+using OrigamiPlatform.Application.Queries.FamilyProjects;
 using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
@@ -77,6 +79,10 @@ public static class DependencyInjection
         services.AddScoped<UpdateJournalHandler>();
         services.AddScoped<DeleteJournalHandler>();
         services.AddScoped<GetUserJournalsHandler>();
+
+        // Handlers — FT-18 Family projects
+        services.AddScoped<CreateFamilyProjectHandler>();
+        services.AddScoped<GetFamilyProjectHandler>();
 
 
         return services;
