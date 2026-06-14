@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using OrigamiPlatform.Application.Commands.Achievements;
 using OrigamiPlatform.Application.Commands.Auth;
+using OrigamiPlatform.Application.Commands.Journals;
 
 using OrigamiPlatform.Application.Features.Tutorials.Services;
 
@@ -12,6 +13,7 @@ using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
 using OrigamiPlatform.Application.Queries.Reports;
 using OrigamiPlatform.Application.Queries.Achievements;
+using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
 using OrigamiPlatform.Infrastructure.Services;
@@ -26,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ITutorialRepository, TutorialRepository>();
         services.AddScoped<IAchievementRepository, AchievementRepository>();
+        services.AddScoped<IJournalRepository, JournalRepository>();
 
         // FT-09-Repositories
         services.AddScoped<ICommunityPostRepository, CommunityPostRepository>();
@@ -66,6 +69,10 @@ public static class DependencyInjection
         services.AddScoped<UpdateAchievementHandler>();
         services.AddScoped<DeleteAchievementHandler>();
         services.AddScoped<GetUserAchievementsHandler>();
+        services.AddScoped<CreateJournalHandler>();
+        services.AddScoped<UpdateJournalHandler>();
+        services.AddScoped<DeleteJournalHandler>();
+        services.AddScoped<GetUserJournalsHandler>();
 
 
         return services;
