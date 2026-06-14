@@ -150,4 +150,34 @@ public class TutorialRepository : ITutorialRepository
 
     public Task<CreatorVipSettings?> GetActiveCreatorVipSettingsAsync(Guid creatorId, CancellationToken ct = default)
         => _db.CreatorVipSettings.FirstOrDefaultAsync(v => v.CreatorId == creatorId && v.IsActive, ct);
+
+    // ── FT-07 Edit-after-publish ─────────────────────────────────────────────
+
+    public Task<Tutorial?> GetWorkingCopyByParentIdAsync(Guid parentId, CancellationToken ct = default)
+        => _db.Tutorials
+            .Where(t => t.ParentTutorialId == parentId
+                     && t.Status != TutorialStatus.Rejected
+                     && !t.IsDeleted)
+            .Include(t => t.Steps)
+            .FirstOrDefaultAsync(ct);
+
+    public async Task DeleteAsync(Guid tutorialId, CancellationToken ct = default)
+    {
+        await _db.Tutorials
+            .Where(t => t.Id == tutorialId)
+            .ExecuteDeleteAsync(ct);
+    }
+
+    public async Task DeleteStepsByTutorialIdAsync(Guid tutorialId, CancellationToken ct = default)
+    {
+        await _db.TutorialSteps
+            .Where(s => s.TutorialId == tutorialId)
+            .ExecuteDeleteAsync(ct);
+    }
+
+    public async Task AddStepsAsync(IEnumerable<TutorialStep> steps, CancellationToken ct = default)
+    {
+        _db.TutorialSteps.AddRange(steps);
+        await _db.SaveChangesAsync(ct);
+    }
 }
