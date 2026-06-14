@@ -84,9 +84,8 @@ public class TutorialService : ITutorialService
                     Id = Guid.NewGuid(),
                     TutorialId = tutorial.Id,
                     StepOrder = stepReq.StepOrder,
-                    Title = $"Step {stepReq.StepOrder}",
-                    Content = stepReq.Description,
-                    MediaUrl = stepReq.ImageUrl,
+                    Description = stepReq.Description,
+                    ImageUrl = stepReq.ImageUrl,
                     CreatedAt = DateTime.UtcNow
                 });
             }
@@ -129,7 +128,7 @@ public class TutorialService : ITutorialService
         else
         {
             var badStepOrders = tutorial.Steps
-                .Where(s => string.IsNullOrWhiteSpace(s.Content) || string.IsNullOrWhiteSpace(s.MediaUrl))
+                .Where(s => string.IsNullOrWhiteSpace(s.Description) || string.IsNullOrWhiteSpace(s.ImageUrl))
                 .Select(s => s.StepOrder)
                 .ToList();
             if (badStepOrders.Count > 0)
@@ -471,9 +470,8 @@ public class TutorialService : ITutorialService
                 Id = Guid.NewGuid(),
                 TutorialId = workingCopy.Id,
                 StepOrder = s.StepOrder,
-                Title = s.Title,
-                Content = s.Content,
-                MediaUrl = s.MediaUrl,
+                Description = s.Description,
+                ImageUrl = s.ImageUrl,
                 CreatedAt = DateTime.UtcNow
             });
         }
@@ -542,9 +540,8 @@ public class TutorialService : ITutorialService
                     Id = Guid.NewGuid(),
                     TutorialId = workingCopyId,
                     StepOrder = stepReq.StepOrder,
-                    Title = $"Step {stepReq.StepOrder}",
-                    Content = stepReq.Description,
-                    MediaUrl = stepReq.ImageUrl,
+                    Description = stepReq.Description,
+                    ImageUrl = stepReq.ImageUrl,
                     CreatedAt = DateTime.UtcNow
                 });
             }
@@ -592,7 +589,7 @@ public class TutorialService : ITutorialService
         else
         {
             var badStepOrders = workingCopy.Steps
-                .Where(s => string.IsNullOrWhiteSpace(s.Content) || string.IsNullOrWhiteSpace(s.MediaUrl))
+                .Where(s => string.IsNullOrWhiteSpace(s.Description) || string.IsNullOrWhiteSpace(s.ImageUrl))
                 .Select(s => s.StepOrder)
                 .ToList();
             if (badStepOrders.Count > 0)
@@ -660,9 +657,8 @@ public class TutorialService : ITutorialService
             Id = Guid.NewGuid(),
             TutorialId = originalId,
             StepOrder = s.StepOrder,
-            Title = s.Title,
-            Content = s.Content,
-            MediaUrl = s.MediaUrl,
+            Description = s.Description,
+            ImageUrl = s.ImageUrl,
             CreatedAt = DateTime.UtcNow
         }).ToList();
 
