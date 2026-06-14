@@ -29,12 +29,11 @@ public static class DependencyInjection
         services.AddScoped<ITutorialRepository, TutorialRepository>();
         services.AddScoped<IAchievementRepository, AchievementRepository>();
         services.AddScoped<IJournalRepository, JournalRepository>();
-
-        // FT-09-Repositories
         services.AddScoped<ICommunityPostRepository, CommunityPostRepository>();
         services.AddScoped<ILikeRepository, LikeRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IBlockedWordRepository, BlockedWordRepository>();
+        services.AddScoped<ICommentRepository, CommentRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
