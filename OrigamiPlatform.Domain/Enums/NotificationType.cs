@@ -12,5 +12,14 @@ public enum NotificationType
     // FT-04 Tutorial review workflow
     NewTutorialPendingReview,
     TutorialReadyForManagerApproval,
-    TutorialRevisionRequired
+    TutorialRevisionRequired,
+
+    // FT-05 Manager final approval
+    TutorialPublished,
+    TutorialRejected,
+    TutorialRemoved,
+
+    // FT-07 Edit-after-publish
+    TutorialEditPublished,
+    TutorialEditRejected
 }
