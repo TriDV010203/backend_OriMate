@@ -1,5 +1,6 @@
 ﻿using OrigamiPlatform.Application.DTOs.Reports;
 using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
 using OrigamiPlatform.Domain.Exceptions;
 
@@ -9,18 +10,23 @@ public class HandleReportHandler
 {
     private readonly IReportRepository _reports;
     private readonly ICommunityPostRepository _posts;
+    private readonly ICommentRepository _comments;
+    private readonly ITutorialRepository _tutorials;
 
     public HandleReportHandler(
         IReportRepository reports,
-        ICommunityPostRepository posts)
+        ICommunityPostRepository posts,
+        ICommentRepository comments,
+    ITutorialRepository tutorials)
     {
         _reports = reports;
         _posts = posts;
+        _comments = comments;
+        _tutorials = tutorials;
     }
 
     public async Task HandleAsync(HandleReportCommand cmd, CancellationToken ct = default)
     {
-        // 1. Lấy report từ DB
         var report = await _reports.GetByIdAsync(cmd.ReportId);
         if (report == null)
             throw new NotFoundException("Report not found.");
@@ -28,29 +34,22 @@ public class HandleReportHandler
         if (report.Status != ReportStatus.Pending)
             throw new DomainException("This report has already been handled.");
 
-        // 2. Thực thi Action của Manager
         switch (cmd.ActionType)
         {
             case ReportActionType.Dismiss:
-                // Không làm gì với content, chỉ cập nhật trạng thái report thành Bỏ qua
                 report.Status = ReportStatus.Dismissed;
                 break;
 
             case ReportActionType.RemoveContent:
-                // Ẩn/Xóa content (AC-05)
                 await RemoveContentAsync(report.TargetType, report.TargetId);
-                // Đánh dấu là đã xử lý
                 report.Status = ReportStatus.Reviewed;
                 break;
 
             case ReportActionType.SuspendAccount:
-                // Tương lai: Logic khóa tài khoản (Suspend User)
-                // Đánh dấu là đã xử lý
                 report.Status = ReportStatus.Reviewed;
                 break;
         }
 
-        // 3. Cập nhật Audit Log cho Report (Identity, Action, Timestamp)
         report.HandledBy = cmd.ManagerId;
         report.HandledAt = DateTime.UtcNow;
         report.UpdatedAt = DateTime.UtcNow;
@@ -58,7 +57,6 @@ public class HandleReportHandler
         await _reports.UpdateAsync(report);
     }
 
-    // Hàm phụ trợ ẩn bài viết
     private async Task RemoveContentAsync(TargetType targetType, Guid targetId)
     {
         if (targetType == TargetType.CommunityPost)
@@ -66,8 +64,23 @@ public class HandleReportHandler
             var post = await _posts.GetByIdAsync(targetId);
             if (post != null)
             {
-                post.IsVisible = false;
                 post.IsDeleted = true;
+            }
+        }
+        else if (targetType == TargetType.Tutorial)
+        {
+            var tutorial = await _tutorials.GetByIdWithStepsAsync(targetId);
+            if (tutorial != null)
+            {
+                tutorial.IsDeleted = true;
+            }
+        }
+        else if (targetType == TargetType.Comment)
+        {
+            var comment = await _comments.GetByIdAsync(targetId);
+            if (comment != null)
+            {
+                comment.IsDeleted = true;
             }
         }
     }

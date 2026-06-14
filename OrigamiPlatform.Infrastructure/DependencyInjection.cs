@@ -17,6 +17,8 @@ using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
 using OrigamiPlatform.Infrastructure.Services;
+using OrigamiPlatform.Application.Commands.Comments;
+using OrigamiPlatform.Application.Queries.Comments;
 
 namespace OrigamiPlatform.Infrastructure;
 
@@ -29,12 +31,11 @@ public static class DependencyInjection
         services.AddScoped<ITutorialRepository, TutorialRepository>();
         services.AddScoped<IAchievementRepository, AchievementRepository>();
         services.AddScoped<IJournalRepository, JournalRepository>();
-
-        // FT-09-Repositories
         services.AddScoped<ICommunityPostRepository, CommunityPostRepository>();
         services.AddScoped<ILikeRepository, LikeRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IBlockedWordRepository, BlockedWordRepository>();
+        services.AddScoped<ICommentRepository, CommentRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -73,6 +74,9 @@ public static class DependencyInjection
         services.AddScoped<UpdateJournalHandler>();
         services.AddScoped<DeleteJournalHandler>();
         services.AddScoped<GetUserJournalsHandler>();
+        services.AddScoped<AddCommentHandler>();
+        services.AddScoped<DeleteCommentHandler>();
+        services.AddScoped<GetCommentsHandler>();
 
 
         return services;

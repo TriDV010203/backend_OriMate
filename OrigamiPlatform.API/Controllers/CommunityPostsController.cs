@@ -9,7 +9,7 @@ namespace OrigamiPlatform.API.Controllers;
 
 [ApiController]
 [Route("api/community-posts")]
-[Authorize] // Bắt buộc đăng nhập (Ngăn Guest - NAC-03)
+[Authorize]
 public class CommunityPostsController : ControllerBase
 {
     private readonly CreateCommunityPostHandler _createPost;
@@ -20,30 +20,25 @@ public class CommunityPostsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreatePost([FromBody] CreateCommunityPostRequest request, CancellationToken ct)
     {
-        // Trích xuất UserId từ JWT Token
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!Guid.TryParse(userIdString, out Guid userId))
             return Unauthorized();
 
-        // Tạo Command và gọi Handler
         var command = new CreateCommunityPostCommand(userId, request.Content, request.TutorialId, request.MediaItems);
         var postId = await _createPost.HandleAsync(command, ct);
 
-        // Trả về HTTP 200 OK kèm Id của bài viết mới
         return Ok(new { PostId = postId });
     }
 
-    // Đầu file nhớ thêm: using OrigamiPlatform.Application.Queries.CommunityPosts;
 
     [HttpGet("feed")]
-    [AllowAnonymous] // Bảng tin thì khách chưa đăng nhập cũng xem được, chỉ không like/comment được
+    [AllowAnonymous]
     public async Task<IActionResult> GetFeed(
         [FromServices] GetCommunityFeedHandler getFeedHandler,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        // Thử lấy UserId nếu họ ĐÃ đăng nhập (để tính IsLikedByCurrentUser)
         Guid? currentUserId = null;
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (Guid.TryParse(userIdString, out Guid parsedId))
