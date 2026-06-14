@@ -1,5 +1,6 @@
 using OrigamiPlatform.Application.DTOs;
 using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Application.Validators.Auth;
 using OrigamiPlatform.Domain.Exceptions;
 
 namespace OrigamiPlatform.Application.Commands.Auth;
@@ -14,11 +15,13 @@ public class ResetPasswordHandler
 
     public async Task<MessageResponse> HandleAsync(ResetPasswordCommand cmd, CancellationToken ct = default)
     {
+        ResetPasswordRequestValidator.Validate(cmd.Token, cmd.NewPassword, cmd.ConfirmPassword);
+
         var user = await _users.GetByPasswordResetTokenAsync(cmd.Token, ct)
-            ?? throw new NotFoundException("Invalid or expired reset token.");
+            ?? throw new DomainException("Invalid or expired reset token.");
 
         if (user.PasswordResetTokenExpiry < DateTime.UtcNow)
-            throw new DomainException("Reset link has expired.");
+            throw new DomainException("Reset token has expired. Please request a new one.");
 
         var now = DateTime.UtcNow;
         user.PasswordHash = _hasher.Hash(cmd.NewPassword);
@@ -28,6 +31,6 @@ public class ResetPasswordHandler
 
         await _users.UpdateAsync(user, ct);
 
-        return new MessageResponse("Password has been reset successfully.");
+        return new MessageResponse("Password reset successful. You can now log in.");
     }
 }

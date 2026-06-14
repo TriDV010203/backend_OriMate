@@ -68,7 +68,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken ct)
     {
         var result = await _resetPassword.HandleAsync(
-            new ResetPasswordCommand(request.Token, request.NewPassword), ct);
+            new ResetPasswordCommand(request.Token, request.NewPassword, request.ConfirmPassword), ct);
         return Ok(result);
     }
 }
