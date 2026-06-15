@@ -1,5 +1,6 @@
 ﻿using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
+using OrigamiPlatform.Domain.Enums;
 using OrigamiPlatform.Domain.Exceptions;
 
 namespace OrigamiPlatform.Application.Commands.Follows;
@@ -9,6 +10,7 @@ public record ToggleFollowCommand(Guid FollowerId, Guid FollowingId);
 public class ToggleFollowHandler
 {
     private readonly IFollowRepository _follows;
+    private readonly INotificationService _notifications;
 
     public ToggleFollowHandler(IFollowRepository follows) => _follows = follows;
 
@@ -35,6 +37,17 @@ public class ToggleFollowHandler
                 CreatedAt = DateTime.UtcNow
             };
             await _follows.AddAsync(follow, ct);
+
+            //Notifications
+            await _notifications.NotifyUserAsync(
+                userId: cmd.FollowingId,
+                type: NotificationType.System,
+                message: "Bạn có người theo dõi mới.",
+                entityType: "User",
+                entityId: cmd.FollowerId,
+                ct: ct
+            );
+
             return true;
         }
     }
