@@ -4,8 +4,6 @@ using OrigamiPlatform.Domain.Enums;
 
 namespace OrigamiPlatform.Application.Commands.Wishlists;
 
-public record ToggleWishlistCommand(Guid UserId, Guid TargetId, TargetType TargetType);
-
 public class ToggleWishlistHandler
 {
     private readonly IWishlistRepository _wishlists;
@@ -31,7 +29,7 @@ public class ToggleWishlistHandler
                 CreatedAt = DateTime.UtcNow
             };
             await _wishlists.AddAsync(wishlist, ct);
-            return true; 
+            return true;
         }
     }
 }

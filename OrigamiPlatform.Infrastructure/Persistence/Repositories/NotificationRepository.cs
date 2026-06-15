@@ -13,7 +13,7 @@ public class NotificationRepository : INotificationRepository
 
     public async Task<PagedResult<Notification>> GetUserNotificationsAsync(Guid userId, int page, int pageSize, CancellationToken ct = default)
     {
-        var query = _context.Notifications.Where(n => n.UserId == userId);
+        var query = _context.Notifications.Where(n => n.RecipientId == userId);
 
         var totalCount = await query.CountAsync(ct);
         var items = await query
@@ -46,7 +46,7 @@ public class NotificationRepository : INotificationRepository
     public async Task MarkAllAsReadAsync(Guid userId, CancellationToken ct = default)
     {
         var unreadNotifications = await _context.Notifications
-            .Where(n => n.UserId == userId && !n.IsRead)
+            .Where(n => n.RecipientId == userId && !n.IsRead)
             .ToListAsync(ct);
 
         foreach (var notification in unreadNotifications)
