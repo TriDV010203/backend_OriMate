@@ -10,4 +10,5 @@ public interface ICommentRepository
     Task<Comment?> GetByIdAsync(Guid id);
     Task RemoveAsync(Comment comment);
     Task<PagedResult<Comment>> GetCommentsByTargetAsync(Guid targetId, TargetType targetType, int page, int pageSize);
+    Task<List<Comment>> GetRepliesByParentIdsAsync(IEnumerable<Guid> parentIds);
 }
