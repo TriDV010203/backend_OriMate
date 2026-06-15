@@ -3,8 +3,6 @@ using OrigamiPlatform.Domain.Exceptions;
 
 namespace OrigamiPlatform.Application.Commands.Comments;
 
-public record DeleteCommentCommand(Guid UserId, Guid CommentId);
-
 public class DeleteCommentHandler
 {
     private readonly ICommentRepository _comments;

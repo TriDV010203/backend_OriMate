@@ -5,14 +5,16 @@ using OrigamiPlatform.Domain.Exceptions;
 
 namespace OrigamiPlatform.Application.Commands.Follows;
 
-public record ToggleFollowCommand(Guid FollowerId, Guid FollowingId);
-
 public class ToggleFollowHandler
 {
     private readonly IFollowRepository _follows;
     private readonly INotificationService _notifications;
 
-    public ToggleFollowHandler(IFollowRepository follows) => _follows = follows;
+    public ToggleFollowHandler(IFollowRepository follows, INotificationService notifications)
+    {
+        _follows = follows;
+        _notifications = notifications;
+    }
 
     public async Task<bool> HandleAsync(ToggleFollowCommand cmd, CancellationToken ct = default)
     {
@@ -38,7 +40,7 @@ public class ToggleFollowHandler
             };
             await _follows.AddAsync(follow, ct);
 
-            //Notifications
+            // Notifications
             await _notifications.NotifyUserAsync(
                 userId: cmd.FollowingId,
                 type: NotificationType.System,

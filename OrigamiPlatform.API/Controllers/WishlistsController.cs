@@ -30,13 +30,13 @@ public class WishlistsController : ControllerBase
 
     [HttpGet("my-wishlist")]
     public async Task<IActionResult> GetMyWishlist(
-        [FromServices] GetMyWishlistHandler handler,
+        [FromServices] GetWishlistHandler handler,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         CancellationToken ct = default)
     {
         var userId = GetCurrentUserId();
-        var query = new GetMyWishlistQuery(userId, page, pageSize);
+        var query = new GetWishlistQuery(userId, page, pageSize);
         var result = await handler.HandleAsync(query, ct);
 
         return Ok(result);

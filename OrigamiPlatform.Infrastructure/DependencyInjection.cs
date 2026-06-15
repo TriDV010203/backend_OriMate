@@ -1,27 +1,26 @@
 using Microsoft.Extensions.DependencyInjection;
 using OrigamiPlatform.Application.Commands.Achievements;
 using OrigamiPlatform.Application.Commands.Auth;
-using OrigamiPlatform.Application.Commands.Journals;
-
-using OrigamiPlatform.Application.Features.Tutorials.Services;
-
+using OrigamiPlatform.Application.Commands.Comments;
 using OrigamiPlatform.Application.Commands.CommunityPosts;
+using OrigamiPlatform.Application.Commands.Follows;
+using OrigamiPlatform.Application.Commands.Journals;
 using OrigamiPlatform.Application.Commands.Likes;
+using OrigamiPlatform.Application.Commands.Notifications;
 using OrigamiPlatform.Application.Commands.Reports;
-
+using OrigamiPlatform.Application.Commands.Wishlists;
+using OrigamiPlatform.Application.Features.Tutorials.Services;
 using OrigamiPlatform.Application.Interfaces;
-using OrigamiPlatform.Application.Queries.CommunityPosts;
-using OrigamiPlatform.Application.Queries.Reports;
 using OrigamiPlatform.Application.Queries.Achievements;
+using OrigamiPlatform.Application.Queries.Comments;
+using OrigamiPlatform.Application.Queries.CommunityPosts;
 using OrigamiPlatform.Application.Queries.Journals;
+using OrigamiPlatform.Application.Queries.Notifications;
+using OrigamiPlatform.Application.Queries.Reports;
 using OrigamiPlatform.Application.Queries.Tutorials;
+using OrigamiPlatform.Application.Queries.Wishlists;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
 using OrigamiPlatform.Infrastructure.Services;
-using OrigamiPlatform.Application.Commands.Comments;
-using OrigamiPlatform.Application.Queries.Comments;
-using OrigamiPlatform.Application.Commands.Wishlists;
-using OrigamiPlatform.Application.Queries.Wishlists;
-using OrigamiPlatform.Application.Commands.Follows;
 
 namespace OrigamiPlatform.Infrastructure;
 
@@ -41,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<ICommentRepository, CommentRepository>();
         services.AddScoped<IWishlistRepository, WishlistRepository>();
         services.AddScoped<IFollowRepository, FollowRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -86,9 +86,12 @@ public static class DependencyInjection
         services.AddScoped<DeleteCommentHandler>();
         services.AddScoped<GetCommentsHandler>();
         services.AddScoped<ToggleWishlistHandler>();
-        services.AddScoped<GetMyWishlistHandler>();
+        services.AddScoped<GetWishlistHandler>();
         services.AddScoped<ToggleFollowHandler>();
-        
+        services.AddScoped<MarkNotificationAsReadHandler>();
+        services.AddScoped<MarkAllNotificationsAsReadHandler>();
+        services.AddScoped<GetNotificationsHandler>();
+
         return services;
     }
 }
