@@ -31,8 +31,15 @@ public class LoginHandler
             throw new ForbiddenException("Your account has been suspended.");
 
         var (token, expiresAt) = _tokens.GenerateToken(user);
+        var (rawRefresh, hashedRefresh, refreshExpiresAt) = _tokens.GenerateRefreshToken();
+
+        user.RefreshTokenHash = hashedRefresh;
+        user.RefreshTokenExpiresAt = refreshExpiresAt;
+        user.UpdatedAt = DateTime.UtcNow;
+        await _users.UpdateAsync(user, ct);
+
         var roles = user.Roles.Select(r => r.Role.ToString()).ToList();
 
-        return new AuthResponse(user.Id, user.Email, user.Profile?.DisplayName, roles, token, expiresAt);
+        return new AuthResponse(user.Id, user.Email, user.Profile?.DisplayName, roles, token, expiresAt, rawRefresh);
     }
 }
