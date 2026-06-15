@@ -11,6 +11,12 @@ public class UserRepository : IUserRepository
 
     public UserRepository(AppDbContext db) => _db = db;
 
+    public Task<User?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        => _db.Users
+            .Include(u => u.Roles)
+            .Include(u => u.Profile)
+            .FirstOrDefaultAsync(u => u.Id == id, ct);
+
     public Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)
         => _db.Users
             .Include(u => u.Roles)
@@ -25,6 +31,12 @@ public class UserRepository : IUserRepository
 
     public Task<User?> GetByPasswordResetTokenAsync(string token, CancellationToken ct = default)
         => _db.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == token, ct);
+
+    public Task<User?> GetByRefreshTokenHashAsync(string hashedToken, CancellationToken ct = default)
+        => _db.Users
+            .Include(u => u.Roles)
+            .Include(u => u.Profile)
+            .FirstOrDefaultAsync(u => u.RefreshTokenHash == hashedToken, ct);
 
     public async Task AddAsync(User user, CancellationToken ct = default)
     {
