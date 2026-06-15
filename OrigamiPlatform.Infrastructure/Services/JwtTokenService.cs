@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -14,6 +15,7 @@ public class JwtTokenService : ITokenService
     private readonly string _issuer;
     private readonly string _audience;
     private readonly int _expiryMinutes;
+    private readonly int _refreshTokenExpiryDays;
 
     public JwtTokenService(IConfiguration config)
     {
@@ -21,6 +23,7 @@ public class JwtTokenService : ITokenService
         _issuer = config["Jwt:Issuer"]!;
         _audience = config["Jwt:Audience"]!;
         _expiryMinutes = int.Parse(config["Jwt:ExpiryMinutes"]!);
+        _refreshTokenExpiryDays = int.Parse(config["Jwt:RefreshTokenExpiryDays"] ?? "30");
     }
 
     public (string Token, DateTime ExpiresAt) GenerateToken(User user)
@@ -49,5 +52,14 @@ public class JwtTokenService : ITokenService
         );
 
         return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
+    }
+
+    public (string RawToken, string HashedToken, DateTime ExpiresAt) GenerateRefreshToken()
+    {
+        var bytes = RandomNumberGenerator.GetBytes(64);
+        var rawToken = Convert.ToBase64String(bytes);
+        var hashedToken = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(rawToken)));
+        var expiresAt = DateTime.UtcNow.AddDays(_refreshTokenExpiryDays);
+        return (rawToken, hashedToken, expiresAt);
     }
 }
