@@ -65,3 +65,5 @@ appsettings.*.json
 .env
 **/bin/
 **/obj/
+**/bin/
+**/obj/
