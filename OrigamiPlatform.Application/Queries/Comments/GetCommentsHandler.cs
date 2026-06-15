@@ -18,12 +18,29 @@ public class GetCommentsHandler
     {
         var pagedComments = await _comments.GetCommentsByTargetAsync(query.TargetId, query.TargetType, query.Page, query.PageSize);
 
-        // Map từ Entity sang DTO
+        if (!pagedComments.Items.Any())
+        {
+            return new PagedResult<CommentDto>(new List<CommentDto>(), 0, query.Page, query.PageSize, 0);
+        }
+
+        var parentIds = pagedComments.Items.Select(c => c.Id).ToList();
+
+        var allReplies = await _comments.GetRepliesByParentIdsAsync(parentIds);
+
         var dtos = pagedComments.Items.Select(c => new CommentDto(
-            c.Id,
-            c.AuthorId,
-            c.Content,
-            c.CreatedAt
+            Id: c.Id,
+            UserId: c.AuthorId,
+            Content: c.Content,
+            CreatedAt: c.CreatedAt,
+            Replies: allReplies
+                .Where(r => r.TargetId == c.Id)
+                .Select(r => new CommentDto(
+                    Id: r.Id,
+                    UserId: r.AuthorId,
+                    Content: r.Content,
+                    CreatedAt: r.CreatedAt,
+                    Replies: new List<CommentDto>() 
+                )).ToList()
         )).ToList();
 
         return new PagedResult<CommentDto>(dtos, pagedComments.TotalCount, query.Page, query.PageSize, pagedComments.TotalPages);
