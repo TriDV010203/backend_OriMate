@@ -19,6 +19,8 @@ using OrigamiPlatform.Infrastructure.Persistence.Repositories;
 using OrigamiPlatform.Infrastructure.Services;
 using OrigamiPlatform.Application.Commands.Comments;
 using OrigamiPlatform.Application.Queries.Comments;
+using OrigamiPlatform.Application.Commands.Wishlists;
+using OrigamiPlatform.Application.Queries.Wishlists;
 
 namespace OrigamiPlatform.Infrastructure;
 
@@ -36,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IBlockedWordRepository, BlockedWordRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
+        services.AddScoped<IWishlistRepository, WishlistRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -77,6 +80,9 @@ public static class DependencyInjection
         services.AddScoped<AddCommentHandler>();
         services.AddScoped<DeleteCommentHandler>();
         services.AddScoped<GetCommentsHandler>();
+
+        services.AddScoped<ToggleWishlistHandler>();
+        services.AddScoped<GetMyWishlistHandler>();
 
 
         return services;
