@@ -56,6 +56,9 @@ public static class DependencyInjection
         services.AddScoped<ResendVerificationHandler>();
         services.AddScoped<ForgotPasswordHandler>();
         services.AddScoped<ResetPasswordHandler>();
+        services.AddScoped<RefreshTokenHandler>();
+        services.AddScoped<ChangePasswordHandler>();
+        services.AddScoped<LogoutHandler>();
 
         // Handlers — Tutorials (public)
         services.AddScoped<GetTutorialsHandler>();

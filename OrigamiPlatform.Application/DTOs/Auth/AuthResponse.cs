@@ -6,5 +6,6 @@ public record AuthResponse(
     string? DisplayName,
     IEnumerable<string> Roles,
     string Token,
-    DateTime ExpiresAt
+    DateTime ExpiresAt,
+    string RefreshToken
 );
