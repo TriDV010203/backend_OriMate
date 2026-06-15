@@ -17,7 +17,7 @@ public class EmailService : IEmailService
         _smtpHost = config["Email:SmtpHost"]!;
         _smtpPort = int.Parse(config["Email:SmtpPort"]!);
         _from = config["Email:From"]!;
-        _baseUrl = config["Email:BaseUrl"]!;
+        _baseUrl = config["Email:FrontendBaseUrl"]!;
     }
 
     public async Task SendVerificationEmailAsync(string toEmail, string verificationToken, CancellationToken ct = default)
@@ -29,7 +29,7 @@ public class EmailService : IEmailService
 
     public async Task SendPasswordResetEmailAsync(string toEmail, string resetToken, CancellationToken ct = default)
     {
-        var link = $"https://{_baseUrl}/api/auth/reset-password?token={resetToken}";
+        var link = $"https://{_baseUrl}/reset-password?token={resetToken}";
         await SendAsync(toEmail, "Reset your Origami Platform password",
             $"Click the link below to reset your password:\n\n{link}\n\nThis link expires in 1 hour.\n\nIf you did not request a password reset, you can ignore this email.", ct);
     }
