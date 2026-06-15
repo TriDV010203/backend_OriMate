@@ -11,11 +11,22 @@ public class AddCommentHandler
 {
     private readonly ICommentRepository _comments;
     private readonly IBlockedWordRepository _blockedWords;
+    private readonly INotificationService _notifications;
+    private readonly ICommunityPostRepository _posts;
+    private readonly ITutorialRepository _tutorials;
 
-    public AddCommentHandler(ICommentRepository comments, IBlockedWordRepository blockedWords)
+    public AddCommentHandler(
+        ICommentRepository comments, 
+        IBlockedWordRepository blockedWords,
+        INotificationService notifications,
+        ICommunityPostRepository posts,
+        ITutorialRepository tutorials)
     {
         _comments = comments;
         _blockedWords = blockedWords;
+        _notifications = notifications; 
+        _posts = posts;
+        _tutorials = tutorials;
     }
 
     public async Task<Guid> HandleAsync(AddCommentCommand cmd, CancellationToken ct = default)
@@ -48,8 +59,38 @@ public class AddCommentHandler
 
         await _comments.AddAsync(comment);
 
-        // TODO(Notifications): Gọi INotificationService để bắn thông báo cho Tác giả bài viết
+        // Notifications
+        try
+        {
+            Guid? targetAuthorId = null;
 
+            if (cmd.TargetType == TargetType.CommunityPost)
+            {
+                var post = await _posts.GetByIdAsync(cmd.TargetId);
+                if (post != null) targetAuthorId = post.AuthorId;
+            }
+            else if (cmd.TargetType == TargetType.Tutorial)
+            {
+                var tutorial = await _tutorials.GetByIdWithStepsAsync(cmd.TargetId, ct);
+                if (tutorial != null) targetAuthorId = tutorial.AuthorId;
+            }
+
+            if (targetAuthorId.HasValue && targetAuthorId.Value != cmd.UserId)
+            {
+                await _notifications.NotifyUserAsync(
+                    userId: targetAuthorId.Value,
+                    type: NotificationType.System,
+                    message: "Bài viết của bạn có bình luận mới.",
+                    entityType: cmd.TargetType.ToString(),
+                    entityId: cmd.TargetId,
+                    ct: ct
+                );
+            }
+        }
+        catch
+        {
+            
+        }
         return comment.Id;
     }
 }
