@@ -21,6 +21,7 @@ using OrigamiPlatform.Application.Commands.Comments;
 using OrigamiPlatform.Application.Queries.Comments;
 using OrigamiPlatform.Application.Commands.Wishlists;
 using OrigamiPlatform.Application.Queries.Wishlists;
+using OrigamiPlatform.Application.Commands.Follows;
 
 namespace OrigamiPlatform.Infrastructure;
 
@@ -39,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<IBlockedWordRepository, BlockedWordRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
         services.AddScoped<IWishlistRepository, WishlistRepository>();
+        services.AddScoped<IFollowRepository, FollowRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -80,11 +82,10 @@ public static class DependencyInjection
         services.AddScoped<AddCommentHandler>();
         services.AddScoped<DeleteCommentHandler>();
         services.AddScoped<GetCommentsHandler>();
-
         services.AddScoped<ToggleWishlistHandler>();
         services.AddScoped<GetMyWishlistHandler>();
-
-
+        services.AddScoped<ToggleFollowHandler>();
+        
         return services;
     }
 }
