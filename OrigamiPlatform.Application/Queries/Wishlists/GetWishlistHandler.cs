@@ -4,15 +4,13 @@ using OrigamiPlatform.Application.Interfaces;
 
 namespace OrigamiPlatform.Application.Queries.Wishlists;
 
-public record GetMyWishlistQuery(Guid UserId, int Page, int PageSize);
-
-public class GetMyWishlistHandler
+public class GetWishlistHandler
 {
     private readonly IWishlistRepository _wishlists;
 
-    public GetMyWishlistHandler(IWishlistRepository wishlists) => _wishlists = wishlists;
+    public GetWishlistHandler(IWishlistRepository wishlists) => _wishlists = wishlists;
 
-    public async Task<PagedResult<WishlistDto>> HandleAsync(GetMyWishlistQuery query, CancellationToken ct = default)
+    public async Task<PagedResult<WishlistDto>> HandleAsync(GetWishlistQuery query, CancellationToken ct = default)
     {
         var pagedData = await _wishlists.GetUserWishlistAsync(query.UserId, query.Page, query.PageSize, ct);
 

@@ -5,8 +5,6 @@ using OrigamiPlatform.Domain.Exceptions;
 
 namespace OrigamiPlatform.Application.Commands.Comments;
 
-public record AddCommentCommand(Guid UserId, Guid TargetId, TargetType TargetType, string Content);
-
 public class AddCommentHandler
 {
     private readonly ICommentRepository _comments;
@@ -16,7 +14,7 @@ public class AddCommentHandler
     private readonly ITutorialRepository _tutorials;
 
     public AddCommentHandler(
-        ICommentRepository comments, 
+        ICommentRepository comments,
         IBlockedWordRepository blockedWords,
         INotificationService notifications,
         ICommunityPostRepository posts,
@@ -24,7 +22,7 @@ public class AddCommentHandler
     {
         _comments = comments;
         _blockedWords = blockedWords;
-        _notifications = notifications; 
+        _notifications = notifications;
         _posts = posts;
         _tutorials = tutorials;
     }
@@ -89,8 +87,9 @@ public class AddCommentHandler
         }
         catch
         {
-            
+            // Tránh làm ảnh hưởng luồng chính nếu lỗi thông báo
         }
+
         return comment.Id;
     }
 }
