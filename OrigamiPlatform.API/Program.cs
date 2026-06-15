@@ -4,10 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OrigamiPlatform.API.Middleware;
-using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Infrastructure;
 using OrigamiPlatform.Infrastructure.Persistence;
-using OrigamiPlatform.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,9 +13,6 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddInfrastructure();
-
-if (builder.Environment.IsDevelopment())
-    builder.Services.AddScoped<IEmailService, DevEmailService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
@@ -59,7 +54,17 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:3000",
+                "https://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -69,7 +74,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.UseHttpsRedirection();
+app.UseCors();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();  // ← Chỉ bật khi production
+}
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
