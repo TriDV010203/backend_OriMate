@@ -4,5 +4,6 @@ public record CommentDto(
     Guid Id,
     Guid UserId,
     string Content,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    List<CommentDto>? Replies = null
 );
