@@ -37,5 +37,10 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Repositories
                 .Skip(skip).Take(take)
                 .ToListAsync();
         }
+        public async Task<int> GetPostCountByAuthorAsync(Guid authorId, CancellationToken ct = default)
+        {
+            return await _context.CommunityPosts
+                .CountAsync(p => p.AuthorId == authorId && p.IsVisible && !p.IsDeleted, ct);
+        }
     }
 }
