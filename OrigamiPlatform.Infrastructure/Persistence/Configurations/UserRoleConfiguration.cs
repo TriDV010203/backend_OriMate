@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OrigamiPlatform.Domain.Entities;
+using OrigamiPlatform.Domain.Enums;
 
 namespace OrigamiPlatform.Infrastructure.Persistence.Configurations;
 
@@ -15,5 +16,11 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
                .WithMany(u => u.Roles)
                .HasForeignKey(r => r.UserId)
                .OnDelete(DeleteBehavior.Cascade);
+
+        var seedDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        builder.HasData(
+            new UserRole { UserId = UserConfiguration.AdminId, Role = UserRoleType.User,  CreatedAt = seedDate },
+            new UserRole { UserId = UserConfiguration.AdminId, Role = UserRoleType.Admin, CreatedAt = seedDate }
+        );
     }
 }
