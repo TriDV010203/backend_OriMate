@@ -3,6 +3,7 @@ using OrigamiPlatform.Application.Commands.Achievements;
 using OrigamiPlatform.Application.Commands.Auth;
 using OrigamiPlatform.Application.Commands.Comments;
 using OrigamiPlatform.Application.Commands.CommunityPosts;
+using OrigamiPlatform.Application.Commands.FamilyProjects;
 using OrigamiPlatform.Application.Commands.Follows;
 using OrigamiPlatform.Application.Commands.Journals;
 using OrigamiPlatform.Application.Commands.Likes;
@@ -14,6 +15,7 @@ using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Application.Queries.Achievements;
 using OrigamiPlatform.Application.Queries.Comments;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
+using OrigamiPlatform.Application.Queries.FamilyProjects;
 using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.Notifications;
 using OrigamiPlatform.Application.Queries.Reports;
@@ -41,6 +43,10 @@ public static class DependencyInjection
         services.AddScoped<IWishlistRepository, WishlistRepository>();
         services.AddScoped<IFollowRepository, FollowRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+
+        // FT-18 Family plan & projects
+        services.AddScoped<IFamilySubscriptionRepository, FamilySubscriptionRepository>();
+        services.AddScoped<IFamilyProjectRepository, FamilyProjectRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -91,6 +97,12 @@ public static class DependencyInjection
         services.AddScoped<MarkNotificationAsReadHandler>();
         services.AddScoped<MarkAllNotificationsAsReadHandler>();
         services.AddScoped<GetNotificationsHandler>();
+
+        // Handlers — FT-18 Family projects
+        services.AddScoped<CreateFamilyProjectHandler>();
+        services.AddScoped<GetFamilyProjectHandler>();
+        services.AddScoped<InviteFamilyMemberHandler>();
+        services.AddScoped<RespondFamilyInvitationHandler>();
 
         return services;
     }
