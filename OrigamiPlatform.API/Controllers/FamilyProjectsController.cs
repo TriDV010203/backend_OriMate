@@ -20,6 +20,7 @@ public class FamilyProjectsController : ControllerBase
     private readonly RespondFamilyInvitationHandler _respondInvitation;
     private readonly CompleteStepHandler _completeStep;
     private readonly GetProjectProgressHandler _getProgress;
+    private readonly MarkProjectCompletedHandler _markCompleted;
 
     public FamilyProjectsController(
         CreateFamilyProjectHandler createProject,
@@ -27,9 +28,10 @@ public class FamilyProjectsController : ControllerBase
         InviteFamilyMemberHandler inviteMember,
         RespondFamilyInvitationHandler respondInvitation,
         CompleteStepHandler completeStep,
-        GetProjectProgressHandler getProgress)
-        => (_createProject, _getProject, _inviteMember, _respondInvitation, _completeStep, _getProgress)
-            = (createProject, getProject, inviteMember, respondInvitation, completeStep, getProgress);
+        GetProjectProgressHandler getProgress,
+        MarkProjectCompletedHandler markCompleted)
+        => (_createProject, _getProject, _inviteMember, _respondInvitation, _completeStep, _getProgress, _markCompleted)
+            = (createProject, getProject, inviteMember, respondInvitation, completeStep, getProgress, markCompleted);
 
     [HttpPost]
     public async Task<IActionResult> Create(CreateFamilyProjectRequest request, CancellationToken ct)
@@ -93,6 +95,15 @@ public class FamilyProjectsController : ControllerBase
     {
         var result = await _getProgress.HandleAsync(
             new GetProjectProgressQuery(projectId, GetCurrentUserId()), ct);
+
+        return Ok(result);
+    }
+
+    [HttpPost("{projectId:guid}/complete")]
+    public async Task<IActionResult> CompleteProject(Guid projectId, CancellationToken ct)
+    {
+        var result = await _markCompleted.HandleAsync(
+            new MarkProjectCompletedCommand(projectId, GetCurrentUserId()), ct);
 
         return Ok(result);
     }
