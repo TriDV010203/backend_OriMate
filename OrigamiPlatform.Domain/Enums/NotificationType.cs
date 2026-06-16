@@ -21,5 +21,9 @@ public enum NotificationType
 
     // FT-07 Edit-after-publish
     TutorialEditPublished,
-    TutorialEditRejected
+    TutorialEditRejected,
+
+    // FT-03 Admin actions
+    AccountSuspended,
+    AccountActivated
 }

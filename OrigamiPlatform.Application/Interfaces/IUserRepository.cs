@@ -1,3 +1,4 @@
+using OrigamiPlatform.Application.DTOs.Common;
 using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
 
@@ -14,4 +15,9 @@ public interface IUserRepository
     Task AddAsync(User user, CancellationToken ct = default);
     Task UpdateAsync(User user, CancellationToken ct = default);
     Task<IReadOnlyList<User>> GetUsersByRoleAsync(UserRoleType role, CancellationToken ct = default);
+
+    // Admin user management
+    Task<PagedResult<User>> SearchAsync(string? keyword, AccountStatus? status, UserRoleType? role, int page, int pageSize, CancellationToken ct = default);
+    Task AddRoleAsync(UserRole role, CancellationToken ct = default);
+    Task RemoveRoleAsync(Guid userId, UserRoleType role, CancellationToken ct = default);
 }

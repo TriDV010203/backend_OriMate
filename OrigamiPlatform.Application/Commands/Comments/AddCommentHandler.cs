@@ -1,4 +1,4 @@
-﻿using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
 using OrigamiPlatform.Domain.Exceptions;
@@ -10,12 +10,12 @@ public record AddCommentCommand(Guid UserId, Guid TargetId, TargetType TargetTyp
 public class AddCommentHandler
 {
     private readonly ICommentRepository _comments;
-    private readonly IBlockedWordRepository _blockedWords;
+    private readonly IBlockedWordService _blockedWordService;
 
-    public AddCommentHandler(ICommentRepository comments, IBlockedWordRepository blockedWords)
+    public AddCommentHandler(ICommentRepository comments, IBlockedWordService blockedWordService)
     {
         _comments = comments;
-        _blockedWords = blockedWords;
+        _blockedWordService = blockedWordService;
     }
 
     public async Task<Guid> HandleAsync(AddCommentCommand cmd, CancellationToken ct = default)
@@ -25,16 +25,8 @@ public class AddCommentHandler
             throw new DomainException("Comment length must be between 1 and 500 characters.");
         }
 
-        var blockedWords = await _blockedWords.GetAllBlockedWordsAsync();
-        var lowerContent = cmd.Content.ToLowerInvariant();
-
-        foreach (var word in blockedWords)
-        {
-            if (lowerContent.Contains(word.ToLowerInvariant()))
-            {
-                throw new DomainException("Your comment contains blocked words and cannot be posted.");
-            }
-        }
+        if (await _blockedWordService.ContainsBlockedWordAsync(cmd.Content, ct))
+            throw new DomainException("Your comment contains blocked words and cannot be posted.");
 
         var comment = new Comment
         {
@@ -47,8 +39,6 @@ public class AddCommentHandler
         };
 
         await _comments.AddAsync(comment);
-
-        // TODO(Notifications): Gọi INotificationService để bắn thông báo cho Tác giả bài viết
 
         return comment.Id;
     }

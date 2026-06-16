@@ -27,9 +27,10 @@ public class ExceptionHandlingMiddleware
     {
         var (statusCode, message) = ex switch
         {
-            DomainException => (400, ex.Message),
+            ConflictException => (409, ex.Message),
             NotFoundException => (404, ex.Message),
             ForbiddenException => (403, ex.Message),
+            DomainException => (400, ex.Message),
             _ => (500, "An unexpected error occurred.")
         };
 
