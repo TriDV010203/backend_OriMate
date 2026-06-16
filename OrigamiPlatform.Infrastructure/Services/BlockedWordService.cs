@@ -1,24 +1,31 @@
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OrigamiPlatform.Application.Interfaces;
-using OrigamiPlatform.Infrastructure.Persistence;
 
 namespace OrigamiPlatform.Infrastructure.Services;
 
 public class BlockedWordService : IBlockedWordService
 {
-    private readonly AppDbContext _db;
+    private HashSet<string> _cache = [];
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public BlockedWordService(AppDbContext db) => _db = db;
+    public BlockedWordService(IServiceScopeFactory scopeFactory)
+        => _scopeFactory = scopeFactory;
 
     public async Task<bool> ContainsBlockedWordAsync(string text, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(text)) return false;
 
-        var blockedWords = await _db.BlockedWords
-            .Select(b => b.Word)
-            .ToListAsync(ct);
+        if (_cache.Count == 0) await ReloadAsync();
 
-        return blockedWords.Any(w =>
-            text.Contains(w, StringComparison.OrdinalIgnoreCase));
+        var lower = text.ToLower();
+        return _cache.Any(w => lower.Contains(w));
+    }
+
+    public async Task ReloadAsync()
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var repo = scope.ServiceProvider.GetRequiredService<IBlockedWordRepository>();
+        var words = await repo.GetAllAsync();
+        _cache = new HashSet<string>(words.Select(w => w.Word.ToLower()));
     }
 }

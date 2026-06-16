@@ -1,23 +1,38 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Domain.Entities;
 
-namespace OrigamiPlatform.Infrastructure.Persistence.Repositories
+namespace OrigamiPlatform.Infrastructure.Persistence.Repositories;
+
+public class BlockedWordRepository : IBlockedWordRepository
 {
-    public class BlockedWordRepository : IBlockedWordRepository
+    private readonly AppDbContext _db;
+
+    public BlockedWordRepository(AppDbContext db) => _db = db;
+
+    public Task<List<BlockedWord>> GetAllAsync(CancellationToken ct = default)
+        => _db.BlockedWords.OrderByDescending(w => w.CreatedAt).ToListAsync(ct);
+
+    public Task<BlockedWord?> GetByIdAsync(int id, CancellationToken ct = default)
+        => _db.BlockedWords.FirstOrDefaultAsync(w => w.Id == id, ct);
+
+    public Task<bool> ExistsByWordAsync(string word, CancellationToken ct = default)
+        => _db.BlockedWords.AnyAsync(w => w.Word == word.ToLower(), ct);
+
+    public async Task<BlockedWord> AddAsync(BlockedWord word, CancellationToken ct = default)
     {
-        private readonly AppDbContext _context;
+        _db.BlockedWords.Add(word);
+        await _db.SaveChangesAsync(ct);
+        return word;
+    }
 
-        public BlockedWordRepository(AppDbContext context)
+    public async Task DeleteAsync(int id, CancellationToken ct = default)
+    {
+        var word = await _db.BlockedWords.FindAsync([id], ct);
+        if (word is not null)
         {
-            _context = context;
-        }
-
-        public async Task<IEnumerable<string>> GetAllBlockedWordsAsync()
-        {
-            // Lấy danh sách cột Word trong bảng BlockedWords
-            return await _context.BlockedWords
-                .Select(b => b.Word)
-                .ToListAsync();
+            _db.BlockedWords.Remove(word);
+            await _db.SaveChangesAsync(ct);
         }
     }
 }
