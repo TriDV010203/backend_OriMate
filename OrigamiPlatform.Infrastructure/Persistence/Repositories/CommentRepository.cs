@@ -51,4 +51,13 @@ public class CommentRepository : ICommentRepository
         // Thêm totalPages vào cuối
         return new PagedResult<Comment>(items, totalCount, page, pageSize, totalPages);
     }
+
+    public async Task<List<Comment>> GetRepliesByParentIdsAsync(IEnumerable<Guid> parentIds)
+    {
+        return await _context.Comments
+            // Điều kiện: Nó phải là Comment (TargetType = 2) VÀ TargetId của nó phải nằm trong nhóm parentIds
+            .Where(c => c.TargetType == TargetType.Comment && parentIds.Contains(c.TargetId))
+            .OrderBy(c => c.CreatedAt) // Reply cũ xếp trên, Reply mới xếp dưới (giống Facebook)
+            .ToListAsync();
+    }
 }

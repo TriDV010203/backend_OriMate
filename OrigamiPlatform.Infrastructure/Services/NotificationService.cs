@@ -1,3 +1,4 @@
+﻿using Microsoft.EntityFrameworkCore;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
@@ -49,19 +50,52 @@ public class NotificationService : INotificationService
         Guid entityId,
         CancellationToken ct = default)
     {
-        var notification = new Notification
-        {
-            Id = Guid.NewGuid(),
-            RecipientId = userId,
-            Type = type,
-            Message = message,
-            EntityType = entityType,
-            EntityId = entityId,
-            IsRead = false,
-            CreatedAt = DateTime.UtcNow
-        };
+        //var notification = new Notification
+        //{
+        //    Id = Guid.NewGuid(),
+        //    RecipientId = userId,
+        //    Type = type,
+        //    Message = message,
+        //    EntityType = entityType,
+        //    EntityId = entityId,
+        //    IsRead = false,
+        //    CreatedAt = DateTime.UtcNow
+        //};
 
-        _db.Notifications.Add(notification);
+        //_db.Notifications.Add(notification);
+        //await _db.SaveChangesAsync(ct);
+
+        var existing = await _db.Notifications.FirstOrDefaultAsync(
+            n => n.RecipientId == userId
+              && n.Type == type
+              && n.EntityType == entityType
+              && n.EntityId == entityId,
+            ct);
+
+        if (existing != null)
+        {
+            existing.Message = message;
+            existing.IsRead = false;
+            existing.CreatedAt = DateTime.UtcNow;
+
+            _db.Notifications.Update(existing);
+        }
+        else
+        {
+            var notification = new Notification
+            {
+                Id = Guid.NewGuid(),
+                RecipientId = userId,
+                Type = type,
+                Message = message,
+                EntityType = entityType,
+                EntityId = entityId,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.Notifications.Add(notification);
+        }
+
         await _db.SaveChangesAsync(ct);
     }
 }
