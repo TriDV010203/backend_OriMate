@@ -21,4 +21,6 @@ public interface IFamilyProjectRepository
     Task<bool> StepBelongsToTutorialAsync(Guid stepId, Guid tutorialId, CancellationToken ct = default);
     Task<bool> StepProgressExistsAsync(Guid projectId, Guid stepId, Guid userId, CancellationToken ct = default);
     Task AddStepProgressAsync(FamilyProjectStepProgress progress, CancellationToken ct = default);
+    Task<IReadOnlyList<TutorialStep>> GetTutorialStepsAsync(Guid tutorialId, CancellationToken ct = default);
+    Task<IReadOnlyList<FamilyProjectStepProgress>> GetStepProgressesAsync(Guid projectId, CancellationToken ct = default);
 }

@@ -62,4 +62,15 @@ public class FamilyProjectRepository : IFamilyProjectRepository
         _db.FamilyProjectStepProgresses.Add(progress);
         await _db.SaveChangesAsync(ct);
     }
+
+    public async Task<IReadOnlyList<TutorialStep>> GetTutorialStepsAsync(Guid tutorialId, CancellationToken ct = default)
+        => await _db.TutorialSteps
+            .Where(s => s.TutorialId == tutorialId)
+            .OrderBy(s => s.StepOrder)
+            .ToListAsync(ct);
+
+    public async Task<IReadOnlyList<FamilyProjectStepProgress>> GetStepProgressesAsync(Guid projectId, CancellationToken ct = default)
+        => await _db.FamilyProjectStepProgresses
+            .Where(p => p.ProjectId == projectId)
+            .ToListAsync(ct);
 }
