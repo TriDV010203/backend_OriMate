@@ -8,6 +8,7 @@ using OrigamiPlatform.Application.Commands.Journals;
 using OrigamiPlatform.Application.Commands.Likes;
 using OrigamiPlatform.Application.Commands.Notifications;
 using OrigamiPlatform.Application.Commands.Reports;
+using OrigamiPlatform.Application.Commands.Users;
 using OrigamiPlatform.Application.Commands.Wishlists;
 using OrigamiPlatform.Application.Features.Tutorials.Services;
 using OrigamiPlatform.Application.Interfaces;
@@ -18,6 +19,7 @@ using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.Notifications;
 using OrigamiPlatform.Application.Queries.Reports;
 using OrigamiPlatform.Application.Queries.Tutorials;
+using OrigamiPlatform.Application.Queries.Users;
 using OrigamiPlatform.Application.Queries.Wishlists;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
 using OrigamiPlatform.Infrastructure.Services;
@@ -91,6 +93,8 @@ public static class DependencyInjection
         services.AddScoped<MarkNotificationAsReadHandler>();
         services.AddScoped<MarkAllNotificationsAsReadHandler>();
         services.AddScoped<GetNotificationsHandler>();
+        services.AddScoped<GetCreatorProfileHandler>();
+        services.AddScoped<UpdateProfileHandler>();
 
         return services;
     }
