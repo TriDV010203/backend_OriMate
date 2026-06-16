@@ -16,4 +16,9 @@ public interface IFamilyProjectRepository
 
     Task AddMemberAsync(FamilyProjectMember member, CancellationToken ct = default);
     Task UpdateMemberAsync(FamilyProjectMember member, CancellationToken ct = default);
+
+    // FT-19 step progress
+    Task<bool> StepBelongsToTutorialAsync(Guid stepId, Guid tutorialId, CancellationToken ct = default);
+    Task<bool> StepProgressExistsAsync(Guid projectId, Guid stepId, Guid userId, CancellationToken ct = default);
+    Task AddStepProgressAsync(FamilyProjectStepProgress progress, CancellationToken ct = default);
 }

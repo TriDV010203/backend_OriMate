@@ -18,14 +18,16 @@ public class FamilyProjectsController : ControllerBase
     private readonly GetFamilyProjectHandler _getProject;
     private readonly InviteFamilyMemberHandler _inviteMember;
     private readonly RespondFamilyInvitationHandler _respondInvitation;
+    private readonly CompleteStepHandler _completeStep;
 
     public FamilyProjectsController(
         CreateFamilyProjectHandler createProject,
         GetFamilyProjectHandler getProject,
         InviteFamilyMemberHandler inviteMember,
-        RespondFamilyInvitationHandler respondInvitation)
-        => (_createProject, _getProject, _inviteMember, _respondInvitation)
-            = (createProject, getProject, inviteMember, respondInvitation);
+        RespondFamilyInvitationHandler respondInvitation,
+        CompleteStepHandler completeStep)
+        => (_createProject, _getProject, _inviteMember, _respondInvitation, _completeStep)
+            = (createProject, getProject, inviteMember, respondInvitation, completeStep);
 
     [HttpPost]
     public async Task<IActionResult> Create(CreateFamilyProjectRequest request, CancellationToken ct)
@@ -71,6 +73,15 @@ public class FamilyProjectsController : ControllerBase
     {
         var result = await _respondInvitation.HandleAsync(
             new RespondFamilyInvitationCommand(projectId, GetCurrentUserId(), Accept: false), ct);
+
+        return Ok(result);
+    }
+
+    [HttpPost("{projectId:guid}/steps/{stepId:guid}/complete")]
+    public async Task<IActionResult> CompleteStep(Guid projectId, Guid stepId, CancellationToken ct)
+    {
+        var result = await _completeStep.HandleAsync(
+            new CompleteStepCommand(projectId, stepId, GetCurrentUserId()), ct);
 
         return Ok(result);
     }

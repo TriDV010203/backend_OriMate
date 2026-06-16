@@ -103,6 +103,7 @@ public static class DependencyInjection
         services.AddScoped<GetFamilyProjectHandler>();
         services.AddScoped<InviteFamilyMemberHandler>();
         services.AddScoped<RespondFamilyInvitationHandler>();
+        services.AddScoped<CompleteStepHandler>();
 
         return services;
     }
