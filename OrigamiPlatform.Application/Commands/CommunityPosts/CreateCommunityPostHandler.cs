@@ -1,4 +1,4 @@
-﻿using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Exceptions;
 
@@ -7,10 +7,10 @@ namespace OrigamiPlatform.Application.Commands.CommunityPosts;
 public class CreateCommunityPostHandler
 {
     private readonly ICommunityPostRepository _posts;
-    private readonly IBlockedWordRepository _blockedWords;
+    private readonly IBlockedWordService _blockedWordService;
 
-    public CreateCommunityPostHandler(ICommunityPostRepository posts, IBlockedWordRepository blockedWords)
-        => (_posts, _blockedWords) = (posts, blockedWords);
+    public CreateCommunityPostHandler(ICommunityPostRepository posts, IBlockedWordService blockedWordService)
+        => (_posts, _blockedWordService) = (posts, blockedWordService);
 
     public async Task<Guid> HandleAsync(CreateCommunityPostCommand cmd, CancellationToken ct = default)
     {
@@ -24,16 +24,8 @@ public class CreateCommunityPostHandler
             throw new DomainException("A post can have a maximum of 10 media items.");
         }
 
-        var blockedWords = await _blockedWords.GetAllBlockedWordsAsync();
-        var lowerContent = cmd.Content.ToLowerInvariant();
-
-        foreach (var word in blockedWords)
-        {
-            if (lowerContent.Contains(word.ToLowerInvariant()))
-            {
-                throw new DomainException("Your post contains blocked words and cannot be published.");
-            }
-        }
+        if (await _blockedWordService.ContainsBlockedWordAsync(cmd.Content, ct))
+            throw new DomainException("Your post contains blocked words and cannot be published.");
 
         var postId = Guid.NewGuid();
         var now = DateTime.UtcNow;
@@ -59,9 +51,9 @@ public class CreateCommunityPostHandler
                 {
                     Id = Guid.NewGuid(),
                     PostId = postId,
-                    Url = mediaItemDto.MediaUrl,    
+                    Url = mediaItemDto.MediaUrl,
                     MediaType = mediaItemDto.MediaType,
-                    DisplayOrder = i,               
+                    DisplayOrder = i,
                     CreatedAt = now
                 });
             }

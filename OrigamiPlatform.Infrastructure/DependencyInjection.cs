@@ -3,6 +3,7 @@ using OrigamiPlatform.Application.Commands.Achievements;
 using OrigamiPlatform.Application.Commands.Auth;
 using OrigamiPlatform.Application.Commands.Journals;
 
+using OrigamiPlatform.Application.Features.AdminConfiguration.Services;
 using OrigamiPlatform.Application.Features.Tutorials.Services;
 
 using OrigamiPlatform.Application.Commands.CommunityPosts;
@@ -36,13 +37,18 @@ public static class DependencyInjection
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IBlockedWordRepository, BlockedWordRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
+        services.AddSingleton<IBlockedWordService, BlockedWordService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationService, NotificationService>();
-        services.AddScoped<IBlockedWordService, BlockedWordService>();
+
+        // Admin
+        services.AddScoped<IAdminConfigService, AdminConfigService>();
 
         // Handlers — Auth
         services.AddScoped<RegisterUserHandler>();
