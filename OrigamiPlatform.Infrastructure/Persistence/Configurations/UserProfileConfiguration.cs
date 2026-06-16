@@ -17,5 +17,12 @@ public class UserProfileConfiguration : IEntityTypeConfiguration<UserProfile>
         builder.HasOne(p => p.User)
                .WithOne(u => u.Profile)
                .HasForeignKey<UserProfile>(p => p.UserId);
+
+        builder.HasData(new UserProfile
+        {
+            UserId = UserConfiguration.AdminId,
+            DisplayName = "Admin",
+            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+        });
     }
 }
