@@ -1,4 +1,4 @@
-﻿using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
 using OrigamiPlatform.Domain.Exceptions;
@@ -8,20 +8,20 @@ namespace OrigamiPlatform.Application.Commands.Comments;
 public class AddCommentHandler
 {
     private readonly ICommentRepository _comments;
-    private readonly IBlockedWordRepository _blockedWords;
+    private readonly IBlockedWordService _blockedWordService;
     private readonly INotificationService _notifications;
     private readonly ICommunityPostRepository _posts;
     private readonly ITutorialRepository _tutorials;
 
     public AddCommentHandler(
         ICommentRepository comments,
-        IBlockedWordRepository blockedWords,
+        IBlockedWordService blockedWordService,
         INotificationService notifications,
         ICommunityPostRepository posts,
         ITutorialRepository tutorials)
     {
         _comments = comments;
-        _blockedWords = blockedWords;
+        _blockedWordService = blockedWordService;
         _notifications = notifications;
         _posts = posts;
         _tutorials = tutorials;
@@ -34,16 +34,8 @@ public class AddCommentHandler
             throw new DomainException("Comment length must be between 1 and 500 characters.");
         }
 
-        var blockedWords = await _blockedWords.GetAllBlockedWordsAsync();
-        var lowerContent = cmd.Content.ToLowerInvariant();
-
-        foreach (var word in blockedWords)
-        {
-            if (lowerContent.Contains(word.ToLowerInvariant()))
-            {
-                throw new DomainException("Your comment contains blocked words and cannot be posted.");
-            }
-        }
+        if (await _blockedWordService.ContainsBlockedWordAsync(cmd.Content, ct))
+            throw new DomainException("Your comment contains blocked words and cannot be posted.");
 
         var comment = new Comment
         {
@@ -57,7 +49,6 @@ public class AddCommentHandler
 
         await _comments.AddAsync(comment);
 
-        // Notifications
         try
         {
             Guid? targetAuthorId = null;
@@ -87,7 +78,7 @@ public class AddCommentHandler
         }
         catch
         {
-            // Tránh làm ảnh hưởng luồng chính nếu lỗi thông báo
+            // notification failure must not affect the main flow
         }
 
         return comment.Id;

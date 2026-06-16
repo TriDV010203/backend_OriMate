@@ -10,6 +10,7 @@ using OrigamiPlatform.Application.Commands.Notifications;
 using OrigamiPlatform.Application.Commands.Reports;
 using OrigamiPlatform.Application.Commands.Users;
 using OrigamiPlatform.Application.Commands.Wishlists;
+using OrigamiPlatform.Application.Features.AdminConfiguration.Services;
 using OrigamiPlatform.Application.Features.Tutorials.Services;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Application.Queries.Achievements;
@@ -40,6 +41,8 @@ public static class DependencyInjection
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IBlockedWordRepository, BlockedWordRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
         services.AddScoped<IWishlistRepository, WishlistRepository>();
         services.AddScoped<IFollowRepository, FollowRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
@@ -47,9 +50,12 @@ public static class DependencyInjection
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
+        services.AddSingleton<IBlockedWordService, BlockedWordService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationService, NotificationService>();
-        services.AddScoped<IBlockedWordService, BlockedWordService>();
+
+        // Admin
+        services.AddScoped<IAdminConfigService, AdminConfigService>();
 
         // Handlers — Auth
         services.AddScoped<RegisterUserHandler>();
@@ -65,7 +71,6 @@ public static class DependencyInjection
         // Handlers — Tutorials (public)
         services.AddScoped<GetTutorialsHandler>();
         services.AddScoped<GetTutorialBySlugHandler>();
-
 
         // Services — Tutorials FT-04
         services.AddScoped<ITutorialService, TutorialService>();
