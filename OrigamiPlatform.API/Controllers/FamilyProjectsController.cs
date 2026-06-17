@@ -21,6 +21,7 @@ public class FamilyProjectsController : ControllerBase
     private readonly CompleteStepHandler _completeStep;
     private readonly GetProjectProgressHandler _getProgress;
     private readonly MarkProjectCompletedHandler _markCompleted;
+    private readonly ShareProjectHandler _shareProject;
 
     public FamilyProjectsController(
         CreateFamilyProjectHandler createProject,
@@ -29,9 +30,10 @@ public class FamilyProjectsController : ControllerBase
         RespondFamilyInvitationHandler respondInvitation,
         CompleteStepHandler completeStep,
         GetProjectProgressHandler getProgress,
-        MarkProjectCompletedHandler markCompleted)
-        => (_createProject, _getProject, _inviteMember, _respondInvitation, _completeStep, _getProgress, _markCompleted)
-            = (createProject, getProject, inviteMember, respondInvitation, completeStep, getProgress, markCompleted);
+        MarkProjectCompletedHandler markCompleted,
+        ShareProjectHandler shareProject)
+        => (_createProject, _getProject, _inviteMember, _respondInvitation, _completeStep, _getProgress, _markCompleted, _shareProject)
+            = (createProject, getProject, inviteMember, respondInvitation, completeStep, getProgress, markCompleted, shareProject);
 
     [HttpPost]
     public async Task<IActionResult> Create(CreateFamilyProjectRequest request, CancellationToken ct)
@@ -104,6 +106,18 @@ public class FamilyProjectsController : ControllerBase
     {
         var result = await _markCompleted.HandleAsync(
             new MarkProjectCompletedCommand(projectId, GetCurrentUserId()), ct);
+
+        return Ok(result);
+    }
+
+    [HttpPost("{projectId:guid}/share")]
+    public async Task<IActionResult> Share(
+        Guid projectId,
+        [FromBody] ShareProjectRequest? request,
+        CancellationToken ct)
+    {
+        var result = await _shareProject.HandleAsync(
+            new ShareProjectCommand(projectId, GetCurrentUserId(), request?.Note), ct);
 
         return Ok(result);
     }

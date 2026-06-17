@@ -106,6 +106,7 @@ public static class DependencyInjection
         services.AddScoped<CompleteStepHandler>();
         services.AddScoped<GetProjectProgressHandler>();
         services.AddScoped<MarkProjectCompletedHandler>();
+        services.AddScoped<ShareProjectHandler>();
 
         return services;
     }
