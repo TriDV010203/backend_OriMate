@@ -47,6 +47,9 @@ public static class DependencyInjection
         services.AddScoped<IFollowRepository, FollowRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
 
+        // FT-20 Advertising
+        services.AddScoped<IAdCampaignRepository, AdCampaignRepository>();
+
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
