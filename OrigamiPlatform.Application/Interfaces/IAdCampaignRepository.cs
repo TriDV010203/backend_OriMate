@@ -1,4 +1,5 @@
 using OrigamiPlatform.Domain.Entities;
+using OrigamiPlatform.Domain.Enums;
 
 namespace OrigamiPlatform.Application.Interfaces;
 
@@ -10,4 +11,9 @@ public interface IAdCampaignRepository
     Task AddAsync(AdCampaign campaign, CancellationToken ct = default);
     Task<AdCampaign?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task UpdateAsync(AdCampaign campaign, CancellationToken ct = default);
+
+    Task<(IEnumerable<AdCampaign> Items, int TotalCount)> GetByPartnerAsync(
+        Guid partnerId, int page, int pageSize, CancellationToken ct = default);
+    Task<(IEnumerable<AdCampaign> Items, int TotalCount)> GetByStatusAsync(
+        CampaignStatus status, int page, int pageSize, CancellationToken ct = default);
 }

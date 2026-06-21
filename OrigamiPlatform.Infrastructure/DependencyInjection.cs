@@ -15,6 +15,7 @@ using OrigamiPlatform.Application.Features.AdminConfiguration.Services;
 using OrigamiPlatform.Application.Features.Tutorials.Services;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Application.Queries.Achievements;
+using OrigamiPlatform.Application.Queries.AdCampaigns;
 using OrigamiPlatform.Application.Queries.Comments;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
 using OrigamiPlatform.Application.Queries.Journals;
@@ -108,6 +109,9 @@ public static class DependencyInjection
         // Handlers — FT-20 Advertising
         services.AddScoped<CreateAdCampaignHandler>();
         services.AddScoped<ReviewAdCampaignHandler>();
+        services.AddScoped<GetMyCampaignsHandler>();
+        services.AddScoped<GetPendingCampaignsHandler>();
+        services.AddScoped<GetAdCampaignHandler>();
 
         return services;
     }

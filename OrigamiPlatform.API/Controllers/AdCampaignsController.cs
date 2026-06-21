@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrigamiPlatform.Application.Commands.AdCampaigns;
 using OrigamiPlatform.Application.DTOs.AdCampaigns;
+using OrigamiPlatform.Application.Queries.AdCampaigns;
 using OrigamiPlatform.Domain.Exceptions;
 
 namespace OrigamiPlatform.API.Controllers;
@@ -15,11 +16,18 @@ public class AdCampaignsController : ControllerBase
 {
     private readonly CreateAdCampaignHandler _createCampaign;
     private readonly ReviewAdCampaignHandler _reviewCampaign;
+    private readonly GetMyCampaignsHandler _getMyCampaigns;
+    private readonly GetPendingCampaignsHandler _getPendingCampaigns;
+    private readonly GetAdCampaignHandler _getCampaign;
 
     public AdCampaignsController(
         CreateAdCampaignHandler createCampaign,
-        ReviewAdCampaignHandler reviewCampaign)
-        => (_createCampaign, _reviewCampaign) = (createCampaign, reviewCampaign);
+        ReviewAdCampaignHandler reviewCampaign,
+        GetMyCampaignsHandler getMyCampaigns,
+        GetPendingCampaignsHandler getPendingCampaigns,
+        GetAdCampaignHandler getCampaign)
+        => (_createCampaign, _reviewCampaign, _getMyCampaigns, _getPendingCampaigns, _getCampaign)
+            = (createCampaign, reviewCampaign, getMyCampaigns, getPendingCampaigns, getCampaign);
 
     // UC-41 / NAC-01: only Advertising Partners can create campaigns.
     [HttpPost]
@@ -43,6 +51,37 @@ public class AdCampaignsController : ControllerBase
         var result = await _reviewCampaign.HandleAsync(
             new ReviewAdCampaignCommand(campaignId, GetCurrentUserId(), request.Approve, request.Reason), ct);
 
+        return Ok(result);
+    }
+
+    // Partner views their own campaigns.
+    [HttpGet("mine")]
+    [Authorize(Roles = "AdvertisingPartner")]
+    public async Task<IActionResult> GetMine(
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 12, CancellationToken ct = default)
+    {
+        var result = await _getMyCampaigns.HandleAsync(
+            new GetMyCampaignsQuery(GetCurrentUserId(), page, pageSize), ct);
+        return Ok(result);
+    }
+
+    // Manager views the pending-approval queue.
+    [HttpGet("pending")]
+    [Authorize(Roles = "Manager")]
+    public async Task<IActionResult> GetPending(
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 12, CancellationToken ct = default)
+    {
+        var result = await _getPendingCampaigns.HandleAsync(
+            new GetPendingCampaignsQuery(page, pageSize), ct);
+        return Ok(result);
+    }
+
+    [HttpGet("{campaignId:guid}")]
+    public async Task<IActionResult> GetById(Guid campaignId, CancellationToken ct)
+    {
+        var isPrivileged = User.IsInRole("Manager") || User.IsInRole("Admin");
+        var result = await _getCampaign.HandleAsync(
+            new GetAdCampaignQuery(campaignId, GetCurrentUserId(), isPrivileged), ct);
         return Ok(result);
     }
 
