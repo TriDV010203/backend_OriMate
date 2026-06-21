@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using OrigamiPlatform.Application.Commands.Achievements;
+using OrigamiPlatform.Application.Commands.AdCampaigns;
 using OrigamiPlatform.Application.Commands.Auth;
 using OrigamiPlatform.Application.Commands.Comments;
 using OrigamiPlatform.Application.Commands.CommunityPosts;
@@ -103,6 +104,9 @@ public static class DependencyInjection
         services.AddScoped<GetNotificationsHandler>();
         services.AddScoped<GetCreatorProfileHandler>();
         services.AddScoped<UpdateProfileHandler>();
+
+        // Handlers — FT-20 Advertising
+        services.AddScoped<CreateAdCampaignHandler>();
 
         return services;
     }
