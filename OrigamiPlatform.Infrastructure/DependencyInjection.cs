@@ -107,6 +107,7 @@ public static class DependencyInjection
 
         // Handlers — FT-20 Advertising
         services.AddScoped<CreateAdCampaignHandler>();
+        services.AddScoped<ReviewAdCampaignHandler>();
 
         return services;
     }
