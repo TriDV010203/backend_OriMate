@@ -112,6 +112,8 @@ public static class DependencyInjection
         services.AddScoped<GetMyCampaignsHandler>();
         services.AddScoped<GetPendingCampaignsHandler>();
         services.AddScoped<GetAdCampaignHandler>();
+        services.AddScoped<RecordImpressionHandler>();
+        services.AddScoped<RecordClickHandler>();
 
         return services;
     }
