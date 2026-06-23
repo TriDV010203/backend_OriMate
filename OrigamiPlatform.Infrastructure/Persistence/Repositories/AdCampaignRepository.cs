@@ -69,6 +69,15 @@ public class AdCampaignRepository : IAdCampaignRepository
             .Include(c => c.Banners)
             .ToListAsync(ct);
 
+    public Task<int> CountAllImpressionsAsync(CancellationToken ct = default)
+        => _db.AdImpressions.CountAsync(ct);
+
+    public Task<int> CountAllClicksAsync(CancellationToken ct = default)
+        => _db.AdClicks.CountAsync(ct);
+
+    public async Task<IReadOnlyList<AdCampaign>> GetAllAsync(CancellationToken ct = default)
+        => await _db.AdCampaigns.ToListAsync(ct);
+
     private static async Task<(IEnumerable<AdCampaign>, int)> PageAsync(
         IQueryable<AdCampaign> baseQuery, int page, int pageSize, CancellationToken ct)
     {

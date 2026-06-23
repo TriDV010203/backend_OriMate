@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrigamiPlatform.Application.Commands.AdCampaigns;
 using OrigamiPlatform.Application.DTOs.AdCampaigns;
+using OrigamiPlatform.Application.Queries.AdCampaigns;
 
 namespace OrigamiPlatform.API.Controllers;
 
@@ -13,9 +14,23 @@ public class AdsController : ControllerBase
 {
     private readonly RecordImpressionHandler _recordImpression;
     private readonly RecordClickHandler _recordClick;
+    private readonly GetServingAdsHandler _getServingAds;
 
-    public AdsController(RecordImpressionHandler recordImpression, RecordClickHandler recordClick)
-        => (_recordImpression, _recordClick) = (recordImpression, recordClick);
+    public AdsController(
+        RecordImpressionHandler recordImpression,
+        RecordClickHandler recordClick,
+        GetServingAdsHandler getServingAds)
+        => (_recordImpression, _recordClick, _getServingAds)
+            = (recordImpression, recordClick, getServingAds);
+
+    // Returns the banners to display for a placement (live campaigns only).
+    [HttpGet("serve")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Serve([FromQuery] int placementId, CancellationToken ct)
+    {
+        var result = await _getServingAds.HandleAsync(new GetServingAdsQuery(placementId), ct);
+        return Ok(result);
+    }
 
     // AC-01: a page load with an active banner records one impression.
     [HttpPost("impression")]
