@@ -19,6 +19,7 @@ public class TutorialRepository : ITutorialRepository
         int? categoryId,
         string? difficulty,
         TutorialType? type,
+        string sortBy,
         int page,
         int pageSize,
         CancellationToken ct = default)
@@ -44,8 +45,12 @@ public class TutorialRepository : ITutorialRepository
 
         var totalCount = await query.CountAsync(ct);
 
-        var items = await query
-            .OrderByDescending(t => t.PublishedAt)
+        IOrderedQueryable<Tutorial> ordered = sortBy == "likes"
+            ? query.OrderByDescending(t => _db.Likes.Count(l =>
+                l.TargetType == TargetType.Tutorial && l.TargetId == t.Id))
+            : query.OrderByDescending(t => t.PublishedAt);
+
+        var items = await ordered
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .AsSplitQuery()
