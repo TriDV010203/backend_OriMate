@@ -45,4 +45,10 @@ public class WishlistRepository : IWishlistRepository
 
         return new PagedResult<Wishlist>(items, totalCount, page, pageSize, totalPages);
     }
+
+    public async Task<int> GetWishlistCountAsync(Guid targetId, TargetType targetType, CancellationToken ct = default)
+    {
+        return await _context.Wishlists
+            .CountAsync(w => w.TargetId == targetId && w.TargetType == targetType, ct);
+    }
 }
