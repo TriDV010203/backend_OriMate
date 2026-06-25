@@ -8,5 +8,6 @@ namespace OrigamiPlatform.Application.Interfaces
         Task<CommunityPost?> GetByIdAsync(Guid id);
         Task<List<CommunityPost>> GetApprovedPostsAsync(int skip, int take);
         Task<int> GetPostCountByAuthorAsync(Guid authorId, CancellationToken ct = default);
+        Task<List<CommunityPost>> GetCommunityFeedAsync(List<Guid> followedUserIds, int skip, int take);
     }
 }
