@@ -8,5 +8,6 @@ public record CommunityPostDto(
     int CommentCount,
     int LikeCount,
     bool IsLikedByCurrentUser,
+    bool IsFromFollowedCreator,
     List<MediaItemDto> Media
 );

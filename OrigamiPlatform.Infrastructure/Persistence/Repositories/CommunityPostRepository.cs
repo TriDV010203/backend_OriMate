@@ -42,5 +42,26 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Repositories
             return await _context.CommunityPosts
                 .CountAsync(p => p.AuthorId == authorId && p.IsVisible && !p.IsDeleted, ct);
         }
+
+        public async Task<List<CommunityPost>> GetCommunityFeedAsync(List<Guid> followedUserIds, int skip, int take)
+        {
+            var query = _context.CommunityPosts
+                .Include(p => p.Media)
+                .Include(p => p.Comments)
+                .Where(p => p.IsVisible && !p.IsDeleted);
+
+            if (followedUserIds != null && followedUserIds.Any())
+            {
+                query = query
+                    .OrderByDescending(p => followedUserIds.Contains(p.AuthorId)) 
+                    .ThenByDescending(p => p.CreatedAt); 
+            }
+            else
+            {
+                query = query.OrderByDescending(p => p.CreatedAt);
+            }
+
+            return await query.Skip(skip).Take(take).ToListAsync();
+        }
     }
 }
