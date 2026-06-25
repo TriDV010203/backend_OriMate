@@ -44,11 +44,31 @@ public class TutorialsController : ControllerBase
         return Ok(result);
     }
 
+    //[HttpGet("{slug}")]
+    //public async Task<IActionResult> GetBySlug(string slug, CancellationToken ct)
+    //{
+    //    var result = await _getTutorialBySlug.HandleAsync(
+    //        new GetTutorialBySlugQuery(slug), ct);
+    //    return Ok(result);
+    //}
+
     [HttpGet("{slug}")]
-    public async Task<IActionResult> GetBySlug(string slug, CancellationToken ct)
+    [AllowAnonymous]
+    public async Task<IActionResult> GetBySlug([FromRoute] string slug, [FromServices] GetTutorialBySlugHandler handler, CancellationToken ct)
     {
-        var result = await _getTutorialBySlug.HandleAsync(
-            new GetTutorialBySlugQuery(slug), ct);
+        Guid? currentUserId = null;
+
+        // Lấy ID người dùng từ Token nếu họ đang đăng nhập
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
+            if (Guid.TryParse(userIdClaim, out var parsedId))
+            {
+                currentUserId = parsedId;
+            }
+        }
+
+        var result = await handler.HandleAsync(new GetTutorialBySlugQuery(slug, currentUserId), ct);
         return Ok(result);
     }
 
