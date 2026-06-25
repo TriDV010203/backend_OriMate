@@ -35,12 +35,13 @@ public class TutorialsController : ControllerBase
         [FromQuery] int? categoryId,
         [FromQuery] string? difficulty,
         [FromQuery] string? type,
+        [FromQuery] string? sortBy,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 12,
         CancellationToken ct = default)
     {
         var result = await _getTutorials.HandleAsync(
-            new GetTutorialsQuery(search, categoryId, difficulty, type, page, pageSize), ct);
+            new GetTutorialsQuery(search, categoryId, difficulty, type, sortBy, page, pageSize), ct);
         return Ok(result);
     }
 

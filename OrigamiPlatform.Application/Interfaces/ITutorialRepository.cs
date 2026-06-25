@@ -12,6 +12,7 @@ public interface ITutorialRepository
         int? categoryId,
         string? difficulty,
         TutorialType? type,
+        string sortBy,
         int page,
         int pageSize,
         CancellationToken ct = default);
