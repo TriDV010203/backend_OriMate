@@ -12,5 +12,6 @@ public record TutorialDetailDto(
     string CategoryName,
     AuthorDto Author,
     IEnumerable<TutorialStepDto> Steps,
-    DateTime PublishedAt
+    DateTime PublishedAt,
+    bool IsVipLocked = false
 );

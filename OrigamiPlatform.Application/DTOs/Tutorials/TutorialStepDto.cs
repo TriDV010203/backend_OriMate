@@ -4,5 +4,6 @@ public record TutorialStepDto(
     Guid Id,
     int StepOrder,
     string Description,
-    string? ImageUrl
+    string? ImageUrl,
+    bool IsLocked = false
 );
