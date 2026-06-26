@@ -5,6 +5,7 @@ public record GetTutorialsQuery(
     int? CategoryId = null,
     string? Difficulty = null,
     string? Type = null,
+    string? SortBy = null,
     int Page = 1,
     int PageSize = 20,
     Guid? CurrentUserId = null

@@ -36,9 +36,8 @@ public class GetTutorialBySlugHandler
             .Select(s => new TutorialStepDto(
                 s.Id,
                 s.StepOrder,
-                s.Title,
-                isVipLocked && s.StepOrder > 3 ? string.Empty : s.Content,
-                isVipLocked && s.StepOrder > 3 ? null : s.MediaUrl,
+                isVipLocked && s.StepOrder > 3 ? string.Empty : s.Description,
+                isVipLocked && s.StepOrder > 3 ? null : s.ImageUrl,
                 IsLocked: isVipLocked && s.StepOrder > 3))
             .ToList();
 
