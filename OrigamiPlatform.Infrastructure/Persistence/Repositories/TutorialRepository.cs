@@ -22,6 +22,7 @@ public class TutorialRepository : ITutorialRepository
         string sortBy,
         int page,
         int pageSize,
+        IReadOnlySet<Guid>? followedCreatorIds = null,
         CancellationToken ct = default)
     {
         var query = _db.Tutorials
@@ -45,10 +46,21 @@ public class TutorialRepository : ITutorialRepository
 
         var totalCount = await query.CountAsync(ct);
 
-        IOrderedQueryable<Tutorial> ordered = sortBy == "likes"
-            ? query.OrderByDescending(t => _db.Likes.Count(l =>
-                l.TargetType == TargetType.Tutorial && l.TargetId == t.Id))
-            : query.OrderByDescending(t => t.PublishedAt);
+        IOrderedQueryable<Tutorial> ordered;
+        if (sortBy == "likes")
+        {
+            ordered = query.OrderByDescending(t => _db.Likes.Count(l =>
+                l.TargetType == TargetType.Tutorial && l.TargetId == t.Id));
+        }
+        else
+        {
+            var boostedIds = followedCreatorIds?.ToList() ?? new List<Guid>();
+            ordered = boostedIds.Count > 0
+                ? query
+                    .OrderByDescending(t => boostedIds.Contains(t.AuthorId))
+                    .ThenByDescending(t => t.PublishedAt)
+                : query.OrderByDescending(t => t.PublishedAt);
+        }
 
         var items = await ordered
             .Skip((page - 1) * pageSize)

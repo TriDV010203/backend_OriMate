@@ -37,11 +37,11 @@ public class TutorialsController : ControllerBase
         [FromQuery] string? type,
         [FromQuery] string? sortBy,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 12,
+        [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
         var result = await _getTutorials.HandleAsync(
-            new GetTutorialsQuery(search, categoryId, difficulty, type, sortBy, page, pageSize), ct);
+            new GetTutorialsQuery(search, categoryId, difficulty, type, sortBy, page, pageSize, GetCurrentUserId()), ct);
         return Ok(result);
     }
 
@@ -49,7 +49,7 @@ public class TutorialsController : ControllerBase
     public async Task<IActionResult> GetBySlug(string slug, CancellationToken ct)
     {
         var result = await _getTutorialBySlug.HandleAsync(
-            new GetTutorialBySlugQuery(slug), ct);
+            new GetTutorialBySlugQuery(slug, GetCurrentUserId()), ct);
         return Ok(result);
     }
 
@@ -61,7 +61,7 @@ public class TutorialsController : ControllerBase
     public async Task<IActionResult> CreateTutorial(
         [FromBody] CreateTutorialRequest request, CancellationToken ct)
     {
-        var authorId = GetCurrentUserId();
+        var authorId = GetCurrentUserId()!.Value;
         var result = await _tutorialService.CreateDraftAsync(request, authorId, ct);
         return CreatedAtAction(nameof(GetBySlug), new { slug = result.Slug }, result);
     }
@@ -71,7 +71,7 @@ public class TutorialsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> SubmitForReview(Guid id, CancellationToken ct)
     {
-        var authorId = GetCurrentUserId();
+        var authorId = GetCurrentUserId()!.Value;
         var result = await _tutorialService.SubmitForReviewAsync(id, authorId, ct);
         return Ok(result);
     }
@@ -84,7 +84,7 @@ public class TutorialsController : ControllerBase
         [FromQuery] int pageSize = 12,
         CancellationToken ct = default)
     {
-        var authorId = GetCurrentUserId();
+        var authorId = GetCurrentUserId()!.Value;
         var result = await _tutorialService.GetMyTutorialsAsync(authorId, page, pageSize, ct);
         return Ok(result);
     }
@@ -108,7 +108,7 @@ public class TutorialsController : ControllerBase
     [Authorize(Roles = "ContributorReviewer")]
     public async Task<IActionResult> ContributorApprove(Guid id, CancellationToken ct)
     {
-        var reviewerId = GetCurrentUserId();
+        var reviewerId = GetCurrentUserId()!.Value;
         await _tutorialService.ContributorApproveAsync(id, reviewerId, ct);
         return Ok(new MessageResponse("Tutorial approved and sent to manager review."));
     }
@@ -119,7 +119,7 @@ public class TutorialsController : ControllerBase
     public async Task<IActionResult> ContributorRequestRevision(
         Guid id, [FromBody] ReviewActionRequest request, CancellationToken ct)
     {
-        var reviewerId = GetCurrentUserId();
+        var reviewerId = GetCurrentUserId()!.Value;
         await _tutorialService.ContributorRequestRevisionAsync(id, reviewerId, request.Reason, ct);
         return Ok(new MessageResponse("Revision request sent to the tutorial author."));
     }
@@ -131,7 +131,7 @@ public class TutorialsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> CreateWorkingCopy(Guid id, CancellationToken ct)
     {
-        var authorId = GetCurrentUserId();
+        var authorId = GetCurrentUserId()!.Value;
         var result = await _tutorialService.CreateWorkingCopyAsync(id, authorId, ct);
         return Ok(result);
     }
@@ -142,7 +142,7 @@ public class TutorialsController : ControllerBase
     public async Task<IActionResult> UpdateWorkingCopy(
         Guid id, [FromBody] UpdateTutorialRequest request, CancellationToken ct)
     {
-        var authorId = GetCurrentUserId();
+        var authorId = GetCurrentUserId()!.Value;
         var result = await _tutorialService.UpdateWorkingCopyAsync(id, request, authorId, ct);
         return Ok(result);
     }
@@ -152,7 +152,7 @@ public class TutorialsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> SubmitEdit(Guid id, CancellationToken ct)
     {
-        var authorId = GetCurrentUserId();
+        var authorId = GetCurrentUserId()!.Value;
         var result = await _tutorialService.SubmitEditAsync(id, authorId, ct);
         return Ok(result);
     }
@@ -162,7 +162,7 @@ public class TutorialsController : ControllerBase
     [Authorize(Roles = "Manager")]
     public async Task<IActionResult> ManagerApproveEdit(Guid id, CancellationToken ct)
     {
-        var managerId = GetCurrentUserId();
+        var managerId = GetCurrentUserId()!.Value;
         await _tutorialService.ManagerApproveEditAsync(id, managerId, ct);
         return Ok(new MessageResponse("Tutorial edit approved and published."));
     }
@@ -173,7 +173,7 @@ public class TutorialsController : ControllerBase
     public async Task<IActionResult> ManagerRejectEdit(
         Guid id, [FromBody] ManagerRejectRequest request, CancellationToken ct)
     {
-        var managerId = GetCurrentUserId();
+        var managerId = GetCurrentUserId()!.Value;
         await _tutorialService.ManagerRejectEditAsync(id, managerId, request.Reason, ct);
         return Ok(new MessageResponse("Tutorial edit rejected. Author has been notified."));
     }
@@ -185,7 +185,7 @@ public class TutorialsController : ControllerBase
     [Authorize(Roles = "Manager")]
     public async Task<IActionResult> ManagerPublish(Guid id, CancellationToken ct)
     {
-        var managerId = GetCurrentUserId();
+        var managerId = GetCurrentUserId()!.Value;
         await _tutorialService.ManagerPublishAsync(id, managerId, ct);
         return Ok(new MessageResponse("Tutorial has been published successfully."));
     }
@@ -196,7 +196,7 @@ public class TutorialsController : ControllerBase
     public async Task<IActionResult> ManagerReject(
         Guid id, [FromBody] ManagerRejectRequest request, CancellationToken ct)
     {
-        var managerId = GetCurrentUserId();
+        var managerId = GetCurrentUserId()!.Value;
         await _tutorialService.ManagerRejectAsync(id, managerId, request.Reason, ct);
         return Ok(new MessageResponse("Tutorial has been rejected."));
     }
@@ -207,17 +207,17 @@ public class TutorialsController : ControllerBase
     public async Task<IActionResult> ManagerRemove(
         Guid id, [FromBody] ManagerRemoveRequest? request, CancellationToken ct)
     {
-        var managerId = GetCurrentUserId();
+        var managerId = GetCurrentUserId()!.Value;
         await _tutorialService.ManagerRemoveAsync(id, managerId, request?.Reason, ct);
         return Ok(new MessageResponse("Tutorial has been removed."));
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private Guid GetCurrentUserId()
+    private Guid? GetCurrentUserId()
     {
         var value = User.FindFirstValue(ClaimTypes.NameIdentifier)
                  ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-        return Guid.Parse(value!);
+        return value is null ? null : Guid.Parse(value);
     }
 }

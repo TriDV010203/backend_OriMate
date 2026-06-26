@@ -1,5 +1,6 @@
 using OrigamiPlatform.Application.DTOs.Tutorials;
 using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Domain.Enums;
 using OrigamiPlatform.Domain.Exceptions;
 
 namespace OrigamiPlatform.Application.Queries.Tutorials;
@@ -7,8 +8,12 @@ namespace OrigamiPlatform.Application.Queries.Tutorials;
 public class GetTutorialBySlugHandler
 {
     private readonly ITutorialRepository _tutorials;
+    private readonly IVipSubscriptionRepository _vipSubscriptions;
 
-    public GetTutorialBySlugHandler(ITutorialRepository tutorials) => _tutorials = tutorials;
+    public GetTutorialBySlugHandler(
+        ITutorialRepository tutorials,
+        IVipSubscriptionRepository vipSubscriptions)
+        => (_tutorials, _vipSubscriptions) = (tutorials, vipSubscriptions);
 
     public async Task<TutorialDetailDto> HandleAsync(
         GetTutorialBySlugQuery query, CancellationToken ct = default)
@@ -16,9 +21,24 @@ public class GetTutorialBySlugHandler
         var tutorial = await _tutorials.GetPublishedBySlugAsync(query.Slug, ct)
             ?? throw new NotFoundException($"Tutorial '{query.Slug}' not found.");
 
+        var isVip = tutorial.Type == TutorialType.VIP;
+        var hasAccess = false;
+
+        if (isVip && query.CurrentUserId.HasValue)
+            hasAccess = await _vipSubscriptions
+                .HasActiveSubscriptionAsync(query.CurrentUserId.Value, tutorial.AuthorId, ct);
+
+        var isVipLocked = isVip && !hasAccess;
+
+        // BR-29: VIP tutorials show steps 1-3 free, step 4+ locked for non-subscribers
         var steps = tutorial.Steps
             .OrderBy(s => s.StepOrder)
-            .Select(s => new TutorialStepDto(s.Id, s.StepOrder, s.Description, s.ImageUrl))
+            .Select(s => new TutorialStepDto(
+                s.Id,
+                s.StepOrder,
+                isVipLocked && s.StepOrder > 3 ? string.Empty : s.Description,
+                isVipLocked && s.StepOrder > 3 ? null : s.ImageUrl,
+                IsLocked: isVipLocked && s.StepOrder > 3))
             .ToList();
 
         return new TutorialDetailDto(
@@ -36,7 +56,8 @@ public class GetTutorialBySlugHandler
                 tutorial.Author.Profile?.DisplayName ?? tutorial.Author.Email,
                 tutorial.Author.Profile?.AvatarUrl),
             steps,
-            tutorial.PublishedAt!.Value
+            tutorial.PublishedAt!.Value,
+            IsVipLocked: isVipLocked
         );
     }
 }

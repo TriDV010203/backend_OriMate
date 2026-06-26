@@ -9,14 +9,20 @@ namespace OrigamiPlatform.Application.Queries.Tutorials;
 public class GetTutorialsHandler
 {
     private readonly ITutorialRepository _tutorials;
+    private readonly IVipSubscriptionRepository _vipSubscriptions;
+    private readonly IUserRepository _users;
 
-    public GetTutorialsHandler(ITutorialRepository tutorials) => _tutorials = tutorials;
+    public GetTutorialsHandler(
+        ITutorialRepository tutorials,
+        IVipSubscriptionRepository vipSubscriptions,
+        IUserRepository users)
+        => (_tutorials, _vipSubscriptions, _users) = (tutorials, vipSubscriptions, users);
 
     public async Task<PagedResult<TutorialListItemDto>> HandleAsync(
         GetTutorialsQuery query, CancellationToken ct = default)
     {
         var page = Math.Max(1, query.Page);
-        var pageSize = Math.Clamp(query.PageSize, 1, 50);
+        var pageSize = Math.Clamp(query.PageSize, 1, 20);
 
         TutorialType? type = null;
         if (query.Type is not null)
@@ -30,8 +36,18 @@ public class GetTutorialsHandler
         if (sortBy is not ("date" or "likes"))
             throw new DomainException($"Invalid sortBy '{query.SortBy}'. Valid values: date, likes.");
 
+        HashSet<Guid>? followedIds = null;
+        var subscribedCreatorIds = new HashSet<Guid>();
+
+        if (query.CurrentUserId.HasValue)
+        {
+            var userId = query.CurrentUserId.Value;
+            followedIds = await _users.GetFollowingIdsAsync(userId, ct);
+            subscribedCreatorIds = await _vipSubscriptions.GetSubscribedCreatorIdsAsync(userId, ct);
+        }
+
         var (items, totalCount) = await _tutorials.GetPublishedAsync(
-            query.Search, query.CategoryId, query.Difficulty, type, sortBy, page, pageSize, ct);
+            query.Search, query.CategoryId, query.Difficulty, type, sortBy, page, pageSize, followedIds, ct);
 
         var dtos = items.Select(t => new TutorialListItemDto(
             t.Id,
@@ -48,7 +64,8 @@ public class GetTutorialsHandler
                 t.Author.Profile?.DisplayName ?? t.Author.Email,
                 t.Author.Profile?.AvatarUrl),
             t.Steps.Count,
-            t.PublishedAt!.Value
+            t.PublishedAt!.Value,
+            IsVipLocked: t.Type == TutorialType.VIP && !subscribedCreatorIds.Contains(t.Author.Id)
         )).ToList();
 
         return new PagedResult<TutorialListItemDto>(
