@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using OrigamiPlatform.Application.Commands.Achievements;
+using OrigamiPlatform.Application.Commands.AdCampaigns;
 using OrigamiPlatform.Application.Commands.Auth;
 using OrigamiPlatform.Application.Commands.Comments;
 using OrigamiPlatform.Application.Commands.CommunityPosts;
@@ -16,6 +17,7 @@ using OrigamiPlatform.Application.Features.AdminConfiguration.Services;
 using OrigamiPlatform.Application.Features.Tutorials.Services;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Application.Queries.Achievements;
+using OrigamiPlatform.Application.Queries.AdCampaigns;
 using OrigamiPlatform.Application.Queries.Comments;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
 using OrigamiPlatform.Application.Queries.FamilyProjects;
@@ -57,6 +59,9 @@ public static class DependencyInjection
         services.AddScoped<IFollowRepository, FollowRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<ITutorialStepProgressRepository, TutorialStepProgressRepository>();
+
+        // FT-20 Advertising
+        services.AddScoped<IAdCampaignRepository, AdCampaignRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -128,6 +133,13 @@ public static class DependencyInjection
         services.AddScoped<GetProjectProgressHandler>();
         services.AddScoped<MarkProjectCompletedHandler>();
         services.AddScoped<ShareProjectHandler>();
+
+        // Handlers — FT-20 Advertising
+        services.AddScoped<CreateAdCampaignHandler>();
+        services.AddScoped<ReviewAdCampaignHandler>();
+        services.AddScoped<GetMyCampaignsHandler>();
+        services.AddScoped<GetPendingCampaignsHandler>();
+        services.AddScoped<GetAdCampaignHandler>();
 
         return services;
     }
