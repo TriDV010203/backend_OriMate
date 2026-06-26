@@ -33,6 +33,7 @@ public class AppDbContext : DbContext
     // Content & Progress
     public DbSet<Achievement> Achievements => Set<Achievement>();
     public DbSet<Journal> Journals => Set<Journal>();
+    public DbSet<TutorialStepProgress> TutorialStepProgresses => Set<TutorialStepProgress>();
 
     // Subscriptions & Payments
     public DbSet<VipSubscription> VipSubscriptions => Set<VipSubscription>();
