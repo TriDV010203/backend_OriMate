@@ -37,4 +37,46 @@ public class FamilyProjectRepository : IFamilyProjectRepository
         _db.FamilyProjects.Add(project);
         await _db.SaveChangesAsync(ct);
     }
+
+    public async Task UpdateAsync(FamilyProject project, CancellationToken ct = default)
+    {
+        _db.FamilyProjects.Update(project);
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public async Task AddMemberAsync(FamilyProjectMember member, CancellationToken ct = default)
+    {
+        _db.FamilyProjectMembers.Add(member);
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public async Task UpdateMemberAsync(FamilyProjectMember member, CancellationToken ct = default)
+    {
+        _db.FamilyProjectMembers.Update(member);
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public Task<bool> StepBelongsToTutorialAsync(Guid stepId, Guid tutorialId, CancellationToken ct = default)
+        => _db.TutorialSteps.AnyAsync(s => s.Id == stepId && s.TutorialId == tutorialId, ct);
+
+    public Task<bool> StepProgressExistsAsync(Guid projectId, Guid stepId, Guid userId, CancellationToken ct = default)
+        => _db.FamilyProjectStepProgresses.AnyAsync(
+            p => p.ProjectId == projectId && p.StepId == stepId && p.CompletedBy == userId, ct);
+
+    public async Task AddStepProgressAsync(FamilyProjectStepProgress progress, CancellationToken ct = default)
+    {
+        _db.FamilyProjectStepProgresses.Add(progress);
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<TutorialStep>> GetTutorialStepsAsync(Guid tutorialId, CancellationToken ct = default)
+        => await _db.TutorialSteps
+            .Where(s => s.TutorialId == tutorialId)
+            .OrderBy(s => s.StepOrder)
+            .ToListAsync(ct);
+
+    public async Task<IReadOnlyList<FamilyProjectStepProgress>> GetStepProgressesAsync(Guid projectId, CancellationToken ct = default)
+        => await _db.FamilyProjectStepProgresses
+            .Where(p => p.ProjectId == projectId)
+            .ToListAsync(ct);
 }

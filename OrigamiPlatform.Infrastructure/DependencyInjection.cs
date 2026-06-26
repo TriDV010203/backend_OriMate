@@ -121,6 +121,14 @@ public static class DependencyInjection
         services.AddScoped<CreateFamilyProjectHandler>();
         services.AddScoped<GetFamilyProjectHandler>();
 
+        // Handlers — FT-19 Family project progress & sharing
+        services.AddScoped<InviteFamilyMemberHandler>();
+        services.AddScoped<RespondFamilyInvitationHandler>();
+        services.AddScoped<CompleteStepHandler>();
+        services.AddScoped<GetProjectProgressHandler>();
+        services.AddScoped<MarkProjectCompletedHandler>();
+        services.AddScoped<ShareProjectHandler>();
+
         return services;
     }
 }
