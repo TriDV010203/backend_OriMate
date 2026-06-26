@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
+using OrigamiPlatform.Domain.Enums;
 
 namespace OrigamiPlatform.Infrastructure.Persistence.Repositories;
 
@@ -36,8 +37,46 @@ public class AdCampaignRepository : IAdCampaignRepository
         => PageAsync(_db.AdCampaigns.Where(c => c.PartnerId == partnerId), page, pageSize, ct);
 
     public Task<(IEnumerable<AdCampaign> Items, int TotalCount)> GetByStatusAsync(
-        Domain.Enums.CampaignStatus status, int page, int pageSize, CancellationToken ct = default)
+        CampaignStatus status, int page, int pageSize, CancellationToken ct = default)
         => PageAsync(_db.AdCampaigns.Where(c => c.Status == status), page, pageSize, ct);
+
+    public async Task AddImpressionAsync(AdImpression impression, CancellationToken ct = default)
+    {
+        _db.AdImpressions.Add(impression);
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public async Task AddClickAsync(AdClick click, CancellationToken ct = default)
+    {
+        _db.AdClicks.Add(click);
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public Task<int> CountImpressionsAsync(Guid campaignId, CancellationToken ct = default)
+        => _db.AdImpressions.CountAsync(i => i.CampaignId == campaignId, ct);
+
+    public Task<int> CountClicksAsync(Guid campaignId, CancellationToken ct = default)
+        => _db.AdClicks.CountAsync(c => c.CampaignId == campaignId, ct);
+
+    public async Task<IReadOnlyList<AdCampaign>> GetLiveByPlacementAsync(
+        int placementId, DateTime today, CancellationToken ct = default)
+        => await _db.AdCampaigns
+            .Where(c => c.PlacementId == placementId
+                && (c.Status == CampaignStatus.Approved || c.Status == CampaignStatus.Active)
+                && c.BudgetRemaining > 0
+                && c.StartDate <= today
+                && c.EndDate >= today)
+            .Include(c => c.Banners)
+            .ToListAsync(ct);
+
+    public Task<int> CountAllImpressionsAsync(CancellationToken ct = default)
+        => _db.AdImpressions.CountAsync(ct);
+
+    public Task<int> CountAllClicksAsync(CancellationToken ct = default)
+        => _db.AdClicks.CountAsync(ct);
+
+    public async Task<IReadOnlyList<AdCampaign>> GetAllAsync(CancellationToken ct = default)
+        => await _db.AdCampaigns.ToListAsync(ct);
 
     private static async Task<(IEnumerable<AdCampaign>, int)> PageAsync(
         IQueryable<AdCampaign> baseQuery, int page, int pageSize, CancellationToken ct)

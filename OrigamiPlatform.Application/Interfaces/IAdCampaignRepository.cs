@@ -16,4 +16,19 @@ public interface IAdCampaignRepository
         Guid partnerId, int page, int pageSize, CancellationToken ct = default);
     Task<(IEnumerable<AdCampaign> Items, int TotalCount)> GetByStatusAsync(
         CampaignStatus status, int page, int pageSize, CancellationToken ct = default);
+
+    // FT-21 tracking
+    Task AddImpressionAsync(AdImpression impression, CancellationToken ct = default);
+    Task AddClickAsync(AdClick click, CancellationToken ct = default);
+    Task<int> CountImpressionsAsync(Guid campaignId, CancellationToken ct = default);
+    Task<int> CountClicksAsync(Guid campaignId, CancellationToken ct = default);
+
+    /// <summary>Campaigns whose banners may be displayed in a placement right now (live + budget &gt; 0).</summary>
+    Task<IReadOnlyList<AdCampaign>> GetLiveByPlacementAsync(
+        int placementId, DateTime today, CancellationToken ct = default);
+
+    // FT-21 dashboards
+    Task<int> CountAllImpressionsAsync(CancellationToken ct = default);
+    Task<int> CountAllClicksAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<AdCampaign>> GetAllAsync(CancellationToken ct = default);
 }

@@ -19,15 +19,19 @@ public class AdCampaignsController : ControllerBase
     private readonly GetMyCampaignsHandler _getMyCampaigns;
     private readonly GetPendingCampaignsHandler _getPendingCampaigns;
     private readonly GetAdCampaignHandler _getCampaign;
+    private readonly GetCampaignDashboardHandler _getDashboard;
+    private readonly GetAdOverviewHandler _getOverview;
 
     public AdCampaignsController(
         CreateAdCampaignHandler createCampaign,
         ReviewAdCampaignHandler reviewCampaign,
         GetMyCampaignsHandler getMyCampaigns,
         GetPendingCampaignsHandler getPendingCampaigns,
-        GetAdCampaignHandler getCampaign)
-        => (_createCampaign, _reviewCampaign, _getMyCampaigns, _getPendingCampaigns, _getCampaign)
-            = (createCampaign, reviewCampaign, getMyCampaigns, getPendingCampaigns, getCampaign);
+        GetAdCampaignHandler getCampaign,
+        GetCampaignDashboardHandler getDashboard,
+        GetAdOverviewHandler getOverview)
+        => (_createCampaign, _reviewCampaign, _getMyCampaigns, _getPendingCampaigns, _getCampaign, _getDashboard, _getOverview)
+            = (createCampaign, reviewCampaign, getMyCampaigns, getPendingCampaigns, getCampaign, getDashboard, getOverview);
 
     // UC-41 / NAC-01: only Advertising Partners can create campaigns.
     [HttpPost]
@@ -82,6 +86,25 @@ public class AdCampaignsController : ControllerBase
         var isPrivileged = User.IsInRole("Manager") || User.IsInRole("Admin");
         var result = await _getCampaign.HandleAsync(
             new GetAdCampaignQuery(campaignId, GetCurrentUserId(), isPrivileged), ct);
+        return Ok(result);
+    }
+
+    // UC-43 / AC-04: campaign performance dashboard (partner own, or Manager/Admin).
+    [HttpGet("{campaignId:guid}/dashboard")]
+    public async Task<IActionResult> Dashboard(Guid campaignId, CancellationToken ct)
+    {
+        var isPrivileged = User.IsInRole("Manager") || User.IsInRole("Admin");
+        var result = await _getDashboard.HandleAsync(
+            new GetCampaignDashboardQuery(campaignId, GetCurrentUserId(), isPrivileged), ct);
+        return Ok(result);
+    }
+
+    // Platform-wide advertising overview for Admin/Manager.
+    [HttpGet("dashboard")]
+    [Authorize(Roles = "Admin,Manager")]
+    public async Task<IActionResult> Overview(CancellationToken ct)
+    {
+        var result = await _getOverview.HandleAsync(new GetAdOverviewQuery(), ct);
         return Ok(result);
     }
 
