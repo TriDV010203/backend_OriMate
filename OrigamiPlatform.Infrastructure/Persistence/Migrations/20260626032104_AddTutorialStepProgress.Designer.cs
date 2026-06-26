@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OrigamiPlatform.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using OrigamiPlatform.Infrastructure.Persistence;
 namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260626032104_AddTutorialStepProgress")]
+    partial class AddTutorialStepProgress
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -807,8 +810,8 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.HasKey("Id");
 
@@ -1035,20 +1038,25 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
+                    b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
-                    b.Property<string>("ImageUrl")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MediaUrl")
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
 
                     b.Property<int>("StepOrder")
                         .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<Guid>("TutorialId")
                         .HasColumnType("uniqueidentifier");
@@ -1110,20 +1118,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
 
-                    b.Property<string>("PasswordResetToken")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<DateTime?>("PasswordResetTokenExpiry")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("RefreshTokenExpiresAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RefreshTokenHash")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -1145,16 +1139,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "admin@origami.com",
-                            PasswordHash = "$2a$11$oJ4bYk4funN7ZPGnjXt0c.q3Or1/y/8TtCQjNMLkmDHNleEkPuGA6",
-                            Status = "Active"
-                        });
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserProfile", b =>
@@ -1183,14 +1167,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("UserProfiles");
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DisplayName = "Admin"
-                        });
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserRole", b =>
@@ -1208,20 +1184,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasKey("UserId", "Role");
 
                     b.ToTable("UserRoles");
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
-                            Role = "User",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
-                        },
-                        new
-                        {
-                            UserId = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
-                            Role = "Admin",
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
-                        });
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.VipSubscription", b =>
