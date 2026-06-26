@@ -9,11 +9,20 @@ public class GetTutorialBySlugHandler
 {
     private readonly ITutorialRepository _tutorials;
     private readonly IVipSubscriptionRepository _vipSubscriptions;
+    private readonly ILikeRepository _likes;
+    private readonly IWishlistRepository _wishlists;
 
     public GetTutorialBySlugHandler(
         ITutorialRepository tutorials,
-        IVipSubscriptionRepository vipSubscriptions)
-        => (_tutorials, _vipSubscriptions) = (tutorials, vipSubscriptions);
+        IVipSubscriptionRepository vipSubscriptions,
+        ILikeRepository likes,
+        IWishlistRepository wishlists)
+    {
+        _tutorials = tutorials;
+        _vipSubscriptions = vipSubscriptions;
+        _likes = likes;
+        _wishlists = wishlists;
+    }
 
     public async Task<TutorialDetailDto> HandleAsync(
         GetTutorialBySlugQuery query, CancellationToken ct = default)
@@ -41,6 +50,21 @@ public class GetTutorialBySlugHandler
                 IsLocked: isVipLocked && s.StepOrder > 3))
             .ToList();
 
+        var likeCount = await _likes.GetLikeCountAsync(tutorial.Id, TargetType.Tutorial);
+        var wishlistCount = await _wishlists.GetWishlistCountAsync(tutorial.Id, TargetType.Tutorial, ct);
+
+        bool isLiked = false;
+        bool isWishlisted = false;
+
+        if (query.CurrentUserId.HasValue && query.CurrentUserId.Value != Guid.Empty)
+        {
+            var likeRecord = await _likes.GetLikeAsync(query.CurrentUserId.Value, tutorial.Id, TargetType.Tutorial);
+            isLiked = likeRecord != null;
+
+            var wishlistRecord = await _wishlists.GetByUserAndTargetAsync(query.CurrentUserId.Value, tutorial.Id, TargetType.Tutorial, ct);
+            isWishlisted = wishlistRecord != null;
+        }
+
         return new TutorialDetailDto(
             tutorial.Id,
             tutorial.Title,
@@ -57,7 +81,11 @@ public class GetTutorialBySlugHandler
                 tutorial.Author.Profile?.AvatarUrl),
             steps,
             tutorial.PublishedAt!.Value,
-            IsVipLocked: isVipLocked
+            IsVipLocked: isVipLocked,
+            LikeCount: likeCount,
+            WishlistCount: wishlistCount,
+            IsLikedByCurrentUser: isLiked,
+            IsWishlistedByCurrentUser: isWishlisted
         );
     }
 }

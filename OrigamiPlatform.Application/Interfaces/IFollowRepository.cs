@@ -9,4 +9,5 @@ public interface IFollowRepository
     Task RemoveAsync(FollowRelationship follow, CancellationToken ct = default);
     Task<int> GetFollowersCountAsync(Guid userId, CancellationToken ct = default);
     Task<int> GetFollowingCountAsync(Guid userId, CancellationToken ct = default);
+    Task<List<Guid>> GetFollowingIdsAsync(Guid followerId, CancellationToken ct = default);
 }

@@ -8,6 +8,7 @@ using OrigamiPlatform.Application.Commands.Journals;
 using OrigamiPlatform.Application.Commands.Likes;
 using OrigamiPlatform.Application.Commands.Notifications;
 using OrigamiPlatform.Application.Commands.Reports;
+using OrigamiPlatform.Application.Commands.TutorialProgress;
 using OrigamiPlatform.Application.Commands.Users;
 using OrigamiPlatform.Application.Commands.Wishlists;
 using OrigamiPlatform.Application.Features.AdminConfiguration.Services;
@@ -19,6 +20,7 @@ using OrigamiPlatform.Application.Queries.CommunityPosts;
 using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.Notifications;
 using OrigamiPlatform.Application.Queries.Reports;
+using OrigamiPlatform.Application.Queries.TutorialProgress;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Application.Queries.Users;
 using OrigamiPlatform.Application.Queries.Wishlists;
@@ -47,6 +49,7 @@ public static class DependencyInjection
         services.AddScoped<IWishlistRepository, WishlistRepository>();
         services.AddScoped<IFollowRepository, FollowRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<ITutorialStepProgressRepository, TutorialStepProgressRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -101,6 +104,11 @@ public static class DependencyInjection
         services.AddScoped<GetNotificationsHandler>();
         services.AddScoped<GetCreatorProfileHandler>();
         services.AddScoped<UpdateProfileHandler>();
+
+        // Handlers — Tutorial step progress (per user)
+        services.AddScoped<CompleteTutorialStepHandler>();
+        services.AddScoped<UncompleteTutorialStepHandler>();
+        services.AddScoped<GetTutorialProgressHandler>();
 
         return services;
     }

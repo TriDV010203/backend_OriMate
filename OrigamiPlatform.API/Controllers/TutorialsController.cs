@@ -46,7 +46,8 @@ public class TutorialsController : ControllerBase
     }
 
     [HttpGet("{slug}")]
-    public async Task<IActionResult> GetBySlug(string slug, CancellationToken ct)
+    [AllowAnonymous]
+    public async Task<IActionResult> GetBySlug([FromRoute] string slug, CancellationToken ct)
     {
         var result = await _getTutorialBySlug.HandleAsync(
             new GetTutorialBySlugQuery(slug, GetCurrentUserId()), ct);

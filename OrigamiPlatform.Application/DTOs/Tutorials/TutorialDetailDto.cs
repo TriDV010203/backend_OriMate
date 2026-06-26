@@ -13,5 +13,9 @@ public record TutorialDetailDto(
     AuthorDto Author,
     IEnumerable<TutorialStepDto> Steps,
     DateTime PublishedAt,
-    bool IsVipLocked = false
+    bool IsVipLocked,
+    int LikeCount,
+    int WishlistCount,
+    bool IsLikedByCurrentUser,
+    bool IsWishlistedByCurrentUser
 );
