@@ -26,8 +26,12 @@ public class GetTutorialsHandler
             type = parsed;
         }
 
+        var sortBy = query.SortBy?.ToLowerInvariant() ?? "date";
+        if (sortBy is not ("date" or "likes"))
+            throw new DomainException($"Invalid sortBy '{query.SortBy}'. Valid values: date, likes.");
+
         var (items, totalCount) = await _tutorials.GetPublishedAsync(
-            query.Search, query.CategoryId, query.Difficulty, type, page, pageSize, ct);
+            query.Search, query.CategoryId, query.Difficulty, type, sortBy, page, pageSize, ct);
 
         var dtos = items.Select(t => new TutorialListItemDto(
             t.Id,

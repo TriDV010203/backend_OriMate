@@ -12,5 +12,12 @@ public record TutorialDetailDto(
     string CategoryName,
     AuthorDto Author,
     IEnumerable<TutorialStepDto> Steps,
-    DateTime PublishedAt
+    DateTime PublishedAt,
+
+
+    //loc them
+    int LikeCount,
+    int WishlistCount,
+    bool IsLikedByCurrentUser,
+    bool IsWishlistedByCurrentUser
 );
