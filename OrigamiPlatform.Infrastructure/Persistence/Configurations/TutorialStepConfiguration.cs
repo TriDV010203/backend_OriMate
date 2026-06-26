@@ -11,9 +11,8 @@ public class TutorialStepConfiguration : IEntityTypeConfiguration<TutorialStep>
         builder.HasKey(s => s.Id);
         builder.Property(s => s.Id).ValueGeneratedNever();
 
-        builder.Property(s => s.Title).HasMaxLength(150).IsRequired();
-        builder.Property(s => s.Content).HasMaxLength(4000).IsRequired();
-        builder.Property(s => s.MediaUrl).HasMaxLength(512);
+        builder.Property(s => s.Description).HasMaxLength(4000).IsRequired();
+        builder.Property(s => s.ImageUrl).HasMaxLength(512);
         // Relationship with Tutorial configured in TutorialConfiguration
     }
 }

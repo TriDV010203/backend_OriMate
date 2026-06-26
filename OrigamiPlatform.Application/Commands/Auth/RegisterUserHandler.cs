@@ -50,12 +50,16 @@ public class RegisterUserHandler
             }
         };
 
+        var (rawRefresh, hashedRefresh, refreshExpiresAt) = _tokens.GenerateRefreshToken();
+        user.RefreshTokenHash = hashedRefresh;
+        user.RefreshTokenExpiresAt = refreshExpiresAt;
+
         await _users.AddAsync(user, ct);
         await _email.SendVerificationEmailAsync(user.Email, verificationToken, ct);
 
         var (token, expiresAt) = _tokens.GenerateToken(user);
         var roles = user.Roles.Select(r => r.Role.ToString()).ToList();
 
-        return new AuthResponse(user.Id, user.Email, roles, token, expiresAt);
+        return new AuthResponse(user.Id, user.Email, cmd.DisplayName, roles, token, expiresAt, rawRefresh);
     }
 }
