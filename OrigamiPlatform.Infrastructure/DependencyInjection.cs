@@ -3,6 +3,7 @@ using OrigamiPlatform.Application.Commands.Achievements;
 using OrigamiPlatform.Application.Commands.Auth;
 using OrigamiPlatform.Application.Commands.Comments;
 using OrigamiPlatform.Application.Commands.CommunityPosts;
+using OrigamiPlatform.Application.Commands.FamilyProjects;
 using OrigamiPlatform.Application.Commands.Follows;
 using OrigamiPlatform.Application.Commands.Journals;
 using OrigamiPlatform.Application.Commands.Likes;
@@ -17,6 +18,7 @@ using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Application.Queries.Achievements;
 using OrigamiPlatform.Application.Queries.Comments;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
+using OrigamiPlatform.Application.Queries.FamilyProjects;
 using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.Notifications;
 using OrigamiPlatform.Application.Queries.Reports;
@@ -39,6 +41,11 @@ public static class DependencyInjection
         services.AddScoped<IVipSubscriptionRepository, VipSubscriptionRepository>();
         services.AddScoped<IAchievementRepository, AchievementRepository>();
         services.AddScoped<IJournalRepository, JournalRepository>();
+
+        // FT-18 Family plan & projects
+        services.AddScoped<IFamilySubscriptionRepository, FamilySubscriptionRepository>();
+        services.AddScoped<IFamilyProjectRepository, FamilyProjectRepository>();
+
         services.AddScoped<ICommunityPostRepository, CommunityPostRepository>();
         services.AddScoped<ILikeRepository, LikeRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
@@ -109,6 +116,10 @@ public static class DependencyInjection
         services.AddScoped<CompleteTutorialStepHandler>();
         services.AddScoped<UncompleteTutorialStepHandler>();
         services.AddScoped<GetTutorialProgressHandler>();
+
+        // Handlers — FT-18 Family projects
+        services.AddScoped<CreateFamilyProjectHandler>();
+        services.AddScoped<GetFamilyProjectHandler>();
 
         return services;
     }
