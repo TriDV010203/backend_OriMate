@@ -1,4 +1,4 @@
-namespace OrigamiPlatform.Application.DTOs.Tutorials;
+﻿namespace OrigamiPlatform.Application.DTOs.Tutorials;
 
 public record TutorialListItemDto(
     Guid Id,

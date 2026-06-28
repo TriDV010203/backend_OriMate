@@ -40,7 +40,6 @@ public class CommentRepository : ICommentRepository
 
         var totalCount = await query.CountAsync();
 
-        // Tính tổng số trang (TotalPages)
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
         var items = await query
@@ -48,16 +47,20 @@ public class CommentRepository : ICommentRepository
             .Take(pageSize)
             .ToListAsync();
 
-        // Thêm totalPages vào cuối
         return new PagedResult<Comment>(items, totalCount, page, pageSize, totalPages);
     }
 
     public async Task<List<Comment>> GetRepliesByParentIdsAsync(IEnumerable<Guid> parentIds)
     {
         return await _context.Comments
-            // Điều kiện: Nó phải là Comment (TargetType = 2) VÀ TargetId của nó phải nằm trong nhóm parentIds
             .Where(c => c.TargetType == TargetType.Comment && parentIds.Contains(c.TargetId))
-            .OrderBy(c => c.CreatedAt) // Reply cũ xếp trên, Reply mới xếp dưới (giống Facebook)
+            .OrderBy(c => c.CreatedAt) 
             .ToListAsync();
+    }
+
+    public async Task<int> GetCommentCountAsync(Guid targetId, TargetType targetType, CancellationToken ct = default)
+    {
+        return await _context.Comments
+            .CountAsync(c => c.TargetId == targetId && c.TargetType == targetType && !c.IsDeleted, ct);
     }
 }
