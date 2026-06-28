@@ -1,4 +1,4 @@
-namespace OrigamiPlatform.Domain.Entities;
+﻿namespace OrigamiPlatform.Domain.Entities;
 
 public class UserProfile
 {
@@ -8,6 +8,12 @@ public class UserProfile
     public string? AvatarUrl { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+
+    //// loc them
+    //public string? Address { get; set; }
+    //public string? PhoneNumber { get; set; }
+    //public string? EmailContact { get; set; }
+    //public string? FacebookUrl { get; set; }
 
     public User User { get; set; } = null!;
 }

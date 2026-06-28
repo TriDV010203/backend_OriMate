@@ -1,4 +1,4 @@
-namespace OrigamiPlatform.Application.DTOs.Tutorials;
+﻿namespace OrigamiPlatform.Application.DTOs.Tutorials;
 
 public record TutorialListItemDto(
     Guid Id,
@@ -13,5 +13,10 @@ public record TutorialListItemDto(
     AuthorDto Author,
     int StepCount,
     DateTime PublishedAt,
-    bool IsVipLocked = false
+    bool IsVipLocked = false,
+    int LikeCount = 0,
+    int WishlistCount = 0,
+    int CommentCount = 0,
+    bool IsLikedByCurrentUser = false,
+    bool IsWishlistedByCurrentUser = false
 );
