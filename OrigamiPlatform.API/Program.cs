@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OrigamiPlatform.API.Middleware;
+using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Infrastructure;
 using OrigamiPlatform.Infrastructure.Persistence;
 
@@ -71,6 +72,11 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    using var seedScope = app.Services.CreateScope();
+    var seedContext = seedScope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var seedHasher = seedScope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+    await SeedData.SeedAsync(seedContext, seedHasher);
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
