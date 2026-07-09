@@ -130,7 +130,7 @@ HTTP status mapping: `DomainException` → 400, `NotFoundException` → 404, `Fo
 | BR-VIP-02 | 30 ngày cố định, không auto-renew, không hoàn tiền |
 | BR-VIP-03 | Creator phải có `CreatorVipSettings` active trước khi đánh dấu `isVip` |
 | BR-VIP-04 | Hạt Gấp KHÔNG bao giờ mở VIP tutorial — VIP chỉ mở qua subscription |
-| BR-PAYMENT-01 | **Thanh toán thủ công** — Admin/Manager xác nhận giao dịch, KHÔNG tích hợp cổng thanh toán thật trong scope 3 tuần này |
+| BR-PAYMENT-01 | **Thanh toán qua SePay** — webhook `POST /api/v1/webhooks/sepay`, bắt buộc verify `X-SePay-Signature` trước khi xử lý, bắt buộc idempotency check (không cộng tiền/kích hoạt VIP 2 lần cho cùng 1 giao dịch) |
 | BR-CLAN-01 | 1 user chỉ ở 1 Clan tại 1 thời điểm |
 | BR-CLAN-03 | Owner không rời Clan trực tiếp — phải chuyển Owner trước |
 | BR-QUEST-01 | Daily Quest reset 00:00 GMT+7 |
@@ -164,5 +164,5 @@ Branch: `feature/FT-XX-short-description`. PR cần ít nhất 1 reviewer, build
 - Không trả raw EF entity từ API — luôn map qua DTO.
 - Không bỏ qua blocked word check ở bất kỳ endpoint ghi content nào.
 - Không tự ý code FT thuộc mục WON'T-HAVE trong `docs/MVP_SCOPE.md`, kể cả khi BRD mô tả đầy đủ.
-- Không tích hợp cổng thanh toán thật (SePay hay khác) trừ khi `docs/MVP_SCOPE.md` được cập nhật xác nhận đổi hướng.
+- Endpoint webhook `POST /api/v1/webhooks/sepay` PHẢI verify signature trước khi xử lý bất kỳ logic nào — không tin payload chưa verify.
 - Không tạo lại bất kỳ code/entity nào liên quan `FamilyProject*`, `FamilySubscription`, `Ad*` (AdCampaign/AdBanner/AdImpression/AdClick/AdPlacement) — đã bị xoá khỏi codebase theo quyết định chốt scope, không thuộc BRD v5.0.

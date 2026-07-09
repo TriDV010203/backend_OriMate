@@ -1,4 +1,5 @@
-# MVP_SCOPE.md (v2) — OriMate, 
+# MVP_SCOPE.md (v2) — OriMate, phạm vi code 3 tuần
+
 ## References
 - `FT_MAPPING_v5.md` — mapping FT ↔ feature/entity/actor
 - `CLAUDE.md` — pattern code (Command/Query/Handler)
@@ -55,8 +56,10 @@
 
 | FT | Tên | Việc cần làm | Người phù hợp |
 |---|---|---|---|
-| FT-16 | VIP Subscription | Toàn bộ mới: `SubscribeCommand`, `ConfirmPaymentCommand` (Admin xác nhận thủ công — theo BR-PAYMENT-01), `GetMySubscriptionsQuery`. Dùng `IVipSubscriptionRepository` đã có sẵn interface | BE3 |
+| FT-16 | VIP Subscription | **Đổi sang SePay** (quyết định mới, ghi đè phiên bản trước): `CreateSePayQrCommand`, webhook handler `POST /api/v1/webhooks/sepay` (verify signature + idempotency), `SubscribeCommand` kích hoạt VIP khi webhook confirm, `GetMySubscriptionsQuery`. **Ước lượng tăng lên ~2 - 2.5 ngày** (so với ~1 ngày nếu làm thủ công) do phần verify signature + idempotency + cần môi trường public để test webhook | BE3 |
 | FT-17 | Creator dashboard | `GetCreatorRevenueQuery` — chỉ cần tổng subscriber + tổng transaction confirmed | BE3 |
+
+⚠️ **Điều kiện tiên quyết trước khi BE3 bắt đầu FT-16:** (1) đã có tài khoản sandbox/merchant SePay — đăng ký ngay, đừng chờ đến lúc code; (2) đã chốt xong hướng deploy (mục #11) hoặc có ngrok/tunnel tạm để nhận webhook khi test local. Nếu 1 trong 2 chưa sẵn sàng, BE3 nên làm trước phần không phụ thuộc webhook (`GetCreatorRevenueQuery`, model `Transaction`/`VipSubscription`) rồi quay lại phần webhook sau.
 | FT-10 | Stuck button | `CreateStuckThreadCommand`, dùng lại `Comment` (TargetType=StuckThread) đã có sẵn cho phần reply | BE1 (sau khi xong refactor Tutorials, vì cùng domain) |
 | FT-14 (CTV) | Moderation cơ bản | `DeleteViolatingCommentCommand` (CTV), review logic đã một phần nằm trong Reports — chỉ cần bổ sung quyền CTV | BE2 |
 
