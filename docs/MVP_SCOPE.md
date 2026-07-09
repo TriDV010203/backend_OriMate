@@ -56,10 +56,10 @@
 
 | FT | Tên | Việc cần làm | Người phù hợp |
 |---|---|---|---|
-| FT-16 | VIP Subscription | **Đổi sang SePay** (quyết định mới, ghi đè phiên bản trước): `CreateSePayQrCommand`, webhook handler `POST /api/v1/webhooks/sepay` (verify signature + idempotency), `SubscribeCommand` kích hoạt VIP khi webhook confirm, `GetMySubscriptionsQuery`. **Ước lượng tăng lên ~2 - 2.5 ngày** (so với ~1 ngày nếu làm thủ công) do phần verify signature + idempotency + cần môi trường public để test webhook | BE3 |
+| FT-16 | VIP Subscription | **Giai đoạn 1 (trong 3 tuần):** xác nhận thủ công — `CreateTransactionCommand`, `ConfirmPaymentCommand` (Admin xác nhận), `SubscribeCommand` kích hoạt VIP khi Transaction Confirmed, `GetMySubscriptionsQuery`. Ước lượng lại về **~1 - 1.5 ngày** (như bản gốc). Thiết kế `Transaction` đủ field để giai đoạn 2 (SePay) cắm thêm mà không đổi schema — xem ERD | BE3 |
 | FT-17 | Creator dashboard | `GetCreatorRevenueQuery` — chỉ cần tổng subscriber + tổng transaction confirmed | BE3 |
 
-⚠️ **Điều kiện tiên quyết trước khi BE3 bắt đầu FT-16:** (1) đã có tài khoản sandbox/merchant SePay — đăng ký ngay, đừng chờ đến lúc code; (2) đã chốt xong hướng deploy (mục #11) hoặc có ngrok/tunnel tạm để nhận webhook khi test local. Nếu 1 trong 2 chưa sẵn sàng, BE3 nên làm trước phần không phụ thuộc webhook (`GetCreatorRevenueQuery`, model `Transaction`/`VipSubscription`) rồi quay lại phần webhook sau.
+**Giai đoạn 2 — SePay webhook:** KHÔNG nằm trong 3 tuần này, làm sau khi có hạ tầng public (xem `docs/DEPLOYMENT.md`). Không chặn tiến độ MVP, không cần tài khoản sandbox/ngrok ngay bây giờ.
 | FT-10 | Stuck button | `CreateStuckThreadCommand`, dùng lại `Comment` (TargetType=StuckThread) đã có sẵn cho phần reply | BE1 (sau khi xong refactor Tutorials, vì cùng domain) |
 | FT-14 (CTV) | Moderation cơ bản | `DeleteViolatingCommentCommand` (CTV), review logic đã một phần nằm trong Reports — chỉ cần bổ sung quyền CTV | BE2 |
 

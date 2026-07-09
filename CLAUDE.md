@@ -130,7 +130,7 @@ HTTP status mapping: `DomainException` → 400, `NotFoundException` → 404, `Fo
 | BR-VIP-02 | 30 ngày cố định, không auto-renew, không hoàn tiền |
 | BR-VIP-03 | Creator phải có `CreatorVipSettings` active trước khi đánh dấu `isVip` |
 | BR-VIP-04 | Hạt Gấp KHÔNG bao giờ mở VIP tutorial — VIP chỉ mở qua subscription |
-| BR-PAYMENT-01 | **Thanh toán qua SePay** — webhook `POST /api/v1/webhooks/sepay`, bắt buộc verify `X-SePay-Signature` trước khi xử lý, bắt buộc idempotency check (không cộng tiền/kích hoạt VIP 2 lần cho cùng 1 giao dịch) |
+| BR-PAYMENT-01 | **2 giai đoạn:** (1) MVP 3 tuần dùng xác nhận thủ công (Admin/Manager confirm tay) — đủ để demo VIP hoạt động; (2) SePay webhook thêm sau khi có hạ tầng public (xem `docs/DEPLOYMENT.md`), KHÔNG chặn tiến độ MVP. `Transaction` thiết kế sẵn để nhận cả 2 nguồn xác nhận, không cần đổi schema khi thêm SePay |
 | BR-CLAN-01 | 1 user chỉ ở 1 Clan tại 1 thời điểm |
 | BR-CLAN-03 | Owner không rời Clan trực tiếp — phải chuyển Owner trước |
 | BR-QUEST-01 | Daily Quest reset 00:00 GMT+7 |
