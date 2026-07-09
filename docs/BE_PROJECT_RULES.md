@@ -1,8 +1,10 @@
-# BE_PROJECT_RULES.md — Origami Community Platform
+# BE_PROJECT_RULES.md — OriMate (Origami Community Platform)
 
 ## References
 - `BE_ARCHITECTURE.md` — solution structure & layer diagram
-- `Origami_ERD_Design_v2.docx` — database schema
+- `CLAUDE.md` — quy tắc dành cho AI coding agent (đồng bộ với file này)
+- `docs/FT_MAPPING_v5.md`, `docs/MVP_SCOPE.md`
+- `Origami_ERD_Design_v3.docx` — database schema
 
 ---
 
@@ -13,11 +15,11 @@
 | Language | C# | .NET 8 |
 | Framework | ASP.NET Core Web API | .NET 8 |
 | ORM | Entity Framework Core | Code First |
-| Validation | FluentValidation | latest stable |
-| Mapping | AutoMapper | latest stable |
+| Pattern | Command/Query + Handler (CQRS-lite) | — |
+| Validation | FluentValidation | chỉ dùng khi validate phức tạp — xem mục 5.5 |
 | Auth | JWT Bearer | built-in .NET 8 |
-| Password | BCrypt.Net-Next | latest |
-| Email | MailKit | latest |
+| Password | BCrypt qua `IPasswordHasher` | latest |
+| Email | MailKit (Gmail SMTP) | latest |
 | File storage | Cloudinary SDK | latest |
 | Background jobs | `IHostedService` | built-in .NET 8 |
 | Testing | xUnit + Moq | latest |
@@ -27,60 +29,59 @@
 
 ## 2. Naming Conventions
 
-| Item | Convention | Example |
+| Item | Convention | Ví dụ |
 |---|---|---|
-| Feature folders | PascalCase | `Tutorials`, `FamilyProject` |
-| Controllers | `[Feature]Controller.cs` | `TutorialController.cs` |
-| Service interface | `I[Feature]Service.cs` | `ITutorialService.cs` |
-| Service class | `[Feature]Service.cs` | `TutorialService.cs` |
-| Repository interface | `I[Entity]Repository.cs` | `ITutorialRepository.cs` |
-| Repository class | `[Entity]Repository.cs` | `TutorialRepository.cs` |
-| DTO input | `[Action]Request.cs` | `CreateTutorialRequest.cs` |
-| DTO output | `[Action]Response.cs` | `TutorialDetailResponse.cs` |
-| Validator | `[Action]RequestValidator.cs` | `CreateTutorialRequestValidator.cs` |
-| Classes / Methods | PascalCase | `GetBySlugAsync` |
+| Feature folder | PascalCase | `Tutorials`, `Achievements`, `Subscriptions` |
+| Controller | `[Feature]Controller.cs` | `TutorialController.cs` |
+| Command | `VerbNounCommand` | `CreateAchievementCommand`, `SubmitTutorialCommand` |
+| Query | `GetNounQuery` | `GetTutorialsQuery`, `GetUserAchievementsQuery` |
+| Handler | `VerbNounHandler` / `GetNounHandler` | `CreateAchievementHandler`, `GetTutorialsHandler` |
+| Repository interface/class | `I[Entity]Repository.cs` / `[Entity]Repository.cs` | `ITutorialRepository.cs` |
+| DTO output | `NounDto` | `AchievementDto.cs`, `TutorialDetailDto.cs` |
+| DTO input (khi cần validate riêng) | `NounRequest` | `CreateTutorialRequest.cs` |
+| Validator | `[Action]RequestValidator.cs` | `LoginRequestValidator.cs` |
+| Classes / Methods | PascalCase | `HandleAsync`, `GetBySlugAsync` |
 | Variables / Params | camelCase | `tutorialId`, `currentUserId` |
-| Constants | UPPER_SNAKE_CASE | `MAX_STEP_COUNT` |
-| Interfaces | Prefix `I` | `IAuthService` |
+| Constants | UPPER_SNAKE_CASE hoặc `const int MaxNoteLength` (PascalCase chấp nhận được nếu private trong Handler) | `MaxNoteLength` |
+| Interfaces | Prefix `I` | `IAuthService`, `ITutorialRepository` |
+| Không viết tắt | — | `CreateVipSubscriptionCommand`, không viết `CreateVipSubCommand` |
 
 ---
 
 ## 3. Layer & Project Rules
 
-### Dependency direction (NEVER violate)
-
+### Dependency direction (KHÔNG BAO GIỜ vi phạm)
 ```
 API → Application → Domain
-Infrastructure → Application + Domain
+Infrastructure → Application → Domain
 
-API must NOT reference Infrastructure or Domain directly.
-Application must NOT reference Infrastructure (use interfaces).
-Domain must NOT reference any other project.
+API không được reference Infrastructure hay Domain trực tiếp (trừ DI wiring ở Program.cs).
+Application không được reference Infrastructure (dùng interface).
+Domain không reference project nào khác.
 ```
 
-### Responsibility per project
+### Trách nhiệm từng project
 
-**OrigamiCommunity.Domain** — zero dependencies, zero business logic:
-- Entity classes (plain C# properties, navigation properties)
-- Enums (`TutorialStatus`, `AccountStatus`, etc.)
-- Constants (`AppConstants.cs`)
+**OrigamiPlatform.Domain** — entities, enums, exceptions:
+- Entity class (property thuần C#, navigation property)
+- Enum (`TutorialStatus`, `AccountStatus`...)
+- Exception (`DomainException`, `NotFoundException`, `ForbiddenException`)
 
-**OrigamiCommunity.Application** — business logic lives here:
-- Feature Services (implement business rules, BRs)
-- DTOs (Request / Response models)
-- FluentValidation Validators
-- Repository interfaces (`Application/Interfaces/Repositories/`)
-- AutoMapper profiles (`Application/Common/MappingProfiles/`)
-- Shared helpers (`ApiResponse<T>`, `PaginationHelper`)
+**OrigamiPlatform.Application** — business logic sống ở đây:
+- `Commands/[Feature]/[Action]Command.cs` + `[Action]Handler.cs`
+- `Queries/[Feature]/[Action]Query.cs` + `[Action]Handler.cs`
+- `DTOs/[Feature]/` — output DTO, và Request DTO nếu cần validate riêng
+- `Validators/[Feature]/` — chỉ khi cần (xem mục 5.5)
+- `Interfaces/` — repository interfaces (flat, không lồng theo feature)
 
-**OrigamiCommunity.Infrastructure** — I/O only:
+**OrigamiPlatform.Infrastructure** — I/O only:
 - EF Core `AppDbContext` + Fluent API configurations
-- Repository implementations (EF Core queries)
-- `JwtService`, `EmailService`, `FileStorageService`, `BlockedWordService`
-- Background jobs (`SubscriptionExpiryJob`, `AdBudgetDepletionJob`)
+- Repository implementations
+- `JwtService`/`ITokenService`, `EmailService`, `FileStorageService`, `BlockedWordService`
+- Background jobs (`SubscriptionExpiryJob`)
 
-**OrigamiCommunity.API** — thin layer:
-- Controllers (no business logic — route, authorize, call service, return response)
+**OrigamiPlatform.API** — thin layer:
+- Controllers — route, `[Authorize]`, khởi tạo Command/Query, gọi Handler, trả kết quả. Không business logic.
 - `ExceptionMiddleware`, `BlockedWordMiddleware`
 - `Program.cs`, DI wiring
 
@@ -88,64 +89,91 @@ Domain must NOT reference any other project.
 
 ## 4. Feature Structure
 
-Every feature follows this layout inside `Application/Features/[FeatureName]/`:
-
 ```
-[FeatureName]/
-├── Services/
-│   ├── I[FeatureName]Service.cs
-│   └── [FeatureName]Service.cs
-├── DTOs/
-│   ├── [Action]Request.cs
-│   └── [Action]Response.cs
-└── Validators/
-    └── [Action]RequestValidator.cs
-```
+Application/Commands/[FeatureName]/
+├── [Action]Command.cs
+└── [Action]Handler.cs
 
-Its controller lives in `API/Controllers/[FeatureName]Controller.cs`.
+Application/Queries/[FeatureName]/
+├── [Action]Query.cs
+└── [Action]Handler.cs
+```
+Controller tương ứng ở `API/Controllers/[FeatureName]Controller.cs`, inject thẳng từng Handler cần dùng — **không qua Service trung gian**.
 
 ---
 
 ## 5. Code Patterns — MUST follow
 
-### 5.1 ApiResponse wrapper
-
-All endpoints return `ApiResponse<T>`. Never return raw objects.
+### 5.1 Command + Handler
 
 ```csharp
-// Application/Common/ApiResponse.cs
-public class ApiResponse<T>
+// Application/Commands/Tutorials/SubmitTutorialCommand.cs
+public record SubmitTutorialCommand(Guid TutorialId, Guid AuthorId);
+
+// Application/Commands/Tutorials/SubmitTutorialHandler.cs
+public class SubmitTutorialHandler
 {
-    public bool IsSuccess { get; init; }
-    public T? Data { get; init; }
-    public string? Message { get; init; }
-    public string? Error { get; init; }
+    private readonly ITutorialRepository _repo;
 
-    public static ApiResponse<T> Success(T data, string? message = null)
-        => new() { IsSuccess = true, Data = data, Message = message };
+    public SubmitTutorialHandler(ITutorialRepository repo) => _repo = repo;
 
-    public static ApiResponse<T> Fail(string error)
-        => new() { IsSuccess = false, Error = error };
+    public async Task<TutorialDto> HandleAsync(SubmitTutorialCommand cmd, CancellationToken ct = default)
+    {
+        var tutorial = await _repo.GetByIdAsync(cmd.TutorialId, ct)
+            ?? throw new NotFoundException("Tutorial not found.");
+
+        if (tutorial.AuthorId != cmd.AuthorId)
+            throw new ForbiddenException("Only the author can submit this tutorial.");
+
+        if (tutorial.Steps.Count is < 3 or > 30)
+            throw new DomainException("Tutorial must have 3-30 steps. BR-TUT.");
+
+        tutorial.Status = TutorialStatus.PendingManagerReview;
+        await _repo.UpdateAsync(tutorial, ct);
+
+        return tutorial.ToDto();
+    }
 }
 ```
 
-### 5.2 Controller — thin, no business logic
+### 5.2 Query + Handler
 
 ```csharp
-// API/Controllers/TutorialController.cs
+public record GetTutorialsQuery(string? Keyword, Guid? CategoryId, int Page, int PageSize);
+
+public class GetTutorialsHandler
+{
+    private readonly ITutorialRepository _repo;
+    public GetTutorialsHandler(ITutorialRepository repo) => _repo = repo;
+
+    public async Task<PagedResult<TutorialListItemDto>> HandleAsync(
+        GetTutorialsQuery query, CancellationToken ct = default)
+    {
+        var result = await _repo.SearchAsync(query.Keyword, query.CategoryId, query.Page, query.PageSize, ct);
+        return result.ToPagedDto();
+    }
+}
+```
+
+### 5.3 Controller — thin, inject thẳng Handler
+
+```csharp
 [ApiController]
 [Route("api/v1/[controller]")]
 public class TutorialController : ControllerBase
 {
-    private readonly ITutorialService _service;
-    public TutorialController(ITutorialService service) => _service = service;
+    private readonly SubmitTutorialHandler _submitHandler;
+    private readonly GetTutorialsHandler _getHandler;
 
-    [HttpPost]
-    [Authorize]                              // any authenticated user
-    public async Task<IActionResult> Create([FromBody] CreateTutorialRequest req)
+    public TutorialController(SubmitTutorialHandler submitHandler, GetTutorialsHandler getHandler)
+        => (_submitHandler, _getHandler) = (submitHandler, getHandler);
+
+    [HttpPost("{id}/submit")]
+    [Authorize]
+    public async Task<IActionResult> Submit(Guid id)
     {
-        var result = await _service.CreateAsync(req, GetCurrentUserId());
-        return result.IsSuccess ? Ok(result) : BadRequest(result);
+        var dto = await _submitHandler.HandleAsync(new SubmitTutorialCommand(id, GetCurrentUserId()));
+        return Ok(dto);
     }
 
     private Guid GetCurrentUserId()
@@ -153,46 +181,17 @@ public class TutorialController : ControllerBase
 }
 ```
 
-### 5.3 Service — business logic & BR enforcement
-
-```csharp
-// Application/Features/Tutorials/Services/TutorialService.cs
-public class TutorialService : ITutorialService
-{
-    private readonly ITutorialRepository _repo;
-    private readonly IMapper _mapper;
-
-    public TutorialService(ITutorialRepository repo, IMapper mapper)
-        => (_repo, _mapper) = (repo, mapper);
-
-    public async Task<ApiResponse<TutorialResponse>> CreateAsync(
-        CreateTutorialRequest req, Guid authorId)
-    {
-        // Business rule enforcement (BR-12: title 5-150 chars etc.) done
-        // by FluentValidation before this method is called.
-        var tutorial = _mapper.Map<Tutorial>(req);
-        tutorial.AuthorId = authorId;
-        tutorial.Status = TutorialStatus.Draft;
-        tutorial.CreatedAt = DateTime.UtcNow;
-
-        await _repo.AddAsync(tutorial);
-        return ApiResponse<TutorialResponse>.Success(_mapper.Map<TutorialResponse>(tutorial));
-    }
-}
-```
-
 ### 5.4 Repository interface (Application) + implementation (Infrastructure)
 
 ```csharp
-// Application/Interfaces/Repositories/ITutorialRepository.cs
+// Application/Interfaces/ITutorialRepository.cs
 public interface ITutorialRepository
 {
-    Task<Tutorial?> GetByIdAsync(Guid id);
-    Task<Tutorial?> GetBySlugAsync(string slug);
-    Task<PaginatedResult<Tutorial>> SearchAsync(string? keyword, int? categoryId,
-        string? difficulty, string? type, int page, int pageSize);
-    Task AddAsync(Tutorial tutorial);
-    Task UpdateAsync(Tutorial tutorial);
+    Task<Tutorial?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<Tutorial?> GetBySlugAsync(string slug, CancellationToken ct = default);
+    Task<PagedResult<Tutorial>> SearchAsync(string? keyword, Guid? categoryId, int page, int pageSize, CancellationToken ct = default);
+    Task AddAsync(Tutorial tutorial, CancellationToken ct = default);
+    Task UpdateAsync(Tutorial tutorial, CancellationToken ct = default);
 }
 
 // Infrastructure/Repositories/TutorialRepository.cs
@@ -201,146 +200,98 @@ public class TutorialRepository : ITutorialRepository
     private readonly AppDbContext _context;
     public TutorialRepository(AppDbContext context) => _context = context;
 
-    public async Task<Tutorial?> GetByIdAsync(Guid id)
-        => await _context.Tutorials.FindAsync(id);
+    public async Task<Tutorial?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        => await _context.Tutorials.FindAsync([id], ct);
 
-    public async Task AddAsync(Tutorial tutorial)
+    public async Task AddAsync(Tutorial tutorial, CancellationToken ct = default)
     {
         _context.Tutorials.Add(tutorial);
-        await _context.SaveChangesAsync();
-    }
-    // ...
-}
-```
-
-### 5.5 FluentValidation validator
-
-```csharp
-// Application/Features/Tutorials/Validators/CreateTutorialRequestValidator.cs
-public class CreateTutorialRequestValidator : AbstractValidator<CreateTutorialRequest>
-{
-    public CreateTutorialRequestValidator()
-    {
-        RuleFor(x => x.Title)
-            .NotEmpty()
-            .MinimumLength(5).WithMessage("Title must be at least 5 characters. BR-12.")
-            .MaximumLength(150).WithMessage("Title must not exceed 150 characters. BR-12.");
-
-        RuleFor(x => x.Description)
-            .NotEmpty()
-            .MinimumLength(20).WithMessage("Description must be at least 20 characters. BR-12.")
-            .MaximumLength(500);
-
-        RuleFor(x => x.Difficulty)
-            .NotEmpty()
-            .Must(d => new[] { "Beginner", "Intermediate", "Advanced" }.Contains(d));
-
-        RuleFor(x => x.Steps)
-            .NotNull()
-            .Must(s => s.Count >= 3 && s.Count <= 30)
-            .WithMessage("Tutorial must have 3–30 steps. BR-12.");
+        await _context.SaveChangesAsync(ct);
     }
 }
 ```
 
-### 5.6 Exception handling (ExceptionMiddleware)
+### 5.5 Validate — tay trong Handler, hay tách FluentValidation Validator?
 
-Throw these custom exceptions anywhere in Application/Infrastructure — the middleware catches and converts them to HTTP responses:
-
+**Mặc định: validate tay trong Handler**, như `CreateAchievementHandler`:
 ```csharp
-// Usage in Service
-if (tutorial == null) throw new NotFoundException("Tutorial not found.");
-if (!authorized)      throw new ForbiddenException("Access denied.");
-if (duplicate)        throw new ConflictException("Slug already exists.");
-if (invalid)          throw new BadRequestException("Invalid request.");
-
-// ExceptionMiddleware maps:
-// NotFoundException    → 404  { "error": "..." }
-// ForbiddenException  → 403  { "error": "..." }
-// ConflictException   → 409  { "error": "..." }
-// BadRequestException → 400  { "error": "..." }
-// Unhandled           → 500  { "error": "An unexpected error occurred." }
-```
-
-### 5.7 BlockedWordMiddleware
-
-Applied globally on POST/PUT/PATCH. Checks request body text against `BlockedWordService` (in-memory HashSet loaded from DB). Rejects with **422** if a match is found. This enforces BR-23 and BR-24 automatically for all content writes.
-
-```csharp
-// BlockedWordService caches words in a HashSet — case-insensitive
-if (_blockedWordService.ContainsBlockedWord(bodyText))
+private static void Validate(string? photoUrl, string? note)
 {
-    context.Response.StatusCode = 422;
-    await context.Response.WriteAsJsonAsync(
-        ApiResponse<object>.Fail("Content contains prohibited language."));
-    return;
+    if (note is { Length: > MaxNoteLength })
+        throw new DomainException($"Note must not exceed {MaxNoteLength} characters.");
 }
 ```
 
-### 5.8 Async — all methods must be async
+**Tách FluentValidation Validator riêng khi:** validate có nhiều rule phức tạp, dùng chung cho nhiều action, hoặc cần compose rule (xem mẫu ở `Auth` — `LoginRequestValidator`, `ChangePasswordRequestValidator`; hoặc `AdminConfiguration`). Validator nhận Command/Request làm target, được gọi ở đầu Handler hoặc qua pipeline riêng nếu về sau team quyết định thêm.
+
+Không có quy tắc cứng "mọi Command phải có Validator" — quyết định theo độ phức tạp thực tế, tránh tạo file thừa cho validate 1-2 dòng.
+
+### 5.6 Exception — không return null để báo lỗi
 
 ```csharp
-// ✅ Correct
-public async Task<ApiResponse<TutorialResponse>> GetByIdAsync(Guid id) { ... }
+// ✅ Đúng
+var tutorial = await _repo.GetByIdAsync(id, ct)
+    ?? throw new NotFoundException("Tutorial not found.");
 
-// ❌ Wrong — never block with .Result or .Wait()
-public ApiResponse<TutorialResponse> GetById(Guid id) { ... }
+// ❌ Sai — Controller phải tự check null, dễ quên
+var tutorial = await _repo.GetByIdAsync(id, ct);
+if (tutorial == null) return NotFound();
+```
+`ExceptionMiddleware` map: `DomainException` → 400, `NotFoundException` → 404, `ForbiddenException` → 403, unhandled → 500.
+
+### 5.7 Async — mọi method phải async
+
+```csharp
+// ✅ Đúng
+public async Task<TutorialDto> HandleAsync(SubmitTutorialCommand cmd, CancellationToken ct = default) { ... }
+
+// ❌ Sai — không block bằng .Result hoặc .Wait()
+public TutorialDto Handle(SubmitTutorialCommand cmd) { ... }
 ```
 
-### 5.9 Authorization — use role-based attributes
+### 5.8 Authorization — dùng role-based attribute
 
 ```csharp
-[Authorize]                                          // any authenticated user
-[Authorize(Roles = "Admin")]                         // Admin only
-[Authorize(Roles = "Manager")]                       // Manager only
-[Authorize(Roles = "Admin,Manager")]                 // Admin or Manager
-[Authorize(Roles = "ContributorReviewer")]           // CTV Reviewer only
-[Authorize(Roles = "AdvertisingPartner")]            // Ad Partner only
-[AllowAnonymous]                                     // public endpoint
+[Authorize]                                          // bất kỳ user đã đăng nhập
+[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Manager")]
+[Authorize(Roles = "Admin,Manager")]
+[Authorize(Roles = "ContributorReviewer")]           // CTV — KHÔNG dùng cho duyệt tutorial, chỉ Weekly Challenge/comment moderation
+[AllowAnonymous]
 ```
 
 ---
 
-## 6. Anti-Patterns — NEVER do these
+## 6. Anti-Patterns — KHÔNG BAO GIỜ làm
 
-| ❌ What | Why | ✅ Instead |
+| ❌ Việc | Vì sao | ✅ Thay bằng |
 |---|---|---|
-| `AppDbContext` in Application service | Violates layer rule | Use `IRepository` interface |
-| Business logic in Controller | Controller should be thin | Move to Service |
-| Data queries outside `Infrastructure/Repositories/` | Unpredictable data access | Use Repository pattern |
-| Hardcoded connection strings or secrets | Security risk | Use `appsettings.json` + Secret Manager |
-| `_context.SaveChangesAsync()` in Service | Bypasses Repository | Call via Repository method |
-| Calling another feature's Repository directly | Cross-feature coupling | Inject the feature's `IService` interface |
-| Circular feature dependencies | Breaks DI | Extract to `Application/Common/` |
-| Returning raw entity from Controller | Exposes DB schema | Always map to Response DTO |
-| Skipping FluentValidation | BR enforcement gaps | Add validator for every Request DTO |
+| `AppDbContext` trong Handler | Vi phạm layer rule | Dùng `IRepository` interface |
+| Business logic trong Controller | Controller phải thin | Chuyển vào Handler |
+| Query dữ liệu ngoài `Infrastructure/Repositories/` | Data access không kiểm soát được | Dùng Repository pattern |
+| Hardcode connection string/secret | Rủi ro bảo mật | `appsettings.json` + Secret Manager |
+| `_context.SaveChangesAsync()` trong Handler | Bỏ qua Repository | Gọi qua Repository method |
+| Gọi thẳng Repository của feature khác | Cross-feature coupling | Gọi qua Handler của feature đó |
+| Trả raw entity từ Controller | Lộ DB schema | Luôn map qua DTO (`ToDto()` extension) |
+| Tạo mới `TutorialService`/`AdminConfigService` kiểu Service pattern | Đã quyết định bỏ, đang refactor sang Handler | Command/Handler |
+| Tạo lại code `FamilyProject*`/`Ad*` | Đã bị xoá khỏi scope (Hội đồng yêu cầu) | Không làm, xem `docs/MVP_SCOPE.md` |
 
 ---
 
 ## 7. Dependency Injection Setup
 
-Each project registers its own services. All wired in `Program.cs`.
-
 ```csharp
 // Application/DependencyInjection.cs
 public static IServiceCollection AddApplication(this IServiceCollection services)
 {
-    // Feature services
-    services.AddScoped<IAuthService, AuthService>();
-    services.AddScoped<ITutorialService, TutorialService>();
-    services.AddScoped<ICommunityService, CommunityService>();
-    services.AddScoped<IModerationService, ModerationService>();
-    services.AddScoped<IVipSubscriptionService, VipSubscriptionService>();
-    services.AddScoped<IPaymentService, PaymentService>();
-    services.AddScoped<IAchievementService, AchievementService>();
-    services.AddScoped<IJournalService, JournalService>();
-    services.AddScoped<IFamilyProjectService, FamilyProjectService>();
-    services.AddScoped<IAdvertisementService, AdvertisementService>();
-    services.AddScoped<IAdminConfigService, AdminConfigService>();
+    // Đăng ký từng Handler — KHÔNG đăng ký Service tổng
+    services.AddScoped<SubmitTutorialHandler>();
+    services.AddScoped<GetTutorialsHandler>();
+    services.AddScoped<CreateAchievementHandler>();
+    services.AddScoped<GetUserAchievementsHandler>();
+    // ... tất cả Handler khác, theo từng feature
 
-    // AutoMapper + FluentValidation
-    services.AddAutoMapper(Assembly.GetExecutingAssembly());
-    services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+    services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly()); // chỉ pick up Validator đã có
     return services;
 }
 
@@ -351,25 +302,16 @@ public static IServiceCollection AddInfrastructure(
     services.AddDbContext<AppDbContext>(options =>
         options.UseSqlServer(config.GetConnectionString("Default")));
 
-    // Repositories
-    services.AddScoped<IUserRepository, UserRepository>();
     services.AddScoped<ITutorialRepository, TutorialRepository>();
-    services.AddScoped<ICommunityRepository, CommunityRepository>();
-    services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
-    services.AddScoped<IFamilyProjectRepository, FamilyProjectRepository>();
-    services.AddScoped<IAdRepository, AdRepository>();
-    services.AddScoped<INotificationRepository, NotificationRepository>();
-    services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+    services.AddScoped<IAchievementRepository, AchievementRepository>();
+    // ... tất cả Repository khác
 
-    // External services
     services.AddSingleton<IBlockedWordService, BlockedWordService>();
-    services.AddScoped<IJwtService, JwtService>();
+    services.AddScoped<ITokenService, TokenService>();
     services.AddScoped<IEmailService, EmailService>();
     services.AddScoped<IFileStorageService, FileStorageService>();
 
-    // Background jobs
     services.AddHostedService<SubscriptionExpiryJob>();
-    services.AddHostedService<AdBudgetDepletionJob>();
     return services;
 }
 
@@ -382,39 +324,18 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 ## 8. EF Core — Code First Rules
 
-- All entity classes live in `Domain/Entities/`
-- All Fluent API configurations live in `Infrastructure/Persistence/Configurations/`
-- Use `ApplyConfigurationsFromAssembly` in `AppDbContext` — do NOT call `entity.Property(...)` inside `AppDbContext.OnModelCreating` directly
-- All Guid PKs use `ValueGeneratedNever()` — generated by application, not DB
-- All string fields must have `HasMaxLength(n)` — never allow `nvarchar(max)` by accident
-- **TutorialReviewHistories is IMMUTABLE** — configure with no update conventions; never call `Update()` on this entity
+- Entity class ở `Domain/Entities/`; Fluent API configuration ở `Infrastructure/Persistence/Configurations/`
+- Dùng `ApplyConfigurationsFromAssembly` trong `AppDbContext` — không gọi `entity.Property(...)` trực tiếp trong `OnModelCreating`
+- PK là `Guid`, `ValueGeneratedNever()` — generate ở application layer
+- Mọi string field có `HasMaxLength(n)` — không để `nvarchar(max)` ngoài ý muốn
+- **`TutorialReviewHistory` IMMUTABLE** — không cấu hình update convention, không bao giờ gọi `Update()`
+- **`AuditLog` IMMUTABLE** — tương tự
 
-```csharp
-// Infrastructure/Persistence/AppDbContext.cs
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-{
-    modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
-}
-
-// override SaveChangesAsync to auto-set UpdatedAt
-public override async Task<int> SaveChangesAsync(CancellationToken ct = default)
-{
-    foreach (var entry in ChangeTracker.Entries())
-    {
-        if (entry.State == EntityState.Modified
-            && entry.Entity.GetType().GetProperty("UpdatedAt") != null)
-        {
-            entry.Property("UpdatedAt").CurrentValue = DateTime.UtcNow;
-        }
-    }
-    return await base.SaveChangesAsync(ct);
-}
-```
-
-**Migration rules:**
-- Only ONE person creates a migration at a time — ping the team first
+**Quy tắc migration:**
+- Chỉ 1 người tạo migration/lần — ping team trước
 - Commit format: `chore: add migration [MigrationName]`
-- Never modify an applied migration file
+- Không sửa tay migration đã apply
+- Migration xoá bảng `FamilyProject*`/`Ad*` phải tạo mới, KHÔNG sửa migration cũ đã tạo các bảng đó
 
 ---
 
@@ -422,89 +343,81 @@ public override async Task<int> SaveChangesAsync(CancellationToken ct = default)
 
 ```
 Branch naming:
-  feature/FT-XX-short-description     e.g. feature/FT-01-auth
-  hotfix/short-description            e.g. hotfix/fix-vip-expiry
+  feature/FT-XX-short-description     vd: feature/FT-16-vip-subscription
+  hotfix/short-description            vd: hotfix/fix-vip-expiry
+  chore/short-description             vd: chore/refactor-tutorials-to-handler
 
 Commit message:
-  FT-XX: short description            e.g. FT-01: implement user registration
-  HOTFIX: short description
-  chore: description                  e.g. chore: add InitialCreate migration
+  FT-XX: mô tả ngắn                   vd: FT-16: implement VIP subscription commands
+  HOTFIX: mô tả ngắn
+  chore: mô tả ngắn                   vd: chore: remove FamilyProject module
 
 Pull Request:
-  - At least 1 reviewer (preferably the person who owns the related FT)
-  - Linked to FT ID in title
-  - Build must pass before merge
+  - Tối thiểu 1 reviewer (ưu tiên người phụ trách FT liên quan)
+  - Gắn FT ID trong title
+  - Build phải pass trước khi merge
 ```
 
-**Vertical slice ownership:**
+**Phân công (theo `docs/MVP_SCOPE.md` — cập nhật theo tuần, không cố định như bảng cũ):**
 
-| Member | Owns |
-|---|---|
-| A (strongest) | FT-01, FT-02, FT-03, FT-04, FT-05a, FT-05b, FT-05c, FT-06 |
-| B | FT-07, FT-08a, FT-08b, FT-09, FT-10, FT-11, FT-12 |
-| C | FT-13, FT-14, FT-15, FT-16, FT-17, FT-18 |
+| Thành viên | Tuần 1 | Tuần 2 | Tuần 3 |
+|---|---|---|---|
+| BE1 | Refactor Tutorials → Command/Handler | FT-10 Stuck button, FT-11 (nếu kịp) | Buffer/test |
+| BE2 | Refactor AdminConfiguration → Command/Handler | FT-14 Moderation CTV, hỗ trợ Should-have | Buffer/test |
+| BE3 | Xoá FamilyProjects + AdCampaigns/Ads | FT-16/17 VIP Subscription | FT-18 Shop (nếu kịp), buffer/test |
 
-When editing a file owned by another member → create a PR, do not push directly.
+Khi sửa file thuộc feature người khác phụ trách → tạo PR, không push thẳng.
 
 ---
 
 ## 10. Testing
 
-Test project: `OrigamiCommunity.Tests/` (separate `.csproj` in the solution)
-
 ```
-OrigamiCommunity.Tests/
-├── Features/
+OrigamiPlatform.Tests/
+├── Commands/
 │   ├── Auth/
-│   │   └── AuthServiceTests.cs
+│   │   └── LoginHandlerTests.cs
 │   ├── Tutorials/
-│   │   └── TutorialServiceTests.cs
+│   │   └── SubmitTutorialHandlerTests.cs
 │   └── ...
+├── Queries/
 └── Controllers/
-    ├── AuthControllerTests.cs
-    └── ...
 ```
 
-**Rules:**
-- Framework: xUnit
-- Mocking: Moq
-- Pattern: Arrange / Act / Assert
-- Minimum coverage: 80% for Service layer
-- Test file mirrors the feature it tests
+**Quy tắc:**
+- Framework: xUnit, Mock: Moq, Pattern: Arrange/Act/Assert
+- Test tối thiểu cho Handler xử lý business rule (BR-*) — không cần 80% coverage cứng nhắc trong 3 tuần, ưu tiên test đúng các BR quan trọng (VIP gating, tutorial review, blocked word)
+- Tên file test mirror theo Handler nó test
 
 ```csharp
 [Fact]
-public async Task SubmitTutorial_LessThan3Steps_ReturnsBadRequest()
+public async Task SubmitTutorial_LessThan3Steps_ThrowsDomainException()
 {
     // Arrange
-    var request = new SubmitTutorialRequest
-    {
-        TutorialId = Guid.NewGuid(),
-        // Steps not set — should fail BR-12
-    };
-    var validator = new SubmitTutorialRequestValidator();
+    var repo = new Mock<ITutorialRepository>();
+    repo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), default))
+        .ReturnsAsync(new Tutorial { Steps = new List<TutorialStep>() });
+    var handler = new SubmitTutorialHandler(repo.Object);
 
-    // Act
-    var result = await validator.ValidateAsync(request);
-
-    // Assert
-    Assert.False(result.IsValid);
-    Assert.Contains(result.Errors, e => e.PropertyName == "Steps");
+    // Act & Assert
+    await Assert.ThrowsAsync<DomainException>(
+        () => handler.HandleAsync(new SubmitTutorialCommand(Guid.NewGuid(), Guid.NewGuid())));
 }
 ```
 
 ---
 
-## 11. Definition of Done — per FT
+## 11. Definition of Done — theo từng FT
 
-A feature is **done** when ALL of the following are true:
+Một FT được coi là **done** khi TẤT CẢ đúng:
 
-- [ ] Repository interface defined in `Application/Interfaces/Repositories/`
-- [ ] Service interface and implementation complete
-- [ ] All DTOs and Validators written (covering AC + NAC + BV from FT spec)
-- [ ] Controller action thin — no business logic
-- [ ] DI registered in `DependencyInjection.cs`
-- [ ] All AC pass via Postman / Swagger test
-- [ ] All NAC return correct error status and message
-- [ ] Frontend has tested the endpoint and reported no bugs for 24 h
-- [ ] No build warnings in the project
+- [ ] Repository interface định nghĩa ở `Application/Interfaces/` (nếu cần entity/repo mới)
+- [ ] Command/Query + Handler viết đầy đủ, đúng naming convention
+- [ ] DTO output + Request (nếu cần) đầy đủ
+- [ ] Validate đầy đủ AC + NAC + BV của FT — tay trong Handler hoặc Validator riêng tuỳ độ phức tạp
+- [ ] Controller action thin — không business logic
+- [ ] DI đăng ký ở `DependencyInjection.cs`
+- [ ] Toàn bộ AC pass qua Postman/Swagger
+- [ ] Toàn bộ NAC trả đúng status code + message lỗi
+- [ ] FE đã test endpoint, không báo bug trong 24h
+- [ ] Build không warning

@@ -1,10 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using OrigamiPlatform.Application.Commands.Achievements;
-using OrigamiPlatform.Application.Commands.AdCampaigns;
 using OrigamiPlatform.Application.Commands.Auth;
 using OrigamiPlatform.Application.Commands.Comments;
 using OrigamiPlatform.Application.Commands.CommunityPosts;
-using OrigamiPlatform.Application.Commands.FamilyProjects;
 using OrigamiPlatform.Application.Commands.Follows;
 using OrigamiPlatform.Application.Commands.Journals;
 using OrigamiPlatform.Application.Commands.Likes;
@@ -17,10 +15,8 @@ using OrigamiPlatform.Application.Features.AdminConfiguration.Services;
 using OrigamiPlatform.Application.Features.Tutorials.Services;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Application.Queries.Achievements;
-using OrigamiPlatform.Application.Queries.AdCampaigns;
 using OrigamiPlatform.Application.Queries.Comments;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
-using OrigamiPlatform.Application.Queries.FamilyProjects;
 using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.Notifications;
 using OrigamiPlatform.Application.Queries.Reports;
@@ -44,10 +40,6 @@ public static class DependencyInjection
         services.AddScoped<IAchievementRepository, AchievementRepository>();
         services.AddScoped<IJournalRepository, JournalRepository>();
 
-        // FT-18 Family plan & projects
-        services.AddScoped<IFamilySubscriptionRepository, FamilySubscriptionRepository>();
-        services.AddScoped<IFamilyProjectRepository, FamilyProjectRepository>();
-
         services.AddScoped<ICommunityPostRepository, CommunityPostRepository>();
         services.AddScoped<ILikeRepository, LikeRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
@@ -59,9 +51,6 @@ public static class DependencyInjection
         services.AddScoped<IFollowRepository, FollowRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<ITutorialStepProgressRepository, TutorialStepProgressRepository>();
-
-        // FT-20 Advertising
-        services.AddScoped<IAdCampaignRepository, AdCampaignRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -121,30 +110,6 @@ public static class DependencyInjection
         services.AddScoped<CompleteTutorialStepHandler>();
         services.AddScoped<UncompleteTutorialStepHandler>();
         services.AddScoped<GetTutorialProgressHandler>();
-
-        // Handlers — FT-18 Family projects
-        services.AddScoped<CreateFamilyProjectHandler>();
-        services.AddScoped<GetFamilyProjectHandler>();
-
-        // Handlers — FT-19 Family project progress & sharing
-        services.AddScoped<InviteFamilyMemberHandler>();
-        services.AddScoped<RespondFamilyInvitationHandler>();
-        services.AddScoped<CompleteStepHandler>();
-        services.AddScoped<GetProjectProgressHandler>();
-        services.AddScoped<MarkProjectCompletedHandler>();
-        services.AddScoped<ShareProjectHandler>();
-
-        // Handlers — FT-20 Advertising
-        services.AddScoped<CreateAdCampaignHandler>();
-        services.AddScoped<ReviewAdCampaignHandler>();
-        services.AddScoped<GetMyCampaignsHandler>();
-        services.AddScoped<GetPendingCampaignsHandler>();
-        services.AddScoped<GetAdCampaignHandler>();
-        services.AddScoped<RecordImpressionHandler>();
-        services.AddScoped<RecordClickHandler>();
-        services.AddScoped<GetServingAdsHandler>();
-        services.AddScoped<GetCampaignDashboardHandler>();
-        services.AddScoped<GetAdOverviewHandler>();
 
         return services;
     }

@@ -37,21 +37,8 @@ public class AppDbContext : DbContext
 
     // Subscriptions & Payments
     public DbSet<VipSubscription> VipSubscriptions => Set<VipSubscription>();
-    public DbSet<FamilySubscription> FamilySubscriptions => Set<FamilySubscription>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<CreatorVipSettings> CreatorVipSettings => Set<CreatorVipSettings>();
-
-    // Family Projects
-    public DbSet<FamilyProject> FamilyProjects => Set<FamilyProject>();
-    public DbSet<FamilyProjectMember> FamilyProjectMembers => Set<FamilyProjectMember>();
-    public DbSet<FamilyProjectStepProgress> FamilyProjectStepProgresses => Set<FamilyProjectStepProgress>();
-
-    // Ads
-    public DbSet<AdPlacement> AdPlacements => Set<AdPlacement>();
-    public DbSet<AdCampaign> AdCampaigns => Set<AdCampaign>();
-    public DbSet<AdBanner> AdBanners => Set<AdBanner>();
-    public DbSet<AdImpression> AdImpressions => Set<AdImpression>();
-    public DbSet<AdClick> AdClicks => Set<AdClick>();
 
     // System
     public DbSet<EmailLog> EmailLogs => Set<EmailLog>();

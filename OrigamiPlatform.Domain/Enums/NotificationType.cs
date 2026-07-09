@@ -6,7 +6,6 @@ public enum NotificationType
     Like,
     Comment,
     TutorialStatusChanged,
-    FamilyInvite,
     System,
 
     // FT-04 Tutorial review workflow
@@ -25,9 +24,5 @@ public enum NotificationType
 
     // FT-03 Admin actions
     AccountSuspended,
-    AccountActivated,
-
-    // FT-20 Advertising
-    AdCampaignSubmitted,
-    AdCampaignResult
+    AccountActivated
 }
