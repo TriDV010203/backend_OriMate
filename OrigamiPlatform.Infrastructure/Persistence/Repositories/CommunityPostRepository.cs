@@ -63,5 +63,13 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Repositories
 
             return await query.Skip(skip).Take(take).ToListAsync();
         }
+
+        public async Task<List<CommunityPost>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
+        {
+            return await _context.CommunityPosts
+                .Include(p => p.Media) // Phải Include Media thì Handler mới map sang MediaItemDto được
+                .Where(p => ids.Contains(p.Id))
+                .ToListAsync(ct);
+        }
     }
 }

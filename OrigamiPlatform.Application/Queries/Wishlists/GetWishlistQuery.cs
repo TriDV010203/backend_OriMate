@@ -1,3 +1,10 @@
-﻿namespace OrigamiPlatform.Application.Queries.Wishlists;
+﻿using OrigamiPlatform.Domain.Enums;
 
-public record GetWishlistQuery(Guid UserId, int Page, int PageSize);
+namespace OrigamiPlatform.Application.Queries.Wishlists;
+
+public record GetWishlistQuery(
+    Guid UserId,
+    TargetType? Type,
+    int Page,
+    int PageSize
+);

@@ -36,4 +36,6 @@ public interface ITutorialRepository
     Task DeleteAsync(Guid tutorialId, CancellationToken ct = default);
     Task DeleteStepsByTutorialIdAsync(Guid tutorialId, CancellationToken ct = default);
     Task AddStepsAsync(IEnumerable<TutorialStep> steps, CancellationToken ct = default);
+
+    Task<List<Tutorial>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default);
 }

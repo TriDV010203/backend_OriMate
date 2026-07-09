@@ -197,4 +197,11 @@ public class TutorialRepository : ITutorialRepository
         _db.TutorialSteps.AddRange(steps);
         await _db.SaveChangesAsync(ct);
     }
+
+    public async Task<List<Tutorial>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
+    {
+        return await _db.Tutorials
+            .Where(t => ids.Contains(t.Id))
+            .ToListAsync(ct);
+    }
 }

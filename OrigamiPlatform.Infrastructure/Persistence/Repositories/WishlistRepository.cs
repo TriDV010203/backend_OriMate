@@ -51,4 +51,27 @@ public class WishlistRepository : IWishlistRepository
         return await _context.Wishlists
             .CountAsync(w => w.TargetId == targetId && w.TargetType == targetType, ct);
     }
+
+    // Nhớ thêm TargetType? targetType vào chữ ký hàm (và phải khớp với IWishlistRepository của bạn)
+    public async Task<PagedResult<Wishlist>> GetUserWishlistAsync(Guid userId, TargetType? targetType, int page, int pageSize, CancellationToken ct = default)
+    {
+        var query = _context.Wishlists.Where(w => w.UserId == userId);
+
+        // THÊM ĐOẠN NÀY ĐỂ LỌC THEO TAB
+        if (targetType.HasValue)
+        {
+            query = query.Where(w => w.TargetType == targetType.Value);
+        }
+
+        var totalCount = await query.CountAsync(ct);
+        var items = await query
+            .OrderByDescending(w => w.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        return new PagedResult<Wishlist>(items, totalCount, page, pageSize, totalPages);
+    }
 }
