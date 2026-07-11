@@ -20,10 +20,12 @@ using OrigamiPlatform.Application.Queries.CommunityPosts;
 using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.Notifications;
 using OrigamiPlatform.Application.Queries.Reports;
+using OrigamiPlatform.Application.Queries.Subscriptions;
 using OrigamiPlatform.Application.Queries.TutorialProgress;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Application.Queries.Users;
 using OrigamiPlatform.Application.Queries.Wishlists;
+using OrigamiPlatform.Application.Commands.Subscriptions;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
 using OrigamiPlatform.Infrastructure.Services;
 
@@ -37,6 +39,8 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ITutorialRepository, TutorialRepository>();
         services.AddScoped<IVipSubscriptionRepository, VipSubscriptionRepository>();
+        services.AddScoped<ICreatorVipSettingsRepository, CreatorVipSettingsRepository>();
+        services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<IAchievementRepository, AchievementRepository>();
         services.AddScoped<IJournalRepository, JournalRepository>();
 
@@ -110,6 +114,14 @@ public static class DependencyInjection
         services.AddScoped<CompleteTutorialStepHandler>();
         services.AddScoped<UncompleteTutorialStepHandler>();
         services.AddScoped<GetTutorialProgressHandler>();
+
+        // Handlers — VIP Subscription (FT-16, FT-17)
+        services.AddScoped<ConfigureVipTierHandler>();
+        services.AddScoped<SubscribeHandler>();
+        services.AddScoped<ConfirmPaymentHandler>();
+        services.AddScoped<RejectPaymentHandler>();
+        services.AddScoped<GetMySubscriptionsHandler>();
+        services.AddScoped<GetCreatorRevenueHandler>();
 
         return services;
     }
