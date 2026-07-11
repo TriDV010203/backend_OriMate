@@ -362,7 +362,7 @@ Tham chiếu: `docs/FT_MAPPING_v5.md` · `docs/MVP_SCOPE.md` · `docs/CLAUDE.md`
 | Id | Guid | PK |  |
 | UserId | Guid | FK → User |  |
 | TutorialId | Guid | FK → Tutorial | Unique (UserId, TutorialId) — BR-33 |
-| ImageUrl | nvarchar(500) | NOT NULL | ≤10MB |
+| PhotoUrl | nvarchar(500) | NOT NULL | ≤10MB — tên field đã xác nhận khớp code thật (CreateAchievementHandler.cs) |
 | Note | nvarchar(500) | NULL |  |
 | IsPublic | bit | NOT NULL, default 0 | BR-PORTFOLIO-01 |
 | CreatedAt | datetime2 | NOT NULL |  |
