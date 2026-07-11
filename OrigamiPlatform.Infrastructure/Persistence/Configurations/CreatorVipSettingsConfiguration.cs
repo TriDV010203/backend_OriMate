@@ -14,6 +14,8 @@ public class CreatorVipSettingsConfiguration : IEntityTypeConfiguration<CreatorV
         // BR-13: creator must have active VIP settings to publish VIP tutorials
         builder.Property(s => s.Price).HasColumnType("decimal(18,2)").IsRequired();
 
+        builder.HasIndex(s => s.CreatorId).IsUnique();
+
         builder.HasOne(s => s.Creator)
                .WithMany()
                .HasForeignKey(s => s.CreatorId)

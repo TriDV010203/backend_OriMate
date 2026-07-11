@@ -303,45 +303,53 @@ Tham chiếu: `docs/FT_MAPPING_v5.md` · `docs/MVP_SCOPE.md` · `docs/CLAUDE.md`
 
 ### CreatorVipSettings
 
+*1 gói VIP duy nhất mỗi Creator (không phải nhiều tier) — đã xác nhận khớp code thật, ERD bản trước tự thêm TierName/Description không đúng scope, đã bỏ.*
+
 | Field | Type | Constraint | Ghi chú |
 |---|---|---|---|
 | Id | Guid | PK |  |
-| CreatorId | Guid | FK → User, Unique |  |
-| TierName | nvarchar(100) | NOT NULL |  |
-| Description | nvarchar(500) | NULL |  |
-| IsActive | bit | NOT NULL, default 0 | BR-VIP-03 |
+| CreatorId | Guid | FK → User | Cần thêm Unique index (đang thiếu trong code — xem ghi chú vá lỗi) |
+| IsActive | bit | NOT NULL | BR-VIP-03 |
+| Price | decimal(18,2) | NOT NULL |  |
+| CreatedAt | datetime2 | NOT NULL |  |
+| UpdatedAt | datetime2 | NULL |  |
 
 ### VipSubscription
 
+*Đã xác nhận khớp code thật — có thêm TransactionId liên kết trực tiếp tới giao dịch kích hoạt (thiết kế tốt hơn bản ERD cũ).*
+
 | Field | Type | Constraint | Ghi chú |
 |---|---|---|---|
 | Id | Guid | PK |  |
-| UserId | Guid | FK → User |  |
+| SubscriberId | Guid | FK → User | Tên field thật là SubscriberId, không phải UserId |
 | CreatorId | Guid | FK → User |  |
+| TransactionId | Guid | FK → Transaction | Liên kết trực tiếp — 1 transaction kích hoạt đúng 1 subscription |
 | StartDate | datetime2 | NOT NULL |  |
 | EndDate | datetime2 | NOT NULL | 30 ngày cố định — BR-VIP-02 |
-| Status | enum | NOT NULL | Active / Expired — SubscriptionExpiryJob |
+| Status | enum | NOT NULL | Active / Expired / Cancelled — SubscriptionExpiryJob quản lý Active→Expired |
 | CreatedAt | datetime2 | NOT NULL |  |
 
 ### Transaction
 
-*Thiết kế chấp nhận CẢ 2 nguồn xác nhận — Giai đoạn 1 (3 tuần, đang code): chỉ dùng nhánh thủ công (ConfirmedByAdminId). Giai đoạn 2 (sau, không gấp): thêm nhánh SePay (SePayReferenceCode) mà KHÔNG cần đổi schema.*
+*Đã xác nhận khớp code thật (đã search toàn bộ codebase — 0 kết quả liên quan webhook/gateway). ReferenceCode là mã user tự nhập khi chuyển khoản thủ công, KHÔNG phải từ cổng thanh toán tự động.*
 
 | Field | Type | Constraint | Ghi chú |
 |---|---|---|---|
 | Id | Guid | PK |  |
 | UserId | Guid | FK → User |  |
+| TransactionType | enum | NOT NULL | Hiện chỉ có giá trị VipSubscription — enum để mở cho tương lai |
 | Amount | decimal(18,2) | NOT NULL |  |
-| Status | enum | NOT NULL | PendingPayment / Confirmed / Rejected / Expired |
-| ConfirmedByAdminId | Guid | FK → User, NULL | Giai đoạn 1 — Admin xác nhận tay |
-| Note | nvarchar(300) | NULL | Giai đoạn 1 — vd: mã giao dịch chuyển khoản người dùng ghi |
-| SePayReferenceCode | nvarchar(100) | Unique, NULL | Giai đoạn 2 — chỉ có giá trị khi dùng nhánh SePay |
-| ConfirmedAt | datetime2 | NULL | Set khi 1 trong 2 nhánh xác nhận thành công |
+| Status | enum | NOT NULL | PendingConfirmation / Confirmed / Rejected |
+| ReferenceCode | nvarchar(100) | NULL | User tự nhập mã giao dịch chuyển khoản — xác nhận thủ công (BR-PAYMENT-01 Phase 1) |
+| ConfirmedBy | Guid | FK → User, NULL | Admin xác nhận |
+| AdminNote | nvarchar(300) | NULL | Mới thêm — chỗ ghi lý do khi Admin Reject (trước đây thiếu, đã vá) |
+| ConfirmedAt | datetime2 | NULL |  |
 | CreatedAt | datetime2 | NOT NULL |  |
+| UpdatedAt | datetime2 | NULL |  |
 
 ### SePayWebhookLog
 
-*⚠️ GIAI ĐOẠN 2 — chưa cần tạo bảng này trong 3 tuần đầu. Chỉ tạo khi bắt đầu tích hợp SePay thật. Immutable, dùng chống xử lý webhook trùng (idempotency) và audit tranh chấp giao dịch.*
+*⚠️ GIAI ĐOẠN 2 — chưa cần tạo bảng này trong 3 tuần đầu. LƯU Ý: Transaction thật hiện dùng ReferenceCode cho mã nhập tay thủ công — khi thật sự làm Phase 2 SePay, cần thêm field riêng (không tái dùng ReferenceCode) để tránh lẫn 2 nguồn dữ liệu. Immutable, dùng chống xử lý webhook trùng (idempotency) và audit tranh chấp giao dịch.*
 
 | Field | Type | Constraint | Ghi chú |
 |---|---|---|---|

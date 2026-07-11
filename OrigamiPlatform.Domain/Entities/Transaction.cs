@@ -12,6 +12,8 @@ public class Transaction
     public string? ReferenceCode { get; set; }
     public Guid? ConfirmedBy { get; set; }
     public DateTime? ConfirmedAt { get; set; }
+    public string? AdminNote { get; set; }
+    public Guid? CreatorId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 

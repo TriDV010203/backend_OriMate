@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OrigamiPlatform.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using OrigamiPlatform.Infrastructure.Persistence;
 namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260711152450_AddVipSubscriptionAndStuckThread")]
+    partial class AddVipSubscriptionAndStuckThread
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -291,8 +294,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId")
-                        .IsUnique();
+                    b.HasIndex("CreatorId");
 
                     b.ToTable("CreatorVipSettings");
                 });
@@ -538,10 +540,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("AdminNote")
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
@@ -553,9 +551,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("CreatorId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ReferenceCode")
                         .HasMaxLength(100)
@@ -580,8 +575,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ConfirmedBy");
-
-                    b.HasIndex("CreatorId");
 
                     b.HasIndex("UserId");
 
@@ -1164,11 +1157,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasOne("OrigamiPlatform.Domain.Entities.User", "ConfirmedByUser")
                         .WithMany()
                         .HasForeignKey("ConfirmedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("OrigamiPlatform.Domain.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("CreatorId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
