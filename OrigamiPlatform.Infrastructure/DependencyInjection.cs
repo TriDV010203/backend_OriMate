@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using OrigamiPlatform.Application.Commands.Achievements;
+using OrigamiPlatform.Application.Commands.AdminConfiguration;
 using OrigamiPlatform.Application.Commands.Auth;
 using OrigamiPlatform.Application.Commands.Comments;
 using OrigamiPlatform.Application.Commands.CommunityPosts;
@@ -12,9 +13,9 @@ using OrigamiPlatform.Application.Commands.Tutorials;
 using OrigamiPlatform.Application.Commands.TutorialProgress;
 using OrigamiPlatform.Application.Commands.Users;
 using OrigamiPlatform.Application.Commands.Wishlists;
-using OrigamiPlatform.Application.Features.AdminConfiguration.Services;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Application.Queries.Achievements;
+using OrigamiPlatform.Application.Queries.AdminConfiguration;
 using OrigamiPlatform.Application.Queries.Comments;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
 using OrigamiPlatform.Application.Queries.Journals;
@@ -63,9 +64,6 @@ public static class DependencyInjection
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationService, NotificationService>();
 
-        // Admin
-        services.AddScoped<IAdminConfigService, AdminConfigService>();
-
         // Handlers — Auth
         services.AddScoped<RegisterUserHandler>();
         services.AddScoped<LoginHandler>();
@@ -95,6 +93,19 @@ public static class DependencyInjection
         services.AddScoped<SubmitEditHandler>();
         services.AddScoped<ManagerApproveEditHandler>();
         services.AddScoped<ManagerRejectEditHandler>();
+
+        // Handlers — AdminConfiguration (FT-03)
+        services.AddScoped<GetCategoriesHandler>();
+        services.AddScoped<CreateCategoryHandler>();
+        services.AddScoped<UpdateCategoryHandler>();
+        services.AddScoped<GetBlockedWordsHandler>();
+        services.AddScoped<CreateBlockedWordHandler>();
+        services.AddScoped<RemoveBlockedWordHandler>();
+        services.AddScoped<GetUsersHandler>();
+        services.AddScoped<AssignRoleHandler>();
+        services.AddScoped<RemoveRoleHandler>();
+        services.AddScoped<SuspendUserHandler>();
+        services.AddScoped<ActivateUserHandler>();
 
         services.AddScoped<CreateCommunityPostHandler>();
         services.AddScoped<ToggleLikeHandler>();
