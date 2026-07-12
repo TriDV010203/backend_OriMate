@@ -7,6 +7,7 @@ using OrigamiPlatform.Application.Commands.CommunityPosts;
 using OrigamiPlatform.Application.Commands.Follows;
 using OrigamiPlatform.Application.Commands.Journals;
 using OrigamiPlatform.Application.Commands.Likes;
+using OrigamiPlatform.Application.Commands.Moderation;
 using OrigamiPlatform.Application.Commands.Notifications;
 using OrigamiPlatform.Application.Commands.Reports;
 using OrigamiPlatform.Application.Commands.Tutorials;
@@ -124,6 +125,10 @@ public static class DependencyInjection
         services.AddScoped<AddCommentHandler>();
         services.AddScoped<DeleteCommentHandler>();
         services.AddScoped<GetCommentsHandler>();
+
+        // Handlers — Moderation (FT-14, Contributor Reviewer)
+        services.AddScoped<DeleteViolatingCommentHandler>();
+
         services.AddScoped<ToggleWishlistHandler>();
         services.AddScoped<GetWishlistHandler>();
         services.AddScoped<ToggleFollowHandler>();
