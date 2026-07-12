@@ -12,9 +12,13 @@ public class SubscribeHandler
 
     private readonly ICreatorVipSettingsRepository _settings;
     private readonly ITransactionRepository _transactions;
+    private readonly IVipSubscriptionRepository _vipSubscriptions;
 
-    public SubscribeHandler(ICreatorVipSettingsRepository settings, ITransactionRepository transactions)
-        => (_settings, _transactions) = (settings, transactions);
+    public SubscribeHandler(
+        ICreatorVipSettingsRepository settings,
+        ITransactionRepository transactions,
+        IVipSubscriptionRepository vipSubscriptions)
+        => (_settings, _transactions, _vipSubscriptions) = (settings, transactions, vipSubscriptions);
 
     public async Task<TransactionDto> HandleAsync(SubscribeCommand command, CancellationToken ct = default)
     {
@@ -30,6 +34,11 @@ public class SubscribeHandler
 
         if (!settings.IsActive)
             throw new DomainException("This creator's VIP subscription is not currently active.");
+
+        var hasActiveSubscription = await _vipSubscriptions.HasActiveSubscriptionAsync(
+            command.SubscriberId, command.CreatorId, ct);
+        if (hasActiveSubscription)
+            throw new DomainException("You already have an active VIP subscription with this Creator.");
 
         var transaction = new Transaction
         {
