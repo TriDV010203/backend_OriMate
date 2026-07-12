@@ -32,10 +32,16 @@ public class CommentRepository : ICommentRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task UpdateAsync(Comment comment)
+    {
+        _context.Comments.Update(comment);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<PagedResult<Comment>> GetCommentsByTargetAsync(Guid targetId, TargetType targetType, int page, int pageSize)
     {
         var query = _context.Comments
-            .Where(c => c.TargetId == targetId && c.TargetType == targetType)
+            .Where(c => c.TargetId == targetId && c.TargetType == targetType && !c.IsDeleted)
             .OrderByDescending(c => c.CreatedAt);
 
         var totalCount = await query.CountAsync();
@@ -53,8 +59,8 @@ public class CommentRepository : ICommentRepository
     public async Task<List<Comment>> GetRepliesByParentIdsAsync(IEnumerable<Guid> parentIds)
     {
         return await _context.Comments
-            .Where(c => c.TargetType == TargetType.Comment && parentIds.Contains(c.TargetId))
-            .OrderBy(c => c.CreatedAt) 
+            .Where(c => c.TargetType == TargetType.Comment && parentIds.Contains(c.TargetId) && !c.IsDeleted)
+            .OrderBy(c => c.CreatedAt)
             .ToListAsync();
     }
 
