@@ -8,11 +8,11 @@ using OrigamiPlatform.Application.Commands.Journals;
 using OrigamiPlatform.Application.Commands.Likes;
 using OrigamiPlatform.Application.Commands.Notifications;
 using OrigamiPlatform.Application.Commands.Reports;
+using OrigamiPlatform.Application.Commands.Tutorials;
 using OrigamiPlatform.Application.Commands.TutorialProgress;
 using OrigamiPlatform.Application.Commands.Users;
 using OrigamiPlatform.Application.Commands.Wishlists;
 using OrigamiPlatform.Application.Features.AdminConfiguration.Services;
-using OrigamiPlatform.Application.Features.Tutorials.Services;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Application.Queries.Achievements;
 using OrigamiPlatform.Application.Queries.Comments;
@@ -80,9 +80,21 @@ public static class DependencyInjection
         // Handlers — Tutorials (public)
         services.AddScoped<GetTutorialsHandler>();
         services.AddScoped<GetTutorialBySlugHandler>();
+        services.AddScoped<GetMyTutorialsHandler>();
 
-        // Services — Tutorials FT-04
-        services.AddScoped<ITutorialService, TutorialService>();
+        // Handlers — Tutorials authoring & review (FT-04, FT-05)
+        services.AddScoped<CreateTutorialHandler>();
+        services.AddScoped<SubmitTutorialHandler>();
+        services.AddScoped<ManagerPublishHandler>();
+        services.AddScoped<ManagerRejectHandler>();
+        services.AddScoped<ManagerRemoveHandler>();
+
+        // Handlers — Tutorials edit-after-publish (FT-07)
+        services.AddScoped<CreateWorkingCopyHandler>();
+        services.AddScoped<UpdateWorkingCopyHandler>();
+        services.AddScoped<SubmitEditHandler>();
+        services.AddScoped<ManagerApproveEditHandler>();
+        services.AddScoped<ManagerRejectEditHandler>();
 
         services.AddScoped<CreateCommunityPostHandler>();
         services.AddScoped<ToggleLikeHandler>();

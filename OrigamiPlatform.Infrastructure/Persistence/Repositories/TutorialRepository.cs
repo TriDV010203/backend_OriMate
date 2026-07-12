@@ -114,32 +114,6 @@ public class TutorialRepository : ITutorialRepository
             (int)Math.Ceiling(totalCount / (double)pageSize));
     }
 
-    public async Task<PagedResult<Tutorial>> GetPendingContributorReviewAsync(
-        int page, int pageSize, CancellationToken ct = default)
-    {
-        var query = _db.Tutorials
-            .Where(t => t.Status == TutorialStatus.PendingCTVReview && !t.IsDeleted)
-            .Include(t => t.Author).ThenInclude(a => a.Profile)
-            .Include(t => t.Steps)
-            .AsQueryable();
-
-        var totalCount = await query.CountAsync(ct);
-
-        var items = await query
-            .OrderBy(t => t.CreatedAt) // FIFO — oldest first
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .AsSplitQuery()
-            .ToListAsync(ct);
-
-        return new PagedResult<Tutorial>(
-            items,
-            totalCount,
-            page,
-            pageSize,
-            (int)Math.Ceiling(totalCount / (double)pageSize));
-    }
-
     public async Task AddAsync(Tutorial tutorial, CancellationToken ct = default)
     {
         _db.Tutorials.Add(tutorial);
@@ -173,17 +147,10 @@ public class TutorialRepository : ITutorialRepository
     public Task<Tutorial?> GetWorkingCopyByParentIdAsync(Guid parentId, CancellationToken ct = default)
         => _db.Tutorials
             .Where(t => t.ParentTutorialId == parentId
-                     && t.Status != TutorialStatus.Rejected
+                     && t.Status != TutorialStatus.Merged
                      && !t.IsDeleted)
             .Include(t => t.Steps)
             .FirstOrDefaultAsync(ct);
-
-    public async Task DeleteAsync(Guid tutorialId, CancellationToken ct = default)
-    {
-        await _db.Tutorials
-            .Where(t => t.Id == tutorialId)
-            .ExecuteDeleteAsync(ct);
-    }
 
     public async Task DeleteStepsByTutorialIdAsync(Guid tutorialId, CancellationToken ct = default)
     {
