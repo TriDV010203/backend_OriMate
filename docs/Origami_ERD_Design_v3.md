@@ -12,7 +12,7 @@ Tham chiếu: `docs/FT_MAPPING_v5.md` · `docs/MVP_SCOPE.md` · `docs/CLAUDE.md`
 
 - Mọi PK là Guid, `ValueGeneratedNever()` — generate ở Application layer, không dùng DB identity.
 - Mọi bảng có `CreatedAt` (datetime2, UTC); bảng có thể sửa thêm `UpdatedAt`.
-- Mọi string field đều có `HasMaxLength` — không để `nvarchar(max)` ngoài ý muốn, trừ `TutorialWorkingCopy.StepsSnapshotJson`.
+- Mọi string field đều có `HasMaxLength` — không để `nvarchar(max)` ngoài ý muốn.
 - Bảng đánh dấu ⚠️ IMMUTABLE (`TutorialReviewHistory`, `AuditLog`): chỉ cấu hình INSERT, cấm `Update()`/`Remove()` ở Repository.
 - FK dùng convention: `[EntityName]Id`, trỏ vào bảng cùng tên số ít.
 
@@ -117,7 +117,8 @@ Tham chiếu: `docs/FT_MAPPING_v5.md` · `docs/MVP_SCOPE.md` · `docs/CLAUDE.md`
 | CoverImageUrl | nvarchar(500) | NOT NULL | Cloudinary |
 | Tags | nvarchar(300) | NULL | CSV hoặc bảng phụ nếu cần filter sâu |
 | Slug | nvarchar(200) | Unique, NOT NULL | Giữ nguyên qua các lần Edit (BR-TUT-04) |
-| Status | enum | NOT NULL | Draft / PendingManagerReview / Published / RejectedNeedChanges / Removed |
+| ParentTutorialId | Guid | FK → Tutorial, NULL | Self-FK — khác NULL nghĩa là row này là working copy của tutorial gốc (không dùng bảng TutorialWorkingCopy riêng — đã xác nhận khớp code thật) |
+| Status | enum | NOT NULL | Draft / PendingManagerReview / RevisionRequired / Published / Removed / EditPendingReview / Merged — đã xác nhận khớp code thật sau refactor (bỏ PendingCTVReview, bỏ Rejected terminal, thêm Merged cho working copy) |
 | IsVip | bit | NOT NULL, default 0 | BR-VIP-03: cần CreatorVipSettings active trước |
 | IsOfficial | bit | NOT NULL, default 0 | FT-32 — seed content, không tính doanh thu |
 | CreatedAt | datetime2 | NOT NULL |  |
@@ -133,20 +134,6 @@ Tham chiếu: `docs/FT_MAPPING_v5.md` · `docs/MVP_SCOPE.md` · `docs/CLAUDE.md`
 | ImageUrl | nvarchar(500) | NULL | ≥1 trong 3 loại bắt buộc |
 | YoutubeUrl | nvarchar(300) | NULL |  |
 | TextContent | nvarchar(1000) | NULL |  |
-
-### TutorialWorkingCopy
-
-*Bản nháp khi Edit sau Publish — bản gốc vẫn public cho đến khi Manager ApproveEdit.*
-
-| Field | Type | Constraint | Ghi chú |
-|---|---|---|---|
-| Id | Guid | PK |  |
-| TutorialId | Guid | FK → Tutorial (bản gốc) |  |
-| Title | nvarchar(150) | NOT NULL |  |
-| Description | nvarchar(500) | NOT NULL |  |
-| StepsSnapshotJson | nvarchar(max) | NOT NULL | Snapshot toàn bộ step mới — swap khi được duyệt |
-| Status | enum | NOT NULL | PendingManagerReview / Approved / Rejected |
-| CreatedAt | datetime2 | NOT NULL |  |
 
 ### TutorialReviewHistory
 
@@ -336,7 +323,8 @@ Tham chiếu: `docs/FT_MAPPING_v5.md` · `docs/MVP_SCOPE.md` · `docs/CLAUDE.md`
 | Field | Type | Constraint | Ghi chú |
 |---|---|---|---|
 | Id | Guid | PK |  |
-| UserId | Guid | FK → User |  |
+| UserId | Guid | FK → User | Subscriber — người trả tiền |
+| CreatorId | Guid | FK → User, NULL | Mới thêm — Creator nhận subscription. NULL cho TransactionType khác VipSubscription trong tương lai. Set lúc SubscribeCommand, đọc lại lúc ConfirmPaymentCommand để gắn VipSubscription.CreatorId — tránh phải suy luận/tra cứu lại |
 | TransactionType | enum | NOT NULL | Hiện chỉ có giá trị VipSubscription — enum để mở cho tương lai |
 | Amount | decimal(18,2) | NOT NULL |  |
 | Status | enum | NOT NULL | PendingConfirmation / Confirmed / Rejected |
