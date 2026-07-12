@@ -164,5 +164,5 @@ Branch: `feature/FT-XX-short-description`. PR cần ít nhất 1 reviewer, build
 - Không trả raw EF entity từ API — luôn map qua DTO.
 - Không bỏ qua blocked word check ở bất kỳ endpoint ghi content nào.
 - Không tự ý code FT thuộc mục WON'T-HAVE trong `docs/MVP_SCOPE.md`, kể cả khi BRD mô tả đầy đủ.
-- Endpoint webhook `POST /api/v1/webhooks/sepay` PHẢI verify signature trước khi xử lý bất kỳ logic nào — không tin payload chưa verify.
+- Endpoint webhook `POST /api/webhooks/sepay` PHẢI verify signature trước khi xử lý bất kỳ logic nào — không tin payload chưa verify.
 - Không tạo lại bất kỳ code/entity nào liên quan `FamilyProject*`, `FamilySubscription`, `Ad*` (AdCampaign/AdBanner/AdImpression/AdClick/AdPlacement) — đã bị xoá khỏi codebase theo quyết định chốt scope, không thuộc BRD v5.0.

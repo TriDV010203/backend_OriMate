@@ -6,9 +6,9 @@ File này là **hợp đồng giữa FE và BE** — không thuộc về riêng 
 
 ## 1. Base URL & versioning
 ```
-https://<host>/api/v1/...
+https://<host>/api/...
 ```
-Mọi endpoint đều có prefix `/api/v1/`. Khi có breaking change, tăng version (`/api/v2/`) thay vì sửa đè lên v1.
+Mọi endpoint đều có prefix `/api/`. Team đã bỏ versioning theo path (`/v1/`, `/v2/`) — khi có breaking change, xử lý qua thoả thuận trực tiếp với FE (báo trước trong group chat) thay vì tạo route version mới.
 
 ## 2. Format response
 
@@ -58,8 +58,8 @@ FE nên xử lý 401 riêng (redirect login / refresh token), 400/403/404 hiện
 Header: Authorization: Bearer <access_token>
 ```
 - Access token hết hạn: 60 phút (`Jwt:AccessTokenExpiryMinutes`)
-- Refresh token: 30 ngày, gọi `POST /api/v1/auth/refresh-token` khi access token hết hạn (401)
-- Logout: `POST /api/v1/auth/logout` — thu hồi refresh token hiện tại
+- Refresh token: 30 ngày, gọi `POST /api/auth/refresh-token` khi access token hết hạn (401)
+- Logout: `POST /api/auth/logout` — thu hồi refresh token hiện tại
 
 ## 5. Danh sách endpoint theo feature
 
@@ -75,7 +75,7 @@ FE lấy danh sách endpoint mới nhất qua Swagger, hoặc theo FT đang làm
 
 ## 7. Upload file (ảnh cover, ảnh step, ảnh achievement...)
 
-- Upload qua Cloudinary — FE **không** upload thẳng lên Cloudinary từ client, mà gửi file lên BE endpoint tương ứng (ví dụ `POST /api/v1/tutorials/{id}/cover-image`), BE forward lên Cloudinary rồi trả về `url`.
+- Upload qua Cloudinary — FE **không** upload thẳng lên Cloudinary từ client, mà gửi file lên BE endpoint tương ứng (ví dụ `POST /api/tutorials/{id}/cover-image`), BE forward lên Cloudinary rồi trả về `url`.
 - Giới hạn dung lượng: theo BR từng feature (ví dụ Achievement ảnh ≤10MB) — tra `CLAUDE.md`/BR table nếu cần con số chính xác.
 
 ## 8. Rate limit / pagination mặc định

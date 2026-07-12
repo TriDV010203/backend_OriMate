@@ -159,7 +159,7 @@ public class GetTutorialsHandler
 
 ```csharp
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/[controller]")]
 public class TutorialController : ControllerBase
 {
     private readonly SubmitTutorialHandler _submitHandler;

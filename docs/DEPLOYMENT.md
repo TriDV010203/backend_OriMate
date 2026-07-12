@@ -66,7 +66,7 @@ Sau đó chạy seed data (xem `SEED_DATA.md`) — nhớ đổi password seed Ad
 1. Đăng ký tài khoản sandbox/merchant tại SePay (https://sepay.vn) — làm **song song** lúc dựng Azure, đừng chờ deploy xong mới đăng ký, vì duyệt tài khoản có thể mất thời gian.
 2. Trong dashboard SePay, khai báo Webhook URL:
    ```
-   https://orimate-api.azurewebsites.net/api/v1/webhooks/sepay
+   https://orimate-api.azurewebsites.net/api/webhooks/sepay
    ```
 3. Lấy `Webhook Secret` để verify signature — điền vào App Settings `SePay__WebhookSecret` ở bước 2.
 
