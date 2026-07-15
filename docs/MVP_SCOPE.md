@@ -25,7 +25,7 @@
 | Wishlists | ✅ Đã code | Bonus — không nằm trong Must-have gốc nhưng đã có sẵn, giữ luôn |
 | TutorialProgress (FT-09) | ✅ Đã code | Complete/UncompleteStep + GetTutorialProgress |
 | Users/Profile (FT-15) | ✅ Đã code | UpdateProfile + GetCreatorProfile |
-| Journals (FT-21) | ✅ Đã code nhưng **KHÔNG bật route** | Thuộc Won't-have — đã có sẵn do code trước đó, để dành, không cần dev thêm, chỉ không expose ra API/FE trong bản 3 tuần |
+| Journals (FT-21) | ✅ Đã code VÀ đã bật route thật (JournalsController + DI đầy đủ) | Đã xác nhận qua audit ModelSnapshot 2026-07 — quyết định "không bật route" trước đây chưa từng được thực thi. Chính thức chuyển sang Should-have Done, xem mục 3 |
 | **Tutorials — Write (FT-04, 05, 07)** | 🔴 Cần refactor | Đang chạy qua `TutorialService` (Service pattern cũ) — quyết định refactor sang Command/Handler |
 | **Tutorials — Read (FT-06, 08)** | ✅ Đã migrate | `GetTutorialsQuery`, `GetTutorialBySlugQuery` đã theo Command/Query |
 | **AdminConfiguration (FT-03)** | 🔴 Cần refactor | Đang chạy qua `AdminConfigService` — quyết định refactor sang Command/Handler |
@@ -69,6 +69,7 @@
 
 | FT | Tên | Đơn giản hoá |
 |---|---|---|
+| FT-21 | Folding Journal | ✅ **Đã Done** — code + route đã live thật (JournalsController), không cần làm gì thêm. Đã có AC/NAC trong SRS Part 3. Chỉ cần FE build UI nếu muốn dùng |
 | FT-22 | Clan | Chỉ create/join/invite/leave |
 | FT-26, FT-27 | Streak + Daily Quest | 1 pool duy nhất |
 | FT-28 | Hạt Gấp | Chỉ sink Streak Freeze |
@@ -83,7 +84,6 @@
 | FT | Tên | Ghi chú |
 |---|---|---|
 | FT-20 | Personal Milestone | Chưa code, không code trong 3 tuần |
-| FT-21 | Folding Journal | **Đã có code sẵn** (Create/Update/Delete/GetUserJournals) — để nguyên, KHÔNG đăng ký route ở Controller, KHÔNG expose cho FE, tránh phát sinh bug ở tính năng ngoài scope |
 | FT-23 | Weekly Challenge & pairwise | Rủi ro kỹ thuật cao |
 | FT-24 | Clan Quest & League | Phụ thuộc FT-23 |
 | FT-29/30/31/33 | Onboarding đầy đủ, Re-engagement, Discovery nâng cao, Learning Path | Không có trong 3 tuần |

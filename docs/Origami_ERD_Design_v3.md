@@ -22,7 +22,7 @@ Tham chiếu: `docs/FT_MAPPING_v5.md` · `docs/MVP_SCOPE.md` · `docs/CLAUDE.md`
 
 ### User
 
-*Tài khoản gốc.*
+*Tài khoản gốc. Đã xác nhận qua audit ModelSnapshot 2026-07: token verify/reset/refresh nằm TRỰC TIẾP trên bảng này, không phải bảng riêng như ERD bản trước giả định.*
 
 | Field | Type | Constraint | Ghi chú |
 |---|---|---|---|
@@ -31,17 +31,23 @@ Tham chiếu: `docs/FT_MAPPING_v5.md` · `docs/MVP_SCOPE.md` · `docs/CLAUDE.md`
 | PasswordHash | nvarchar(256) | NOT NULL | BCrypt |
 | DisplayName | nvarchar(100) | NOT NULL |  |
 | AccountStatus | enum | NOT NULL | Unverified / Active / Suspended |
+| VerificationToken | nvarchar(256) | NULL | Xác nhận khớp code thật (User.cs) — thay cho bảng EmailLog riêng |
+| TokenExpiry | datetime2 | NULL | Hạn của VerificationToken — 24h theo BR-AUTH-02 |
+| PasswordResetToken | nvarchar(256) | NULL | Xác nhận khớp code thật |
+| PasswordResetTokenExpiry | datetime2 | NULL | Hạn 1h theo BR-AUTH-02 |
+| RefreshTokenHash | nvarchar(256) | NULL | Xác nhận khớp code thật — KHÔNG có bảng RefreshToken riêng |
+| RefreshTokenExpiresAt | datetime2 | NULL |  |
 | CreatedAt | datetime2 | NOT NULL |  |
 | UpdatedAt | datetime2 | NULL |  |
 
 ### UserRole
 
-*Vai trò được Admin bổ nhiệm (User/Creator/CTV/Manager/Admin). Guest = chưa đăng nhập, không lưu bảng.*
+*⚠️ ERD bản trước ghi UserId Unique (1 role/user) — SAI. Xác nhận qua seed data thật (SeedAdminUser migration gán 2 role cho cùng 1 user): đây là quan hệ N-N thật, 1 user có thể có nhiều role cùng lúc.*
 
 | Field | Type | Constraint | Ghi chú |
 |---|---|---|---|
 | Id | Guid | PK |  |
-| UserId | Guid | FK → User, Unique |  |
+| UserId | Guid | FK → User — KHÔNG unique | Composite thật: (UserId, Role) mới là cặp duy nhất, không phải UserId đơn |
 | Role | enum | NOT NULL | User / Creator / ContributorReviewer / Manager / Admin |
 | AssignedAt | datetime2 | NOT NULL |  |
 
@@ -57,48 +63,39 @@ Tham chiếu: `docs/FT_MAPPING_v5.md` · `docs/MVP_SCOPE.md` · `docs/CLAUDE.md`
 | SkillPoints | int | NOT NULL, default 0 | BR-SKILL-01 — cập nhật khi Tutorial Completed |
 | SkillLevel | enum | NOT NULL, default Beginner | Beginner 0-4 / Intermediate 5-19 / Advanced ≥20 |
 
-### RefreshToken
-
-*Refresh token rotation (lưu DB).*
-
-| Field | Type | Constraint | Ghi chú |
-|---|---|---|---|
-| Id | Guid | PK |  |
-| UserId | Guid | FK → User |  |
-| TokenHash | nvarchar(256) | NOT NULL | Không lưu plaintext |
-| ExpiresAt | datetime2 | NOT NULL |  |
-| IsRevoked | bit | NOT NULL, default 0 | Set true khi đổi mật khẩu (BR-AUTH-02) |
-| CreatedAt | datetime2 | NOT NULL |  |
-
 ### EmailLog
 
-*Token verify email / reset password.*
+*⚠️ ERD bản trước thiết kế bảng này để lưu token verify/reset — SAI hoàn toàn mục đích. Token thật nằm trên User (xem trên). EmailLog thật dùng để log lịch sử gửi email (audit/debug khi email không tới nơi).*
 
 | Field | Type | Constraint | Ghi chú |
 |---|---|---|---|
 | Id | Guid | PK |  |
 | UserId | Guid | FK → User |  |
-| Type | enum | NOT NULL | Verify (24h) / Reset (1h) |
-| TokenHash | nvarchar(256) | NOT NULL |  |
-| ExpiresAt | datetime2 | NOT NULL |  |
-| UsedAt | datetime2 | NULL | Single-use — resend huỷ token cũ |
+| Subject | nvarchar(300) | NOT NULL | Xác nhận khớp code thật |
+| Status | enum | NOT NULL | Vd: Sent / Failed — dùng để debug khi user báo không nhận được email |
+| RetryCount | int | NOT NULL, default 0 | Xác nhận khớp code thật |
+| CreatedAt | datetime2 | NOT NULL |  |
 
 ## 2. Tutorial Lifecycle *(FT-04 → FT-08, FT-11)*
 
 ### Category
 
+*⚠️ PK là int identity, KHÔNG phải Guid — khác với đa số bảng khác, đã xác nhận qua audit ModelSnapshot.*
+
 | Field | Type | Constraint | Ghi chú |
 |---|---|---|---|
-| Id | Guid | PK |  |
+| Id | int | PK, identity | Xác nhận khớp code thật — KHÔNG dùng Guid như convention chung |
 | Name | nvarchar(100) | Unique, NOT NULL |  |
 | Slug | nvarchar(120) | Unique, NOT NULL |  |
 | IsActive | bit | NOT NULL, default 1 | Quản lý bởi Admin — FT-03 |
 
 ### BlockedWord
 
+*⚠️ PK là int identity, KHÔNG phải Guid — tương tự Category.*
+
 | Field | Type | Constraint | Ghi chú |
 |---|---|---|---|
-| Id | Guid | PK |  |
+| Id | int | PK, identity | Xác nhận khớp code thật |
 | Word | nvarchar(100) | Unique, NOT NULL |  |
 | IsActive | bit | NOT NULL, default 1 | Cache in-memory HashSet — IBlockedWordService |
 
@@ -112,15 +109,15 @@ Tham chiếu: `docs/FT_MAPPING_v5.md` · `docs/MVP_SCOPE.md` · `docs/CLAUDE.md`
 | AuthorId | Guid | FK → User | NULL nếu IsOfficial = true (BR-PATH-01) |
 | Title | nvarchar(150) | NOT NULL | 5-150 ký tự — BR-TUT-* |
 | Description | nvarchar(500) | NOT NULL | 20-500 ký tự |
-| CategoryId | Guid | FK → Category |  |
+| CategoryId | int | FK → Category | int, không phải Guid — khớp PK thật của Category |
 | Difficulty | enum | NOT NULL | Dễ / Trung bình / Khó |
 | CoverImageUrl | nvarchar(500) | NOT NULL | Cloudinary |
-| Tags | nvarchar(300) | NULL | CSV hoặc bảng phụ nếu cần filter sâu |
+| Tags | nvarchar(300) | NULL | ⚠️ CHƯA IMPLEMENT — grep toàn Domain 0 kết quả, chỉ mới có trong ERD |
 | Slug | nvarchar(200) | Unique, NOT NULL | Giữ nguyên qua các lần Edit (BR-TUT-04) |
 | ParentTutorialId | Guid | FK → Tutorial, NULL | Self-FK — khác NULL nghĩa là row này là working copy của tutorial gốc (không dùng bảng TutorialWorkingCopy riêng — đã xác nhận khớp code thật) |
 | Status | enum | NOT NULL | Draft / PendingManagerReview / RevisionRequired / Published / Removed / EditPendingReview / Merged — đã xác nhận khớp code thật sau refactor (bỏ PendingCTVReview, bỏ Rejected terminal, thêm Merged cho working copy) |
-| IsVip | bit | NOT NULL, default 0 | BR-VIP-03: cần CreatorVipSettings active trước |
-| IsOfficial | bit | NOT NULL, default 0 | FT-32 — seed content, không tính doanh thu |
+| Type | enum | NOT NULL | Free / VIP — cờ VIP thật (không phải IsVip bool như ERD bản trước). Gate THEO CREATOR qua VipSubscription.CreatorId = Tutorial.AuthorId, không theo từng Tutorial — đã xác nhận qua GetTutorialBySlugHandler/GetTutorialsHandler |
+| IsOfficial | bit | NOT NULL, default 0 | ⚠️ CHƯA IMPLEMENT — FT-32 (seed content) chưa code, chỉ mới có trong ERD |
 | CreatedAt | datetime2 | NOT NULL |  |
 | UpdatedAt | datetime2 | NULL |  |
 
@@ -349,7 +346,7 @@ Tham chiếu: `docs/FT_MAPPING_v5.md` · `docs/MVP_SCOPE.md` · `docs/CLAUDE.md`
 | ProcessedAt | datetime2 | NULL | NULL nếu nhận nhưng chưa xử lý (ví dụ do trùng) |
 | CreatedAt | datetime2 | NOT NULL |  |
 
-## 6. Achievement & Skill *(FT-19, FT-25)*
+## 6. Achievement & Skill (+ Journal, đã live) *(FT-19, FT-21, FT-25)*
 
 ### Achievement
 
@@ -362,6 +359,21 @@ Tham chiếu: `docs/FT_MAPPING_v5.md` · `docs/MVP_SCOPE.md` · `docs/CLAUDE.md`
 | Note | nvarchar(500) | NULL |  |
 | IsPublic | bit | NOT NULL, default 0 | BR-PORTFOLIO-01 |
 | CreatedAt | datetime2 | NOT NULL |  |
+
+### Journal
+
+*✅ Đã audit trực tiếp Journal.cs + JournalConfiguration.cs + ModelSnapshot — khớp 100% cả 3 tầng. IsPublic đổi default sang false theo quyết định 2026-07 (nhất quán với Achievement/BR-PORTFOLIO-01).*
+
+| Field | Type | Constraint | Ghi chú |
+|---|---|---|---|
+| Id | Guid | PK |  |
+| UserId | Guid | FK → User (Restrict) |  |
+| LinkedTutorialId | Guid | FK → Tutorial, NULL (Restrict) | Optional — nếu có, phải trỏ tới tutorial Published && !IsDeleted, verify ở Handler |
+| Content | nvarchar(4000) | NOT NULL | DB cho phép tới 4000 nhưng business rule (BR-JOURNAL-01) chỉ cho 1-2000 ký tự — DB rộng hơn có chủ đích, không phải sai lệch |
+| ImageUrls | nvarchar(2000) | NULL | 1 cột string chứa JSON-serialized List<string>, KHÔNG phải bảng phụ riêng — tối đa 5 ảnh, mỗi URL ≤512 ký tự (BR-JOURNAL-01) |
+| IsPublic | bit | NOT NULL, default false | Đổi default true→false 2026-07 cho nhất quán BR-PORTFOLIO-01 |
+| CreatedAt | datetime2 | NOT NULL |  |
+| UpdatedAt | datetime2 | NULL |  |
 
 ## 7. Clan (Should-have, rút gọn) *(FT-22)*
 
@@ -493,6 +505,5 @@ Tham chiếu: `docs/FT_MAPPING_v5.md` · `docs/MVP_SCOPE.md` · `docs/CLAUDE.md`
 | WeeklyChallenge, ChallengeSubmission, ChallengeVote | FT-23 — Weekly Challenge & pairwise voting |
 | ClanQuest, LeaguePoints | FT-24 — Clan Quest & League |
 | PersonalMilestone | FT-20 |
-| Journal (Folding Journal) | FT-21 |
 | PaperPattern, SeasonalCosmetic, PrestigeItem | FT-28 (phần mở rộng Hạt Gấp — cosmetic/prestige) |
 | LearningPath, LearningPathItem | FT-33 |
