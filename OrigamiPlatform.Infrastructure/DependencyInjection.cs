@@ -58,6 +58,7 @@ public static class DependencyInjection
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<ITutorialStepProgressRepository, TutorialStepProgressRepository>();
         services.AddScoped<IStuckThreadRepository, StuckThreadRepository>();
+        services.AddScoped<IShopLinkRepository, ShopLinkRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();

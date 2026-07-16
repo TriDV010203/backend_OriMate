@@ -46,6 +46,9 @@ public class AppDbContext : DbContext
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<BlockedWord> BlockedWords => Set<BlockedWord>();
 
+    // Shop
+    public DbSet<ShopLink> ShopLinks => Set<ShopLink>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
