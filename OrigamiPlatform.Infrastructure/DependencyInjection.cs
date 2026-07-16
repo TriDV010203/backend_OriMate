@@ -10,6 +10,7 @@ using OrigamiPlatform.Application.Commands.Likes;
 using OrigamiPlatform.Application.Commands.Moderation;
 using OrigamiPlatform.Application.Commands.Notifications;
 using OrigamiPlatform.Application.Commands.Reports;
+using OrigamiPlatform.Application.Commands.Shop;
 using OrigamiPlatform.Application.Commands.Tutorials;
 using OrigamiPlatform.Application.Commands.TutorialProgress;
 using OrigamiPlatform.Application.Commands.Users;
@@ -153,6 +154,10 @@ public static class DependencyInjection
         services.AddScoped<RejectPaymentHandler>();
         services.AddScoped<GetMySubscriptionsHandler>();
         services.AddScoped<GetCreatorRevenueHandler>();
+
+        // Handlers — Shop (FT-18)
+        services.AddScoped<CreateShopLinkHandler>();
+        services.AddScoped<UpdateShopLinkHandler>();
 
         return services;
     }
