@@ -11,6 +11,9 @@ public class StuckThreadConfiguration : IEntityTypeConfiguration<StuckThread>
         builder.HasKey(s => s.Id);
         builder.Property(s => s.Id).ValueGeneratedNever();
 
+        // Each user can only have one stuck thread per step.
+        builder.HasIndex(s => new { s.UserId, s.StepId }).IsUnique();
+
         builder.HasOne(s => s.Tutorial)
                .WithMany()
                .HasForeignKey(s => s.TutorialId)
