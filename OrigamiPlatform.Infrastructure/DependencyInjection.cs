@@ -23,6 +23,7 @@ using OrigamiPlatform.Application.Queries.CommunityPosts;
 using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.Notifications;
 using OrigamiPlatform.Application.Queries.Reports;
+using OrigamiPlatform.Application.Queries.Shop;
 using OrigamiPlatform.Application.Queries.Subscriptions;
 using OrigamiPlatform.Application.Queries.TutorialProgress;
 using OrigamiPlatform.Application.Queries.Tutorials;
@@ -156,6 +157,7 @@ public static class DependencyInjection
         services.AddScoped<GetCreatorRevenueHandler>();
 
         // Handlers — Shop (FT-18)
+        services.AddScoped<GetShopLinksHandler>();
         services.AddScoped<CreateShopLinkHandler>();
         services.AddScoped<UpdateShopLinkHandler>();
 
