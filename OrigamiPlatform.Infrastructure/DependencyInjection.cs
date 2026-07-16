@@ -57,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<IFollowRepository, FollowRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<ITutorialStepProgressRepository, TutorialStepProgressRepository>();
+        services.AddScoped<IStuckThreadRepository, StuckThreadRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -142,6 +143,7 @@ public static class DependencyInjection
         services.AddScoped<CompleteTutorialStepHandler>();
         services.AddScoped<UncompleteTutorialStepHandler>();
         services.AddScoped<GetTutorialProgressHandler>();
+        services.AddScoped<RaiseStuckFlagHandler>();
 
         // Handlers — VIP Subscription (FT-16, FT-17)
         services.AddScoped<ConfigureVipTierHandler>();
