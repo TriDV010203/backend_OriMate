@@ -4,5 +4,6 @@ public enum TargetType
 {
     Tutorial,
     CommunityPost,
-    Comment
+    Comment,
+    StuckThread
 }

@@ -12,19 +12,22 @@ public class AddCommentHandler
     private readonly INotificationService _notifications;
     private readonly ICommunityPostRepository _posts;
     private readonly ITutorialRepository _tutorials;
+    private readonly IStuckThreadRepository _stuckThreads;
 
     public AddCommentHandler(
         ICommentRepository comments,
         IBlockedWordService blockedWordService,
         INotificationService notifications,
         ICommunityPostRepository posts,
-        ITutorialRepository tutorials)
+        ITutorialRepository tutorials,
+        IStuckThreadRepository stuckThreads)
     {
         _comments = comments;
         _blockedWordService = blockedWordService;
         _notifications = notifications;
         _posts = posts;
         _tutorials = tutorials;
+        _stuckThreads = stuckThreads;
     }
 
     public async Task<Guid> HandleAsync(AddCommentCommand cmd, CancellationToken ct = default)
@@ -62,6 +65,11 @@ public class AddCommentHandler
             {
                 var tutorial = await _tutorials.GetByIdWithStepsAsync(cmd.TargetId, ct);
                 if (tutorial != null) targetAuthorId = tutorial.AuthorId;
+            }
+            else if (cmd.TargetType == TargetType.StuckThread)
+            {
+                var thread = await _stuckThreads.GetByIdAsync(cmd.TargetId, ct);
+                if (thread != null) targetAuthorId = thread.UserId;
             }
 
             if (targetAuthorId.HasValue && targetAuthorId.Value != cmd.UserId)
