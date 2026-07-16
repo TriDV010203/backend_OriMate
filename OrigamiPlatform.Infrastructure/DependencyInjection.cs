@@ -123,6 +123,7 @@ public static class DependencyInjection
         services.AddScoped<UpdateAchievementHandler>();
         services.AddScoped<DeleteAchievementHandler>();
         services.AddScoped<GetUserAchievementsHandler>();
+        services.AddScoped<GetMyMilestonesHandler>();
         services.AddScoped<CreateJournalHandler>();
         services.AddScoped<UpdateJournalHandler>();
         services.AddScoped<DeleteJournalHandler>();
