@@ -35,6 +35,7 @@ public class AppDbContext : DbContext
     public DbSet<Journal> Journals => Set<Journal>();
     public DbSet<TutorialStepProgress> TutorialStepProgresses => Set<TutorialStepProgress>();
     public DbSet<StuckThread> StuckThreads => Set<StuckThread>();
+    public DbSet<PersonalMilestone> PersonalMilestones => Set<PersonalMilestone>();
 
     // Subscriptions & Payments
     public DbSet<VipSubscription> VipSubscriptions => Set<VipSubscription>();

@@ -61,6 +61,7 @@ public static class DependencyInjection
         services.AddScoped<ITutorialStepProgressRepository, TutorialStepProgressRepository>();
         services.AddScoped<IStuckThreadRepository, StuckThreadRepository>();
         services.AddScoped<IShopLinkRepository, ShopLinkRepository>();
+        services.AddScoped<IPersonalMilestoneRepository, PersonalMilestoneRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
