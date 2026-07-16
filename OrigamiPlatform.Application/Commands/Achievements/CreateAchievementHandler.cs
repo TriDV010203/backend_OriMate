@@ -1,6 +1,8 @@
 using OrigamiPlatform.Application.DTOs.Achievements;
 using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Domain.Constants;
 using OrigamiPlatform.Domain.Entities;
+using OrigamiPlatform.Domain.Enums;
 using OrigamiPlatform.Domain.Exceptions;
 
 namespace OrigamiPlatform.Application.Commands.Achievements;
@@ -11,9 +13,14 @@ public class CreateAchievementHandler
     private const int MaxPhotoUrlLength = 512;
 
     private readonly IAchievementRepository _achievements;
+    private readonly IPersonalMilestoneRepository _milestones;
+    private readonly INotificationService _notifications;
 
-    public CreateAchievementHandler(IAchievementRepository achievements)
-        => _achievements = achievements;
+    public CreateAchievementHandler(
+        IAchievementRepository achievements,
+        IPersonalMilestoneRepository milestones,
+        INotificationService notifications)
+        => (_achievements, _milestones, _notifications) = (achievements, milestones, notifications);
 
     public async Task<AchievementDto> HandleAsync(
         CreateAchievementCommand command,
@@ -47,10 +54,52 @@ public class CreateAchievementHandler
 
         await _achievements.AddAsync(achievement, ct);
 
+        await UnlockMilestonesAsync(command.UserId, ct);
+
         var created = await _achievements.GetByIdAsync(achievement.Id, ct)
             ?? throw new NotFoundException("Achievement not found after creation.");
 
         return created.ToDto();
+    }
+
+    private async Task UnlockMilestonesAsync(Guid userId, CancellationToken ct)
+    {
+        try
+        {
+            var totalCount = await _achievements.CountByUserAsync(userId, ct);
+
+            foreach (var threshold in MilestoneThresholds.Values)
+            {
+                if (totalCount < threshold)
+                    continue;
+
+                if (await _milestones.ExistsAsync(userId, threshold, ct))
+                    continue;
+
+                var milestone = new PersonalMilestone
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    Threshold = threshold,
+                    UnlockedAt = DateTime.UtcNow
+                };
+
+                await _milestones.AddAsync(milestone, ct);
+
+                await _notifications.NotifyUserAsync(
+                    userId: userId,
+                    type: NotificationType.MilestoneUnlocked,
+                    message: $"Bạn đã mở khoá huy hiệu {threshold} thành tựu!",
+                    entityType: nameof(PersonalMilestone),
+                    entityId: milestone.Id,
+                    ct: ct
+                );
+            }
+        }
+        catch
+        {
+            // milestone unlock failure must not affect the main achievement creation flow
+        }
     }
 
     private static void Validate(string? photoUrl, string? note)

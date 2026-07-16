@@ -20,6 +20,8 @@ public interface IAchievementRepository
 
     Task<bool> PublishedTutorialExistsAsync(Guid tutorialId, CancellationToken ct = default);
 
+    Task<int> CountByUserAsync(Guid userId, CancellationToken ct = default);
+
     Task AddAsync(Achievement achievement, CancellationToken ct = default);
 
     Task UpdateAsync(Achievement achievement, CancellationToken ct = default);

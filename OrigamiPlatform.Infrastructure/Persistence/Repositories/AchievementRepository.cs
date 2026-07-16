@@ -57,6 +57,9 @@ public class AchievementRepository : IAchievementRepository
                 && !t.IsDeleted,
             ct);
 
+    public Task<int> CountByUserAsync(Guid userId, CancellationToken ct = default)
+        => _db.Achievements.CountAsync(a => a.UserId == userId, ct);
+
     public async Task AddAsync(Achievement achievement, CancellationToken ct = default)
     {
         _db.Achievements.Add(achievement);

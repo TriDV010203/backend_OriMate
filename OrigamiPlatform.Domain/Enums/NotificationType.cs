@@ -24,5 +24,8 @@ public enum NotificationType
 
     // FT-03 Admin actions
     AccountSuspended,
-    AccountActivated
+    AccountActivated,
+
+    // FT-20 Personal Milestone
+    MilestoneUnlocked
 }
