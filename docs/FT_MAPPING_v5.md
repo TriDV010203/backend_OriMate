@@ -52,8 +52,8 @@
 ### FE-05: Personal Achievement Tracking & Journal *(Should-have)*
 | FT | Tên | Feature folder | Controller | Entity chính | Actor |
 |---|---|---|---|---|---|
-| FT-19 | Achievement & Portfolio | `Achievement` | `AchievementController` | `Achievement` | User |
-| FT-20 | Personal Milestone | `Gamification` | `GamificationController` | `PersonalMilestone` | User |
+| FT-19 | Achievement & Portfolio | `Achievements` | `AchievementsController` | `Achievement` | User |
+| FT-20 | Personal Milestone | `Achievements` | `AchievementsController` | `PersonalMilestone` | User — dùng chung controller với FT-19 (trigger trực tiếp trong CreateAchievementHandler, không tách Gamification như dự kiến ban đầu) |
 | FT-21 | Folding Journal | `Journal` | `JournalController` | `Journal` | User |
 
 ### FE-06: Clan Membership & Weekly Challenge *(Should-have)*

@@ -7,7 +7,7 @@
 
 ⚠️ **v2 thay thế hoàn toàn v1** — sau khi audit `Application/` bằng `tree /F`, thực tế code đã có sẵn khác đáng kể so với giả định ban đầu. File này dựa trên trạng thái thật, không dựa trên BRD suy diễn nữa.
 
-⚠️ **Quy tắc cho AI coding agent:** chỉ code các mục ở **1. VIỆC CẦN LÀM NGAY** và **2. MUST-HAVE CÒN THIẾU** trước. Không động vào **3. SHOULD-HAVE** cho đến khi 2 mục trên Done. Không code bất kỳ FT nào ở mục **5. WON'T-HAVE**.
+⚠️ **Quy tắc cho AI coding agent (cập nhật 2026-07):** Mục **1. VIỆC CẦN LÀM NGAY** và **2. MUST-HAVE CÒN THIẾU** đã **Done 100%** (18/18 FT, xác nhận qua RTW Sheet 3). Giờ được phép code **3. SHOULD-HAVE** theo đúng thứ tự ưu tiên ghi trong bảng — vẫn KHÔNG code bất kỳ FT nào ở mục **4. WON'T-HAVE** nếu chưa có xác nhận rõ ràng bằng văn bản (giống cách FT-20 vừa được chuyển từ Won't-have sang Should-have hôm nay) — không tự ý suy diễn "chắc cũng nên làm luôn".
 
 ---
 
@@ -70,10 +70,11 @@
 | FT | Tên | Đơn giản hoá |
 |---|---|---|
 | FT-21 | Folding Journal | ✅ **Đã Done** — code + route đã live thật (JournalsController), không cần làm gì thêm. Đã có AC/NAC trong SRS Part 3. Chỉ cần FE build UI nếu muốn dùng |
+| FT-18 | Shop affiliate | ✅ **Đã Done** — 2026-07, Entity/Repository/Command/Query/Controller đầy đủ, migration đã apply |
+| FT-20 | Personal Milestone | 🔵 Đang code (2026-07) — quyết định đưa vào scope khi Must-have đã xong 100%, không còn nằm ở Won't-have như bản gốc |
 | FT-22 | Clan | Chỉ create/join/invite/leave |
 | FT-26, FT-27 | Streak + Daily Quest | 1 pool duy nhất |
 | FT-28 | Hạt Gấp | Chỉ sink Streak Freeze |
-| FT-18 | Shop affiliate | Rất rẻ — ưu tiên làm nếu có slot trống, vì gần như chỉ là CRUD link |
 | FT-11 | Tutorial variants | Nếu kịp |
 | FT-08 | SEO & feed ranking nâng cao | Nếu kịp |
 
@@ -83,7 +84,6 @@
 
 | FT | Tên | Ghi chú |
 |---|---|---|
-| FT-20 | Personal Milestone | Chưa code, không code trong 3 tuần |
 | FT-23 | Weekly Challenge & pairwise | Rủi ro kỹ thuật cao |
 | FT-24 | Clan Quest & League | Phụ thuộc FT-23 |
 | FT-29/30/31/33 | Onboarding đầy đủ, Re-engagement, Discovery nâng cao, Learning Path | Không có trong 3 tuần |
