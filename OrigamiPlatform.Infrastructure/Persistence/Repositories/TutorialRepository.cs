@@ -17,7 +17,7 @@ public class TutorialRepository : ITutorialRepository
     public async Task<(IEnumerable<Tutorial> Items, int TotalCount)> GetPublishedAsync(
         string? search,
         int? categoryId,
-        string? difficulty,
+        TutorialDifficulty? difficulty,
         TutorialType? type,
         string sortBy,
         int page,
@@ -38,8 +38,8 @@ public class TutorialRepository : ITutorialRepository
         if (categoryId.HasValue)
             query = query.Where(t => t.CategoryId == categoryId.Value);
 
-        if (!string.IsNullOrWhiteSpace(difficulty))
-            query = query.Where(t => t.Difficulty == difficulty);
+        if (difficulty.HasValue)
+            query = query.Where(t => t.Difficulty == difficulty.Value);
 
         if (type.HasValue)
             query = query.Where(t => t.Type == type.Value);

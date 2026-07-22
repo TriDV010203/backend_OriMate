@@ -22,6 +22,7 @@ using OrigamiPlatform.Application.Queries.AdminConfiguration;
 using OrigamiPlatform.Application.Queries.Clan;
 using OrigamiPlatform.Application.Queries.Comments;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
+using OrigamiPlatform.Application.Queries.Gamification;
 using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.Notifications;
 using OrigamiPlatform.Application.Queries.Reports;
@@ -154,6 +155,9 @@ public static class DependencyInjection
         services.AddScoped<UncompleteTutorialStepHandler>();
         services.AddScoped<GetTutorialProgressHandler>();
         services.AddScoped<RaiseStuckFlagHandler>();
+
+        // Handlers — Gamification (FT-25 Skill Level)
+        services.AddScoped<GetMySkillLevelHandler>();
 
         // Handlers — VIP Subscription (FT-16, FT-17)
         services.AddScoped<ConfigureVipTierHandler>();
