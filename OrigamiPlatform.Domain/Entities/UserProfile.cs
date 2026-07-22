@@ -1,4 +1,6 @@
-﻿namespace OrigamiPlatform.Domain.Entities;
+﻿using OrigamiPlatform.Domain.Enums;
+
+namespace OrigamiPlatform.Domain.Entities;
 
 public class UserProfile
 {
@@ -6,6 +8,8 @@ public class UserProfile
     public string? DisplayName { get; set; }
     public string? Bio { get; set; }
     public string? AvatarUrl { get; set; }
+    public int SkillPoints { get; set; }
+    public SkillLevel SkillLevel { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 

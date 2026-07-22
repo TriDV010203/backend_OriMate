@@ -14,7 +14,7 @@ public class Tutorial
     public string? CoverImageUrl { get; set; }
     public TutorialType Type { get; set; }
     public TutorialStatus Status { get; set; }
-    public string? Difficulty { get; set; }
+    public TutorialDifficulty Difficulty { get; set; }
     public bool IsDeleted { get; set; }
     public DateTime? PublishedAt { get; set; }
     public DateTime CreatedAt { get; set; }
