@@ -36,6 +36,9 @@ public class UpdateWorkingCopyHandler
         if (!Enum.TryParse<TutorialType>(request.Type, ignoreCase: true, out var tutorialType))
             throw new DomainException($"Invalid tutorial type '{request.Type}'. Valid values: Free, VIP.");
 
+        if (!Enum.TryParse<TutorialDifficulty>(request.Difficulty, ignoreCase: true, out var tutorialDifficulty))
+            throw new DomainException($"Invalid difficulty '{request.Difficulty}'. Valid values: Beginner, Intermediate, Advanced.");
+
         if (tutorialType == TutorialType.VIP)
         {
             var vipSettings = await _tutorialRepo.GetActiveCreatorVipSettingsAsync(command.AuthorId, ct);
@@ -51,7 +54,7 @@ public class UpdateWorkingCopyHandler
         workingCopy.Title = request.Title;
         workingCopy.Description = request.Description;
         workingCopy.CategoryId = request.CategoryId;
-        workingCopy.Difficulty = request.Difficulty;
+        workingCopy.Difficulty = tutorialDifficulty;
         workingCopy.Type = tutorialType;
         workingCopy.CoverImageUrl = request.CoverImageUrl;
         workingCopy.UpdatedAt = DateTime.UtcNow;
@@ -95,7 +98,7 @@ public class UpdateWorkingCopyHandler
         tutorial.Description,
         tutorial.CoverImageUrl,
         tutorial.Type.ToString(),
-        tutorial.Difficulty,
+        tutorial.Difficulty.ToString(),
         tutorial.CategoryId,
         tutorial.Status.ToString(),
         tutorial.CreatedAt,

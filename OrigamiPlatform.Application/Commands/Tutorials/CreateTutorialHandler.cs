@@ -34,6 +34,9 @@ public class CreateTutorialHandler
         if (!Enum.TryParse<TutorialType>(request.Type, ignoreCase: true, out var tutorialType))
             throw new DomainException($"Invalid tutorial type '{request.Type}'. Valid values: Free, VIP.");
 
+        if (!Enum.TryParse<TutorialDifficulty>(request.Difficulty, ignoreCase: true, out var tutorialDifficulty))
+            throw new DomainException($"Invalid difficulty '{request.Difficulty}'. Valid values: Beginner, Intermediate, Advanced.");
+
         // BR-13: VIP requires active CreatorVipSettings
         if (tutorialType == TutorialType.VIP)
         {
@@ -59,7 +62,7 @@ public class CreateTutorialHandler
             Slug = slug,
             CoverImageUrl = request.CoverImageUrl,
             Type = tutorialType,
-            Difficulty = request.Difficulty,
+            Difficulty = tutorialDifficulty,
             Status = TutorialStatus.Draft,
             CreatedAt = DateTime.UtcNow
         };
@@ -111,7 +114,7 @@ public class CreateTutorialHandler
         tutorial.Description,
         tutorial.CoverImageUrl,
         tutorial.Type.ToString(),
-        tutorial.Difficulty,
+        tutorial.Difficulty.ToString(),
         tutorial.CategoryId,
         tutorial.Status.ToString(),
         tutorial.CreatedAt,

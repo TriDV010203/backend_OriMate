@@ -10,7 +10,7 @@ public interface ITutorialRepository
     Task<(IEnumerable<Tutorial> Items, int TotalCount)> GetPublishedAsync(
         string? search,
         int? categoryId,
-        string? difficulty,
+        TutorialDifficulty? difficulty,
         TutorialType? type,
         string sortBy,
         int page,

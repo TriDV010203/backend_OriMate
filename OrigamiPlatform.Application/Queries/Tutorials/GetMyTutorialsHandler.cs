@@ -24,7 +24,7 @@ public class GetMyTutorialsHandler
             t.Slug,
             t.CoverImageUrl,
             t.Type.ToString(),
-            t.Difficulty,
+            t.Difficulty.ToString(),
             t.Status.ToString(),
             t.Steps.Count,
             t.CreatedAt

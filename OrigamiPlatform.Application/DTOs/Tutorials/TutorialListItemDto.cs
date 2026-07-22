@@ -7,7 +7,7 @@ public record TutorialListItemDto(
     string Description,
     string? CoverImageUrl,
     string Type,
-    string? Difficulty,
+    string Difficulty,
     int CategoryId,
     string CategoryName,
     AuthorDto Author,

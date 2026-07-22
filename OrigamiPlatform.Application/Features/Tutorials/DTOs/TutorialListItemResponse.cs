@@ -6,7 +6,7 @@ public record TutorialListItemResponse(
     string Slug,
     string? CoverImageUrl,
     string Type,
-    string? Difficulty,
+    string Difficulty,
     string Status,
     int StepCount,
     DateTime CreatedAt

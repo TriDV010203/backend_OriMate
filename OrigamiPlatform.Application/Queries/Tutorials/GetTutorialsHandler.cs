@@ -49,6 +49,16 @@ public class GetTutorialsHandler
         if (sortBy is not ("date" or "likes"))
             throw new DomainException($"Invalid sortBy '{query.SortBy}'. Valid values: date, likes.");
 
+        // Search endpoint is lenient: an unparseable difficulty yields an empty result set instead of a 400
+        // (same spirit as an unknown CategoryId simply matching zero rows).
+        TutorialDifficulty? difficulty = null;
+        if (query.Difficulty is not null)
+        {
+            if (!Enum.TryParse<TutorialDifficulty>(query.Difficulty, ignoreCase: true, out var parsedDifficulty))
+                return new PagedResult<TutorialListItemDto>(new List<TutorialListItemDto>(), 0, page, pageSize, 0);
+            difficulty = parsedDifficulty;
+        }
+
         HashSet<Guid>? followedIds = null;
         var subscribedCreatorIds = new HashSet<Guid>();
 
@@ -60,7 +70,7 @@ public class GetTutorialsHandler
         }
 
         var (items, totalCount) = await _tutorials.GetPublishedAsync(
-            query.Search, query.CategoryId, query.Difficulty, type, sortBy, page, pageSize, followedIds, ct);
+            query.Search, query.CategoryId, difficulty, type, sortBy, page, pageSize, followedIds, ct);
 
         var likeCounts = new Dictionary<Guid, int>();
         var wishlistCounts = new Dictionary<Guid, int>();
@@ -93,7 +103,7 @@ public class GetTutorialsHandler
             t.Description,
             t.CoverImageUrl,
             t.Type.ToString(),
-            t.Difficulty,
+            t.Difficulty.ToString(),
             t.CategoryId,
             t.Category.Name,
             new AuthorDto(

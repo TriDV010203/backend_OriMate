@@ -72,7 +72,7 @@ public class GetTutorialBySlugHandler
             tutorial.Description,
             tutorial.CoverImageUrl,
             tutorial.Type.ToString(),
-            tutorial.Difficulty,
+            tutorial.Difficulty.ToString(),
             tutorial.CategoryId,
             tutorial.Category.Name,
             new AuthorDto(

@@ -103,7 +103,7 @@ public class SubmitEditHandler
         tutorial.Description,
         tutorial.CoverImageUrl,
         tutorial.Type.ToString(),
-        tutorial.Difficulty,
+        tutorial.Difficulty.ToString(),
         tutorial.CategoryId,
         tutorial.Status.ToString(),
         tutorial.CreatedAt,
