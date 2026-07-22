@@ -50,6 +50,11 @@ public class AppDbContext : DbContext
     // Shop
     public DbSet<ShopLink> ShopLinks => Set<ShopLink>();
 
+    // Clan
+    public DbSet<Clan> Clans => Set<Clan>();
+    public DbSet<ClanMember> ClanMembers => Set<ClanMember>();
+    public DbSet<ClanInvite> ClanInvites => Set<ClanInvite>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

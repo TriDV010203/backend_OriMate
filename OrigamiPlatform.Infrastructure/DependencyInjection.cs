@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OrigamiPlatform.Application.Commands.Achievements;
 using OrigamiPlatform.Application.Commands.AdminConfiguration;
 using OrigamiPlatform.Application.Commands.Auth;
+using OrigamiPlatform.Application.Commands.Clan;
 using OrigamiPlatform.Application.Commands.Comments;
 using OrigamiPlatform.Application.Commands.CommunityPosts;
 using OrigamiPlatform.Application.Commands.Follows;
@@ -18,6 +19,7 @@ using OrigamiPlatform.Application.Commands.Wishlists;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Application.Queries.Achievements;
 using OrigamiPlatform.Application.Queries.AdminConfiguration;
+using OrigamiPlatform.Application.Queries.Clan;
 using OrigamiPlatform.Application.Queries.Comments;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
 using OrigamiPlatform.Application.Queries.Journals;
@@ -62,6 +64,9 @@ public static class DependencyInjection
         services.AddScoped<IStuckThreadRepository, StuckThreadRepository>();
         services.AddScoped<IShopLinkRepository, ShopLinkRepository>();
         services.AddScoped<IPersonalMilestoneRepository, PersonalMilestoneRepository>();
+        services.AddScoped<IClanRepository, ClanRepository>();
+        services.AddScoped<IClanMemberRepository, ClanMemberRepository>();
+        services.AddScoped<IClanInviteRepository, ClanInviteRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -162,6 +167,14 @@ public static class DependencyInjection
         services.AddScoped<GetShopLinksHandler>();
         services.AddScoped<CreateShopLinkHandler>();
         services.AddScoped<UpdateShopLinkHandler>();
+
+        // Handlers — Clan (FT-22)
+        services.AddScoped<CreateClanHandler>();
+        services.AddScoped<InviteMemberHandler>();
+        services.AddScoped<AcceptInviteHandler>();
+        services.AddScoped<LeaveClanHandler>();
+        services.AddScoped<GetMyClanHandler>();
+        services.AddScoped<GetPendingInvitesHandler>();
 
         return services;
     }
