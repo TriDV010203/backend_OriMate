@@ -55,6 +55,12 @@ public class AppDbContext : DbContext
     public DbSet<ClanMember> ClanMembers => Set<ClanMember>();
     public DbSet<ClanInvite> ClanInvites => Set<ClanInvite>();
 
+    // Gamification (FT-26 Streak, FT-27 Daily Quest, FT-28 Hạt Gấp)
+    public DbSet<StreakLog> StreakLogs => Set<StreakLog>();
+    public DbSet<DailyQuest> DailyQuests => Set<DailyQuest>();
+    public DbSet<UserDailyQuestProgress> UserDailyQuestProgresses => Set<UserDailyQuestProgress>();
+    public DbSet<HatGapTransaction> HatGapTransactions => Set<HatGapTransaction>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

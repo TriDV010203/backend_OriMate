@@ -6,6 +6,7 @@ using OrigamiPlatform.Application.Commands.Clan;
 using OrigamiPlatform.Application.Commands.Comments;
 using OrigamiPlatform.Application.Commands.CommunityPosts;
 using OrigamiPlatform.Application.Commands.Follows;
+using OrigamiPlatform.Application.Commands.Gamification;
 using OrigamiPlatform.Application.Commands.Journals;
 using OrigamiPlatform.Application.Commands.Likes;
 using OrigamiPlatform.Application.Commands.Moderation;
@@ -16,6 +17,7 @@ using OrigamiPlatform.Application.Commands.Tutorials;
 using OrigamiPlatform.Application.Commands.TutorialProgress;
 using OrigamiPlatform.Application.Commands.Users;
 using OrigamiPlatform.Application.Commands.Wishlists;
+using OrigamiPlatform.Application.Common;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Application.Queries.Achievements;
 using OrigamiPlatform.Application.Queries.AdminConfiguration;
@@ -68,6 +70,10 @@ public static class DependencyInjection
         services.AddScoped<IClanRepository, ClanRepository>();
         services.AddScoped<IClanMemberRepository, ClanMemberRepository>();
         services.AddScoped<IClanInviteRepository, ClanInviteRepository>();
+        services.AddScoped<IStreakLogRepository, StreakLogRepository>();
+        services.AddScoped<IDailyQuestRepository, DailyQuestRepository>();
+        services.AddScoped<IUserDailyQuestProgressRepository, UserDailyQuestProgressRepository>();
+        services.AddScoped<IHatGapTransactionRepository, HatGapTransactionRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -75,6 +81,7 @@ public static class DependencyInjection
         services.AddSingleton<IBlockedWordService, BlockedWordService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<HatGapAwardService>();
 
         // Handlers — Auth
         services.AddScoped<RegisterUserHandler>();
@@ -156,8 +163,12 @@ public static class DependencyInjection
         services.AddScoped<GetTutorialProgressHandler>();
         services.AddScoped<RaiseStuckFlagHandler>();
 
-        // Handlers — Gamification (FT-25 Skill Level)
+        // Handlers — Gamification (FT-25 Skill Level, FT-26 Streak, FT-27 Daily Quest, FT-28 Hạt Gấp)
         services.AddScoped<GetMySkillLevelHandler>();
+        services.AddScoped<GetMyStreakHandler>();
+        services.AddScoped<GetMyQuestProgressHandler>();
+        services.AddScoped<GetMyHatGapBalanceHandler>();
+        services.AddScoped<PurchaseStreakFreezeHandler>();
 
         // Handlers — VIP Subscription (FT-16, FT-17)
         services.AddScoped<ConfigureVipTierHandler>();

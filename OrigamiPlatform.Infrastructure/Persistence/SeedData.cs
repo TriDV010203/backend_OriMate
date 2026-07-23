@@ -18,6 +18,7 @@ public static class SeedData
         await SeedCategoriesAsync(context);
         await SeedBlockedWordsAsync(context);
         await SeedAdminAccountsAsync(context, passwordHasher);
+        await SeedDailyQuestsAsync(context);
         await context.SaveChangesAsync();
     }
 
@@ -89,5 +90,19 @@ public static class SeedData
             new UserRole { UserId = admin.Id, Role = UserRoleType.Admin, CreatedAt = now },
             new UserRole { UserId = manager.Id, Role = UserRoleType.Manager, CreatedAt = now }
         );
+    }
+
+    // FT-27: single fixed Daily Quest for MVP — no Admin CRUD for DailyQuest in this pass.
+    private static async Task SeedDailyQuestsAsync(AppDbContext context)
+    {
+        if (await context.DailyQuests.AnyAsync()) return;
+
+        context.DailyQuests.Add(new DailyQuest
+        {
+            Id = Guid.NewGuid(),
+            Title = "Hoàn thành 3 bước học hôm nay",
+            TargetValue = 3,
+            IsActive = true
+        });
     }
 }
