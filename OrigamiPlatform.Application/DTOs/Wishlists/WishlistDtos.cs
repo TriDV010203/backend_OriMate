@@ -1,19 +1,14 @@
 ﻿using OrigamiPlatform.Application.DTOs.CommunityPosts;
+using OrigamiPlatform.Application.DTOs.Tutorials;
 using OrigamiPlatform.Domain.Enums;
 
 namespace OrigamiPlatform.Application.DTOs.Wishlists;
 public record WishlistDto(
     Guid TargetId,
     TargetType TargetType,
-    DateTime CreatedAt,
-    WishlistTutorialDto? Tutorial,
+    DateTime SavedAt,
+    TutorialListItemDto? Tutorial,
     WishlistPostDto? CommunityPost
-);
-
-public record WishlistTutorialDto(
-    string Title,
-    string? CoverImageUrl, 
-    string Description
 );
 
 public record WishlistPostDto(

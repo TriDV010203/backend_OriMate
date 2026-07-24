@@ -168,6 +168,9 @@ public class TutorialRepository : ITutorialRepository
     public async Task<List<Tutorial>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
     {
         return await _db.Tutorials
+            .Include(t => t.Author).ThenInclude(u => u.Profile)
+            .Include(t => t.Category)
+            .Include(t => t.Steps)
             .Where(t => ids.Contains(t.Id))
             .ToListAsync(ct);
     }
