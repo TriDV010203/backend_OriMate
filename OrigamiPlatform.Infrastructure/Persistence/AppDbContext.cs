@@ -50,6 +50,10 @@ public class AppDbContext : DbContext
     // Shop
     public DbSet<ShopLink> ShopLinks => Set<ShopLink>();
 
+    // Learning Path (FT-33)
+    public DbSet<LearningPath> LearningPaths => Set<LearningPath>();
+    public DbSet<LearningPathItem> LearningPathItems => Set<LearningPathItem>();
+
     // Clan
     public DbSet<Clan> Clans => Set<Clan>();
     public DbSet<ClanMember> ClanMembers => Set<ClanMember>();

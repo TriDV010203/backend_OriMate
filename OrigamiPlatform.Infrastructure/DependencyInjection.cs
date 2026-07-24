@@ -8,6 +8,7 @@ using OrigamiPlatform.Application.Commands.CommunityPosts;
 using OrigamiPlatform.Application.Commands.Follows;
 using OrigamiPlatform.Application.Commands.Gamification;
 using OrigamiPlatform.Application.Commands.Journals;
+using OrigamiPlatform.Application.Commands.LearningPaths;
 using OrigamiPlatform.Application.Commands.Likes;
 using OrigamiPlatform.Application.Commands.Moderation;
 using OrigamiPlatform.Application.Commands.Notifications;
@@ -26,6 +27,7 @@ using OrigamiPlatform.Application.Queries.Comments;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
 using OrigamiPlatform.Application.Queries.Gamification;
 using OrigamiPlatform.Application.Queries.Journals;
+using OrigamiPlatform.Application.Queries.LearningPaths;
 using OrigamiPlatform.Application.Queries.Notifications;
 using OrigamiPlatform.Application.Queries.Reports;
 using OrigamiPlatform.Application.Queries.Shop;
@@ -74,6 +76,7 @@ public static class DependencyInjection
         services.AddScoped<IDailyQuestRepository, DailyQuestRepository>();
         services.AddScoped<IUserDailyQuestProgressRepository, UserDailyQuestProgressRepository>();
         services.AddScoped<IHatGapTransactionRepository, HatGapTransactionRepository>();
+        services.AddScoped<ILearningPathRepository, LearningPathRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -194,6 +197,17 @@ public static class DependencyInjection
         services.AddScoped<GetShopLinksHandler>();
         services.AddScoped<CreateShopLinkHandler>();
         services.AddScoped<UpdateShopLinkHandler>();
+
+        // Handlers — Learning Path (FT-33)
+        services.AddScoped<GetLearningPathsHandler>();
+        services.AddScoped<GetLearningPathByIdHandler>();
+        services.AddScoped<GetLearningPathForTutorialHandler>();
+        services.AddScoped<GetAdminLearningPathsHandler>();
+        services.AddScoped<GetLearningPathForAdminHandler>();
+        services.AddScoped<CreateLearningPathHandler>();
+        services.AddScoped<UpdateLearningPathHandler>();
+        services.AddScoped<PublishLearningPathHandler>();
+        services.AddScoped<ArchiveLearningPathHandler>();
 
         // Handlers — Clan (FT-22)
         services.AddScoped<CreateClanHandler>();
