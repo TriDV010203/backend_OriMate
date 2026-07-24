@@ -4,6 +4,7 @@ using OrigamiPlatform.Application.DTOs.Tutorials;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Enums;
 using OrigamiPlatform.Application.DTOs.CommunityPosts;
+using OrigamiPlatform.Application.DTOs.Tutorials;
 
 namespace OrigamiPlatform.Application.Queries.Wishlists;
 
@@ -68,6 +69,7 @@ public class GetWishlistHandler
                 var t = tutorials.FirstOrDefault(t => t.Id == w.TargetId);
                 if (t != null)
                 {
+<<<<<<< HEAD
                     tutorialDto = new TutorialListItemDto(
                         t.Id,
                         t.Title,
@@ -91,6 +93,24 @@ public class GetWishlistHandler
                         CommentCount: commentCounts.GetValueOrDefault(t.Id, 0),
                         IsLikedByCurrentUser: userLikedTutorialIds.Contains(t.Id),
                         IsWishlistedByCurrentUser: true
+=======
+                    tutorialDto = new WishlistTutorialDto(
+                        Id: tut.Id,
+                        Title: tut.Title,
+                        Slug: tut.Slug,
+                        Description: tut.Description,
+                        CoverImageUrl: tut.CoverImageUrl,
+                        Type: tut.Type.ToString(),
+                        Difficulty: tut.Difficulty.ToString(),
+                        CategoryId: tut.CategoryId,
+                        CategoryName: tut.Category.Name,
+                        Author: new AuthorDto(
+                            tut.Author.Id,
+                            tut.Author.Profile?.DisplayName ?? tut.Author.Email,
+                            tut.Author.Profile?.AvatarUrl),
+                        StepCount: tut.Steps.Count,
+                        PublishedAt: tut.PublishedAt ?? tut.CreatedAt
+>>>>>>> 81b6b5c (Fix logic errors and add some APIs.)
                     );
                 }
             }

@@ -111,7 +111,7 @@ public class GetTutorialsHandler
                 t.Author.Profile?.DisplayName ?? t.Author.Email,
                 t.Author.Profile?.AvatarUrl),
             t.Steps.Count,
-            t.PublishedAt!.Value,
+            t.PublishedAt ?? t.CreatedAt,
             IsVipLocked: t.Type == TutorialType.VIP && !subscribedCreatorIds.Contains(t.Author.Id),
 
             LikeCount: likeCounts.GetValueOrDefault(t.Id, 0),

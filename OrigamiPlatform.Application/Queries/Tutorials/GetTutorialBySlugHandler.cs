@@ -80,7 +80,7 @@ public class GetTutorialBySlugHandler
                 tutorial.Author.Profile?.DisplayName ?? tutorial.Author.Email,
                 tutorial.Author.Profile?.AvatarUrl),
             steps,
-            tutorial.PublishedAt!.Value,
+            tutorial.PublishedAt ?? tutorial.CreatedAt,
             IsVipLocked: isVipLocked,
             LikeCount: likeCount,
             WishlistCount: wishlistCount,

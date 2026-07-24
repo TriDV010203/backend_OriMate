@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using OrigamiPlatform.Application.Commands.Tutorials;
 using OrigamiPlatform.Application.DTOs;
 using OrigamiPlatform.Application.Features.Tutorials.DTOs;
+using OrigamiPlatform.Application.Queries.AdminConfiguration;
 using OrigamiPlatform.Application.Queries.Tutorials;
 
 namespace OrigamiPlatform.API.Controllers;
@@ -16,7 +17,10 @@ public class TutorialsController : ControllerBase
     private readonly GetTutorialsHandler _getTutorials;
     private readonly GetTutorialBySlugHandler _getTutorialBySlug;
     private readonly GetMyTutorialsHandler _getMyTutorials;
+    private readonly GetTutorialForAuthorHandler _getTutorialForAuthor;
+    private readonly GetCategoriesHandler _getCategories;
     private readonly CreateTutorialHandler _createTutorial;
+    private readonly UpdateTutorialHandler _updateTutorial;
     private readonly SubmitTutorialHandler _submitTutorial;
     private readonly ManagerPublishHandler _managerPublish;
     private readonly ManagerRejectHandler _managerReject;
@@ -31,7 +35,10 @@ public class TutorialsController : ControllerBase
         GetTutorialsHandler getTutorials,
         GetTutorialBySlugHandler getTutorialBySlug,
         GetMyTutorialsHandler getMyTutorials,
+        GetTutorialForAuthorHandler getTutorialForAuthor,
+        GetCategoriesHandler getCategories,
         CreateTutorialHandler createTutorial,
+        UpdateTutorialHandler updateTutorial,
         SubmitTutorialHandler submitTutorial,
         ManagerPublishHandler managerPublish,
         ManagerRejectHandler managerReject,
@@ -45,7 +52,10 @@ public class TutorialsController : ControllerBase
         _getTutorials = getTutorials;
         _getTutorialBySlug = getTutorialBySlug;
         _getMyTutorials = getMyTutorials;
+        _getTutorialForAuthor = getTutorialForAuthor;
+        _getCategories = getCategories;
         _createTutorial = createTutorial;
+        _updateTutorial = updateTutorial;
         _submitTutorial = submitTutorial;
         _managerPublish = managerPublish;
         _managerReject = managerReject;
@@ -84,6 +94,15 @@ public class TutorialsController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>GET /api/tutorials/categories — Active categories, for the authoring form's category dropdown.</summary>
+    [HttpGet("categories")]
+    [Authorize]
+    public async Task<IActionResult> GetCategories(CancellationToken ct)
+    {
+        var result = await _getCategories.HandleAsync(new GetCategoriesQuery(), ct);
+        return Ok(result.Where(c => c.IsActive).ToList());
+    }
+
     // ── Authoring ────────────────────────────────────────────────────────────
 
     /// <summary>POST /api/tutorials — Create a draft tutorial (any authenticated user).</summary>
@@ -95,6 +114,27 @@ public class TutorialsController : ControllerBase
         var authorId = GetCurrentUserId()!.Value;
         var result = await _createTutorial.HandleAsync(new CreateTutorialCommand(authorId, request), ct);
         return CreatedAtAction(nameof(GetBySlug), new { slug = result.Slug }, result);
+    }
+
+    /// <summary>GET /api/tutorials/{id} — Author's own tutorial detail (with steps), any status. Used to pre-fill the edit form.</summary>
+    [HttpGet("{id:guid}")]
+    [Authorize]
+    public async Task<IActionResult> GetTutorialForAuthor(Guid id, CancellationToken ct)
+    {
+        var authorId = GetCurrentUserId()!.Value;
+        var result = await _getTutorialForAuthor.HandleAsync(new GetTutorialForAuthorQuery(id, authorId), ct);
+        return Ok(result);
+    }
+
+    /// <summary>PUT /api/tutorials/{id} — Edit a draft/revision-required tutorial (author only, before publish).</summary>
+    [HttpPut("{id:guid}")]
+    [Authorize]
+    public async Task<IActionResult> UpdateTutorial(
+        Guid id, [FromBody] UpdateTutorialRequest request, CancellationToken ct)
+    {
+        var authorId = GetCurrentUserId()!.Value;
+        var result = await _updateTutorial.HandleAsync(new UpdateTutorialCommand(id, authorId, request), ct);
+        return Ok(result);
     }
 
     /// <summary>PUT /api/tutorials/{id}/submit — Submit draft for manager review (author only, BR-TUT-01).</summary>

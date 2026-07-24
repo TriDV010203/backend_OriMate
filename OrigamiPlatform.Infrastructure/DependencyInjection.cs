@@ -100,7 +100,9 @@ public static class DependencyInjection
         services.AddScoped<GetMyTutorialsHandler>();
 
         // Handlers — Tutorials authoring & review (FT-04, FT-05)
+        services.AddScoped<GetTutorialForAuthorHandler>();
         services.AddScoped<CreateTutorialHandler>();
+        services.AddScoped<UpdateTutorialHandler>();
         services.AddScoped<SubmitTutorialHandler>();
         services.AddScoped<ManagerPublishHandler>();
         services.AddScoped<ManagerRejectHandler>();
@@ -131,6 +133,7 @@ public static class DependencyInjection
         services.AddScoped<SubmitReportHandler>();
         services.AddScoped<HandleReportHandler>();
         services.AddScoped<GetCommunityFeedHandler>();
+        services.AddScoped<GetCommunityPostByIdHandler>();
         services.AddScoped<GetPendingReportsHandler>();
         services.AddScoped<CreateAchievementHandler>();
         services.AddScoped<UpdateAchievementHandler>();
@@ -156,6 +159,8 @@ public static class DependencyInjection
         services.AddScoped<GetNotificationsHandler>();
         services.AddScoped<GetCreatorProfileHandler>();
         services.AddScoped<UpdateProfileHandler>();
+        services.AddScoped<GetFollowersHandler>();
+        services.AddScoped<GetFollowingHandler>();
 
         // Handlers — Tutorial step progress (per user)
         services.AddScoped<CompleteTutorialStepHandler>();

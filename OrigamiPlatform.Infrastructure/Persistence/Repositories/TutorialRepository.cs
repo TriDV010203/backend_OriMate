@@ -172,6 +172,10 @@ public class TutorialRepository : ITutorialRepository
             .Include(t => t.Category)
             .Include(t => t.Steps)
             .Where(t => ids.Contains(t.Id))
+            .Include(t => t.Category)
+            .Include(t => t.Author).ThenInclude(a => a.Profile)
+            .Include(t => t.Steps)
+            .AsSplitQuery()
             .ToListAsync(ct);
     }
 }

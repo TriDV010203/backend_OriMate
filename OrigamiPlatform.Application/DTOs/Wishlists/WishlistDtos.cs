@@ -7,10 +7,32 @@ public record WishlistDto(
     Guid TargetId,
     TargetType TargetType,
     DateTime SavedAt,
+<<<<<<< HEAD
     TutorialListItemDto? Tutorial,
     WishlistPostDto? CommunityPost
 );
 
+=======
+    WishlistTutorialDto? Tutorial,
+    WishlistPostDto? CommunityPost
+);
+
+public record WishlistTutorialDto(
+    Guid Id,
+    string Title,
+    string Slug,
+    string Description,
+    string? CoverImageUrl,
+    string Type,
+    string? Difficulty,
+    int CategoryId,
+    string CategoryName,
+    AuthorDto Author,
+    int StepCount,
+    DateTime PublishedAt
+);
+
+>>>>>>> 81b6b5c (Fix logic errors and add some APIs.)
 public record WishlistPostDto(
     string Content,
     List<MediaItemDto> Media
