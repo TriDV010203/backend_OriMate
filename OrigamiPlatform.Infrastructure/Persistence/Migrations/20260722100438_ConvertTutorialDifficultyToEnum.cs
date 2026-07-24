@@ -37,13 +37,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                 oldType: "nvarchar(50)",
                 oldMaxLength: 50,
                 oldNullable: true);
-
-            migrationBuilder.UpdateData(
-                table: "UserProfiles",
-                keyColumn: "UserId",
-                keyValue: new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
-                columns: new string[0],
-                values: new object[0]);
         }
 
         /// <inheritdoc />
