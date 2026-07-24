@@ -1,3 +1,4 @@
+using OrigamiPlatform.Application.Common;
 using OrigamiPlatform.Application.DTOs.Tutorials;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Enums;
@@ -77,8 +78,8 @@ public class GetTutorialBySlugHandler
             tutorial.Category.Name,
             new AuthorDto(
                 tutorial.Author.Id,
-                tutorial.Author.Profile?.DisplayName ?? tutorial.Author.Email,
-                tutorial.Author.Profile?.AvatarUrl),
+                tutorial.IsOfficial ? TutorialConstants.OfficialAuthorDisplayName : tutorial.Author.Profile?.DisplayName ?? tutorial.Author.Email,
+                tutorial.IsOfficial ? null : tutorial.Author.Profile?.AvatarUrl),
             steps,
             tutorial.PublishedAt ?? tutorial.CreatedAt,
             IsVipLocked: isVipLocked,

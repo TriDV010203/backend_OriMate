@@ -98,10 +98,12 @@ public static class DependencyInjection
         services.AddScoped<GetTutorialsHandler>();
         services.AddScoped<GetTutorialBySlugHandler>();
         services.AddScoped<GetMyTutorialsHandler>();
+        services.AddScoped<GetManagerQueueHandler>();
 
         // Handlers — Tutorials authoring & review (FT-04, FT-05)
         services.AddScoped<GetTutorialForAuthorHandler>();
         services.AddScoped<CreateTutorialHandler>();
+        services.AddScoped<AdminCreateTutorialHandler>();
         services.AddScoped<UpdateTutorialHandler>();
         services.AddScoped<SubmitTutorialHandler>();
         services.AddScoped<ManagerPublishHandler>();
@@ -114,6 +116,11 @@ public static class DependencyInjection
         services.AddScoped<SubmitEditHandler>();
         services.AddScoped<ManagerApproveEditHandler>();
         services.AddScoped<ManagerRejectEditHandler>();
+
+        // Handlers — Tutorials admin management (edit/list any tutorial regardless of author/status)
+        services.AddScoped<GetAdminTutorialsHandler>();
+        services.AddScoped<GetTutorialForAdminHandler>();
+        services.AddScoped<AdminUpdateTutorialHandler>();
 
         // Handlers — AdminConfiguration (FT-03)
         services.AddScoped<GetCategoriesHandler>();

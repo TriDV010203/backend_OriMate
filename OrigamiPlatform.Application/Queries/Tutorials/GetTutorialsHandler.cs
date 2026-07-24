@@ -1,4 +1,5 @@
-﻿using OrigamiPlatform.Application.DTOs.Common;
+﻿using OrigamiPlatform.Application.Common;
+using OrigamiPlatform.Application.DTOs.Common;
 using OrigamiPlatform.Application.DTOs.Tutorials;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Enums;
@@ -108,8 +109,8 @@ public class GetTutorialsHandler
             t.Category.Name,
             new AuthorDto(
                 t.Author.Id,
-                t.Author.Profile?.DisplayName ?? t.Author.Email,
-                t.Author.Profile?.AvatarUrl),
+                t.IsOfficial ? TutorialConstants.OfficialAuthorDisplayName : t.Author.Profile?.DisplayName ?? t.Author.Email,
+                t.IsOfficial ? null : t.Author.Profile?.AvatarUrl),
             t.Steps.Count,
             t.PublishedAt ?? t.CreatedAt,
             IsVipLocked: t.Type == TutorialType.VIP && !subscribedCreatorIds.Contains(t.Author.Id),

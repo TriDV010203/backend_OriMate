@@ -7,6 +7,7 @@ using OrigamiPlatform.Application.DTOs;
 using OrigamiPlatform.Application.Features.Tutorials.DTOs;
 using OrigamiPlatform.Application.Queries.AdminConfiguration;
 using OrigamiPlatform.Application.Queries.Tutorials;
+using OrigamiPlatform.Domain.Enums;
 
 namespace OrigamiPlatform.API.Controllers;
 
@@ -19,7 +20,9 @@ public class TutorialsController : ControllerBase
     private readonly GetMyTutorialsHandler _getMyTutorials;
     private readonly GetTutorialForAuthorHandler _getTutorialForAuthor;
     private readonly GetCategoriesHandler _getCategories;
+    private readonly GetManagerQueueHandler _getManagerQueue;
     private readonly CreateTutorialHandler _createTutorial;
+    private readonly AdminCreateTutorialHandler _adminCreateTutorial;
     private readonly UpdateTutorialHandler _updateTutorial;
     private readonly SubmitTutorialHandler _submitTutorial;
     private readonly ManagerPublishHandler _managerPublish;
@@ -30,6 +33,9 @@ public class TutorialsController : ControllerBase
     private readonly SubmitEditHandler _submitEdit;
     private readonly ManagerApproveEditHandler _managerApproveEdit;
     private readonly ManagerRejectEditHandler _managerRejectEdit;
+    private readonly GetAdminTutorialsHandler _getAdminTutorials;
+    private readonly GetTutorialForAdminHandler _getTutorialForAdmin;
+    private readonly AdminUpdateTutorialHandler _adminUpdateTutorial;
 
     public TutorialsController(
         GetTutorialsHandler getTutorials,
@@ -37,7 +43,9 @@ public class TutorialsController : ControllerBase
         GetMyTutorialsHandler getMyTutorials,
         GetTutorialForAuthorHandler getTutorialForAuthor,
         GetCategoriesHandler getCategories,
+        GetManagerQueueHandler getManagerQueue,
         CreateTutorialHandler createTutorial,
+        AdminCreateTutorialHandler adminCreateTutorial,
         UpdateTutorialHandler updateTutorial,
         SubmitTutorialHandler submitTutorial,
         ManagerPublishHandler managerPublish,
@@ -47,14 +55,19 @@ public class TutorialsController : ControllerBase
         UpdateWorkingCopyHandler updateWorkingCopy,
         SubmitEditHandler submitEdit,
         ManagerApproveEditHandler managerApproveEdit,
-        ManagerRejectEditHandler managerRejectEdit)
+        ManagerRejectEditHandler managerRejectEdit,
+        GetAdminTutorialsHandler getAdminTutorials,
+        GetTutorialForAdminHandler getTutorialForAdmin,
+        AdminUpdateTutorialHandler adminUpdateTutorial)
     {
         _getTutorials = getTutorials;
         _getTutorialBySlug = getTutorialBySlug;
         _getMyTutorials = getMyTutorials;
         _getTutorialForAuthor = getTutorialForAuthor;
         _getCategories = getCategories;
+        _getManagerQueue = getManagerQueue;
         _createTutorial = createTutorial;
+        _adminCreateTutorial = adminCreateTutorial;
         _updateTutorial = updateTutorial;
         _submitTutorial = submitTutorial;
         _managerPublish = managerPublish;
@@ -65,6 +78,9 @@ public class TutorialsController : ControllerBase
         _submitEdit = submitEdit;
         _managerApproveEdit = managerApproveEdit;
         _managerRejectEdit = managerRejectEdit;
+        _getAdminTutorials = getAdminTutorials;
+        _getTutorialForAdmin = getTutorialForAdmin;
+        _adminUpdateTutorial = adminUpdateTutorial;
     }
 
     // ── Public ───────────────────────────────────────────────────────────────
@@ -113,6 +129,23 @@ public class TutorialsController : ControllerBase
     {
         var authorId = GetCurrentUserId()!.Value;
         var result = await _createTutorial.HandleAsync(new CreateTutorialCommand(authorId, request), ct);
+        return CreatedAtAction(nameof(GetBySlug), new { slug = result.Slug }, result);
+    }
+
+    /// <summary>
+    /// POST /api/tutorials/admin — Admin/Manager writes and publishes a tutorial directly: always Free,
+    /// no review queue (they already hold publishing authority). The tutorial is attributed to the fixed
+    /// official author account, not to the acting Admin/Manager's own account.
+    /// </summary>
+    [HttpPost("admin")]
+    [Authorize(Roles = "Admin,Manager")]
+    public async Task<IActionResult> AdminCreateTutorial(
+        [FromBody] CreateTutorialRequest request, CancellationToken ct)
+    {
+        var actorId = GetCurrentUserId()!.Value;
+        var actorRole = User.IsInRole("Admin") ? UserRoleType.Admin : UserRoleType.Manager;
+        var result = await _adminCreateTutorial.HandleAsync(
+            new AdminCreateTutorialCommand(actorId, actorRole, request), ct);
         return CreatedAtAction(nameof(GetBySlug), new { slug = result.Slug }, result);
     }
 
@@ -195,7 +228,7 @@ public class TutorialsController : ControllerBase
 
     /// <summary>PUT /api/tutorials/{id}/approve-edit — Manager approves edit: swaps content into original.</summary>
     [HttpPut("{id:guid}/approve-edit")]
-    [Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> ManagerApproveEdit(Guid id, CancellationToken ct)
     {
         var managerId = GetCurrentUserId()!.Value;
@@ -205,7 +238,7 @@ public class TutorialsController : ControllerBase
 
     /// <summary>PUT /api/tutorials/{id}/reject-edit — Manager rejects edit, returns working copy to author.</summary>
     [HttpPut("{id:guid}/reject-edit")]
-    [Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> ManagerRejectEdit(
         Guid id, [FromBody] ManagerRejectRequest request, CancellationToken ct)
     {
@@ -216,9 +249,21 @@ public class TutorialsController : ControllerBase
 
     // ── Manager final approval ───────────────────────────────────────────────
 
+    /// <summary>GET /api/tutorials/manager-queue — Tutorials awaiting manager review (new submissions + edits).</summary>
+    [HttpGet("manager-queue")]
+    [Authorize(Roles = "Admin,Manager")]
+    public async Task<IActionResult> GetManagerQueue(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _getManagerQueue.HandleAsync(new GetManagerQueueQuery(page, pageSize), ct);
+        return Ok(result);
+    }
+
     /// <summary>PUT /api/tutorials/{id}/publish — Manager publishes a tutorial (BR-16).</summary>
     [HttpPut("{id:guid}/publish")]
-    [Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> ManagerPublish(Guid id, CancellationToken ct)
     {
         var managerId = GetCurrentUserId()!.Value;
@@ -228,7 +273,7 @@ public class TutorialsController : ControllerBase
 
     /// <summary>PUT /api/tutorials/{id}/reject — Manager sends a tutorial back for revision (BR-TUT-01, BR-18: not terminal).</summary>
     [HttpPut("{id:guid}/reject")]
-    [Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> ManagerReject(
         Guid id, [FromBody] ManagerRejectRequest request, CancellationToken ct)
     {
@@ -239,13 +284,54 @@ public class TutorialsController : ControllerBase
 
     /// <summary>DELETE /api/tutorials/{id} — Manager soft-removes a published tutorial (BR-16, terminal).</summary>
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> ManagerRemove(
         Guid id, [FromBody] ManagerRemoveRequest? request, CancellationToken ct)
     {
         var managerId = GetCurrentUserId()!.Value;
         await _managerRemove.HandleAsync(new ManagerRemoveCommand(id, managerId, request), ct);
         return Ok(new MessageResponse("Tutorial has been removed."));
+    }
+
+    // ── Admin tutorial management ───────────────────────────────────────────
+
+    /// <summary>GET /api/tutorials/admin/all — Every main tutorial (any author, any status), for the admin management page.</summary>
+    [HttpGet("admin/all")]
+    [Authorize(Roles = "Admin,Manager")]
+    public async Task<IActionResult> GetAdminTutorials(
+        [FromQuery] string? search,
+        [FromQuery] string? status,
+        [FromQuery] int? categoryId,
+        [FromQuery] bool? isOfficial,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _getAdminTutorials.HandleAsync(
+            new GetAdminTutorialsQuery(search, status, categoryId, isOfficial, page, pageSize), ct);
+        return Ok(result);
+    }
+
+    /// <summary>GET /api/tutorials/{id}/admin — Any tutorial's detail (any author, any status), to pre-fill the admin edit form.</summary>
+    [HttpGet("{id:guid}/admin")]
+    [Authorize(Roles = "Admin,Manager")]
+    public async Task<IActionResult> GetTutorialForAdmin(Guid id, CancellationToken ct)
+    {
+        var result = await _getTutorialForAdmin.HandleAsync(new GetTutorialForAdminQuery(id), ct);
+        return Ok(result);
+    }
+
+    /// <summary>PUT /api/tutorials/{id}/admin — Admin/Manager edits any main tutorial's content directly, in place, regardless of author or review status.</summary>
+    [HttpPut("{id:guid}/admin")]
+    [Authorize(Roles = "Admin,Manager")]
+    public async Task<IActionResult> AdminUpdateTutorial(
+        Guid id, [FromBody] UpdateTutorialRequest request, CancellationToken ct)
+    {
+        var actorId = GetCurrentUserId()!.Value;
+        var actorRole = User.IsInRole("Admin") ? UserRoleType.Admin : UserRoleType.Manager;
+        var result = await _adminUpdateTutorial.HandleAsync(
+            new AdminUpdateTutorialCommand(id, actorId, actorRole, request), ct);
+        return Ok(result);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────

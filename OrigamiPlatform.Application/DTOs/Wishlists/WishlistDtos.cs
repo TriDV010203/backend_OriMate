@@ -7,12 +7,6 @@ public record WishlistDto(
     Guid TargetId,
     TargetType TargetType,
     DateTime SavedAt,
-<<<<<<< HEAD
-    TutorialListItemDto? Tutorial,
-    WishlistPostDto? CommunityPost
-);
-
-=======
     WishlistTutorialDto? Tutorial,
     WishlistPostDto? CommunityPost
 );
@@ -32,7 +26,6 @@ public record WishlistTutorialDto(
     DateTime PublishedAt
 );
 
->>>>>>> 81b6b5c (Fix logic errors and add some APIs.)
 public record WishlistPostDto(
     string Content,
     List<MediaItemDto> Media
