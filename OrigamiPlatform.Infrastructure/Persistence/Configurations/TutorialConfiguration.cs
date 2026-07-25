@@ -20,6 +20,7 @@ public class TutorialConfiguration : IEntityTypeConfiguration<Tutorial>
         builder.Property(t => t.Difficulty).HasConversion<string>().HasMaxLength(50).IsRequired();
         builder.Property(t => t.Type).HasConversion<string>().HasMaxLength(10);
         builder.Property(t => t.Status).HasConversion<string>().HasMaxLength(30);
+        builder.Property(t => t.IsOfficial).HasDefaultValue(false);
 
         builder.HasOne(t => t.Author)
                .WithMany(u => u.Tutorials)

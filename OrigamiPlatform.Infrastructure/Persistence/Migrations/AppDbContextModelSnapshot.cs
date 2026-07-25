@@ -539,6 +539,100 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("Journals");
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPath", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CoverImageUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.ToTable("LearningPaths");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPathCompletion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("LearningPathId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LearningPathId");
+
+                    b.HasIndex("UserId", "LearningPathId")
+                        .IsUnique();
+
+                    b.ToTable("LearningPathCompletions");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPathItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ItemOrder")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("LearningPathId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TutorialId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TutorialId");
+
+                    b.HasIndex("LearningPathId", "TutorialId")
+                        .IsUnique();
+
+                    b.ToTable("LearningPathItems");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Like", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -845,6 +939,11 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
+
+                    b.Property<bool>("IsOfficial")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<Guid?>("ParentTutorialId")
                         .HasColumnType("uniqueidentifier");
@@ -1424,6 +1523,55 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPath", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPathCompletion", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.LearningPath", "LearningPath")
+                        .WithMany()
+                        .HasForeignKey("LearningPathId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LearningPath");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPathItem", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.LearningPath", "LearningPath")
+                        .WithMany("Items")
+                        .HasForeignKey("LearningPathId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.Tutorial", "Tutorial")
+                        .WithMany()
+                        .HasForeignKey("TutorialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LearningPath");
+
+                    b.Navigation("Tutorial");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Like", b =>
                 {
                     b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
@@ -1708,6 +1856,11 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Media");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPath", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Tutorial", b =>

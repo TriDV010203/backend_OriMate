@@ -18,26 +18,54 @@ public class UsersController : ControllerBase
         [FromServices] GetCreatorProfileHandler handler,
         CancellationToken ct)
     {
-        Guid? currentUserId = null;
-
-        if (User.Identity?.IsAuthenticated == true)
-        {
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                              ?? User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
-
-            if (Guid.TryParse(userIdClaim, out var parsedId))
-            {
-                currentUserId = parsedId;
-            }
-        }
-
-        var result = await handler.HandleAsync(new GetCreatorProfileQuery(id, currentUserId), ct);
+        var result = await handler.HandleAsync(new GetCreatorProfileQuery(id, GetCurrentUserId()), ct);
 
         return Ok(result);
     }
 
+    [HttpGet("{id}/followers")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetFollowers(
+        [FromRoute] Guid id,
+        [FromServices] GetFollowersHandler handler,
+        CancellationToken ct,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        var result = await handler.HandleAsync(new GetFollowersQuery(id, GetCurrentUserId(), page, pageSize), ct);
+
+        return Ok(result);
+    }
+
+    [HttpGet("{id}/following")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetFollowing(
+        [FromRoute] Guid id,
+        [FromServices] GetFollowingHandler handler,
+        CancellationToken ct,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        var result = await handler.HandleAsync(new GetFollowingQuery(id, GetCurrentUserId(), page, pageSize), ct);
+
+        return Ok(result);
+    }
+
+    private Guid? GetCurrentUserId()
+    {
+        if (User.Identity?.IsAuthenticated != true)
+        {
+            return null;
+        }
+
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                          ?? User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
+
+        return Guid.TryParse(userIdClaim, out var parsedId) ? parsedId : null;
+    }
+
     [HttpPut("profile")]
-    [Authorize] 
+    [Authorize]
     public async Task<IActionResult> UpdateProfile(
         [FromBody] UpdateProfileRequest request,
         [FromServices] UpdateProfileHandler handler,

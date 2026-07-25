@@ -36,4 +36,17 @@ public interface ITutorialRepository
     Task AddStepsAsync(IEnumerable<TutorialStep> steps, CancellationToken ct = default);
 
     Task<List<Tutorial>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default);
+
+    // Manager review queue
+    Task<PagedResult<Tutorial>> GetPendingManagerReviewAsync(int page, int pageSize, CancellationToken ct = default);
+
+    // Admin tutorial management (all main tutorials, any author, any status)
+    Task<PagedResult<Tutorial>> GetAllForAdminAsync(
+        string? search,
+        TutorialStatus? status,
+        int? categoryId,
+        bool? isOfficial,
+        int page,
+        int pageSize,
+        CancellationToken ct = default);
 }

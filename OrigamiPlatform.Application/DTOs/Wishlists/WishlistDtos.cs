@@ -7,8 +7,23 @@ public record WishlistDto(
     Guid TargetId,
     TargetType TargetType,
     DateTime SavedAt,
-    TutorialListItemDto? Tutorial,
+    WishlistTutorialDto? Tutorial,
     WishlistPostDto? CommunityPost
+);
+
+public record WishlistTutorialDto(
+    Guid Id,
+    string Title,
+    string Slug,
+    string Description,
+    string? CoverImageUrl,
+    string Type,
+    string? Difficulty,
+    int CategoryId,
+    string CategoryName,
+    AuthorDto Author,
+    int StepCount,
+    DateTime PublishedAt
 );
 
 public record WishlistPostDto(

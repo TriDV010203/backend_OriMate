@@ -8,6 +8,7 @@ using OrigamiPlatform.Application.Commands.CommunityPosts;
 using OrigamiPlatform.Application.Commands.Follows;
 using OrigamiPlatform.Application.Commands.Gamification;
 using OrigamiPlatform.Application.Commands.Journals;
+using OrigamiPlatform.Application.Commands.LearningPaths;
 using OrigamiPlatform.Application.Commands.Likes;
 using OrigamiPlatform.Application.Commands.Moderation;
 using OrigamiPlatform.Application.Commands.Notifications;
@@ -15,6 +16,7 @@ using OrigamiPlatform.Application.Commands.Reports;
 using OrigamiPlatform.Application.Commands.Shop;
 using OrigamiPlatform.Application.Commands.Tutorials;
 using OrigamiPlatform.Application.Commands.TutorialProgress;
+using OrigamiPlatform.Application.Commands.Uploads;
 using OrigamiPlatform.Application.Commands.Users;
 using OrigamiPlatform.Application.Commands.Wishlists;
 using OrigamiPlatform.Application.Common;
@@ -26,6 +28,7 @@ using OrigamiPlatform.Application.Queries.Comments;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
 using OrigamiPlatform.Application.Queries.Gamification;
 using OrigamiPlatform.Application.Queries.Journals;
+using OrigamiPlatform.Application.Queries.LearningPaths;
 using OrigamiPlatform.Application.Queries.Notifications;
 using OrigamiPlatform.Application.Queries.Reports;
 using OrigamiPlatform.Application.Queries.Shop;
@@ -74,6 +77,8 @@ public static class DependencyInjection
         services.AddScoped<IDailyQuestRepository, DailyQuestRepository>();
         services.AddScoped<IUserDailyQuestProgressRepository, UserDailyQuestProgressRepository>();
         services.AddScoped<IHatGapTransactionRepository, HatGapTransactionRepository>();
+        services.AddScoped<ILearningPathRepository, LearningPathRepository>();
+        services.AddScoped<ILearningPathCompletionRepository, LearningPathCompletionRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -81,6 +86,7 @@ public static class DependencyInjection
         services.AddSingleton<IBlockedWordService, BlockedWordService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
         services.AddScoped<HatGapAwardService>();
 
         // Handlers — Auth
@@ -94,13 +100,20 @@ public static class DependencyInjection
         services.AddScoped<ChangePasswordHandler>();
         services.AddScoped<LogoutHandler>();
 
+        // Handlers — Uploads
+        services.AddScoped<UploadImageHandler>();
+
         // Handlers — Tutorials (public)
         services.AddScoped<GetTutorialsHandler>();
         services.AddScoped<GetTutorialBySlugHandler>();
         services.AddScoped<GetMyTutorialsHandler>();
+        services.AddScoped<GetManagerQueueHandler>();
 
         // Handlers — Tutorials authoring & review (FT-04, FT-05)
+        services.AddScoped<GetTutorialForAuthorHandler>();
         services.AddScoped<CreateTutorialHandler>();
+        services.AddScoped<AdminCreateTutorialHandler>();
+        services.AddScoped<UpdateTutorialHandler>();
         services.AddScoped<SubmitTutorialHandler>();
         services.AddScoped<ManagerPublishHandler>();
         services.AddScoped<ManagerRejectHandler>();
@@ -112,6 +125,11 @@ public static class DependencyInjection
         services.AddScoped<SubmitEditHandler>();
         services.AddScoped<ManagerApproveEditHandler>();
         services.AddScoped<ManagerRejectEditHandler>();
+
+        // Handlers — Tutorials admin management (edit/list any tutorial regardless of author/status)
+        services.AddScoped<GetAdminTutorialsHandler>();
+        services.AddScoped<GetTutorialForAdminHandler>();
+        services.AddScoped<AdminUpdateTutorialHandler>();
 
         // Handlers — AdminConfiguration (FT-03)
         services.AddScoped<GetCategoriesHandler>();
@@ -131,6 +149,7 @@ public static class DependencyInjection
         services.AddScoped<SubmitReportHandler>();
         services.AddScoped<HandleReportHandler>();
         services.AddScoped<GetCommunityFeedHandler>();
+        services.AddScoped<GetCommunityPostByIdHandler>();
         services.AddScoped<GetPendingReportsHandler>();
         services.AddScoped<CreateAchievementHandler>();
         services.AddScoped<UpdateAchievementHandler>();
@@ -156,6 +175,8 @@ public static class DependencyInjection
         services.AddScoped<GetNotificationsHandler>();
         services.AddScoped<GetCreatorProfileHandler>();
         services.AddScoped<UpdateProfileHandler>();
+        services.AddScoped<GetFollowersHandler>();
+        services.AddScoped<GetFollowingHandler>();
 
         // Handlers — Tutorial step progress (per user)
         services.AddScoped<CompleteTutorialStepHandler>();
@@ -168,6 +189,7 @@ public static class DependencyInjection
         services.AddScoped<GetMyStreakHandler>();
         services.AddScoped<GetMyQuestProgressHandler>();
         services.AddScoped<GetMyHatGapBalanceHandler>();
+        services.AddScoped<GetMyHatGapLevelHandler>();
         services.AddScoped<PurchaseStreakFreezeHandler>();
 
         // Handlers — VIP Subscription (FT-16, FT-17)
@@ -182,6 +204,17 @@ public static class DependencyInjection
         services.AddScoped<GetShopLinksHandler>();
         services.AddScoped<CreateShopLinkHandler>();
         services.AddScoped<UpdateShopLinkHandler>();
+
+        // Handlers — Learning Path (FT-33)
+        services.AddScoped<GetLearningPathsHandler>();
+        services.AddScoped<GetLearningPathByIdHandler>();
+        services.AddScoped<GetLearningPathForTutorialHandler>();
+        services.AddScoped<GetAdminLearningPathsHandler>();
+        services.AddScoped<GetLearningPathForAdminHandler>();
+        services.AddScoped<CreateLearningPathHandler>();
+        services.AddScoped<UpdateLearningPathHandler>();
+        services.AddScoped<PublishLearningPathHandler>();
+        services.AddScoped<ArchiveLearningPathHandler>();
 
         // Handlers — Clan (FT-22)
         services.AddScoped<CreateClanHandler>();

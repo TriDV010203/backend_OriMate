@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
+using OrigamiPlatform.Domain.Enums;
 
 namespace OrigamiPlatform.Infrastructure.Persistence.Repositories;
 
@@ -19,6 +20,11 @@ public class HatGapTransactionRepository : IHatGapTransactionRepository
 
         return latest?.BalanceAfter ?? 0;
     }
+
+    public async Task<int> GetTotalEarnedAsync(Guid userId, CancellationToken ct = default)
+        => await _db.HatGapTransactions
+            .Where(t => t.UserId == userId && t.Type == HatGapTransactionType.Earn)
+            .SumAsync(t => (int?)t.Amount, ct) ?? 0;
 
     public async Task AddAsync(HatGapTransaction transaction, CancellationToken ct = default)
     {

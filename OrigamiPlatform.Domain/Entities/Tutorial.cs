@@ -16,6 +16,11 @@ public class Tutorial
     public TutorialStatus Status { get; set; }
     public TutorialDifficulty Difficulty { get; set; }
     public bool IsDeleted { get; set; }
+
+    // Set true only by AdminCreateTutorialHandler: tutorials authored directly by Admin/Manager staff
+    // display a fixed author name instead of the individual staff member's, since these are later
+    // curated together into learning paths and shouldn't be tied to whichever staff account wrote them.
+    public bool IsOfficial { get; set; }
     public DateTime? PublishedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

@@ -18,18 +18,13 @@ public class CompleteTutorialStepHandler
         [TutorialDifficulty.Advanced] = 3
     };
 
-    // BR-SEEDS-03: Hạt Gấp awarded for completing an Advanced tutorial
-    private const int AdvancedTutorialHatGapReward = 1;
-
-    // FT-27: fixed Hạt Gấp bonus for completing the daily quest — no Streak/Free Fold Day multiplier
-    private const int DailyQuestHatGapReward = 3;
-
     private readonly ITutorialStepProgressRepository _progress;
     private readonly IUserRepository _users;
     private readonly IStreakLogRepository _streakLogs;
     private readonly IDailyQuestRepository _dailyQuests;
     private readonly IUserDailyQuestProgressRepository _questProgress;
     private readonly HatGapAwardService _hatGap;
+    private readonly INotificationService _notifications;
 
     public CompleteTutorialStepHandler(
         ITutorialStepProgressRepository progress,
@@ -37,9 +32,10 @@ public class CompleteTutorialStepHandler
         IStreakLogRepository streakLogs,
         IDailyQuestRepository dailyQuests,
         IUserDailyQuestProgressRepository questProgress,
-        HatGapAwardService hatGap)
-        => (_progress, _users, _streakLogs, _dailyQuests, _questProgress, _hatGap)
-            = (progress, users, streakLogs, dailyQuests, questProgress, hatGap);
+        HatGapAwardService hatGap,
+        INotificationService notifications)
+        => (_progress, _users, _streakLogs, _dailyQuests, _questProgress, _hatGap, _notifications)
+            = (progress, users, streakLogs, dailyQuests, questProgress, hatGap, notifications);
 
     public async Task<TutorialProgressDto> HandleAsync(
         CompleteTutorialStepCommand command, CancellationToken ct = default)
@@ -72,7 +68,7 @@ public class CompleteTutorialStepHandler
         if (total > 0 && completedIds.Count >= total)
         {
             await AwardSkillPointsAsync(command.UserId, step.Tutorial.Difficulty, ct);
-            await AwardAdvancedTutorialHatGapAsync(command.UserId, step.Tutorial.Difficulty, ct);
+            await AwardTutorialCompletionHatGapAsync(command.UserId, step.Tutorial.Difficulty, ct);
         }
 
         // FT-26 / FT-27: streak and daily quest only track tutorial-step completions
@@ -110,15 +106,13 @@ public class CompleteTutorialStepHandler
         }
     }
 
-    // BR-SEEDS-03: Advanced tutorials additionally grant Hạt Gấp on first-time completion.
-    private async Task AwardAdvancedTutorialHatGapAsync(Guid userId, TutorialDifficulty difficulty, CancellationToken ct)
+    // Every tutorial grants Hạt Gấp on first-time completion, fixed by difficulty (no streak/FFD multiplier).
+    private async Task AwardTutorialCompletionHatGapAsync(Guid userId, TutorialDifficulty difficulty, CancellationToken ct)
     {
-        if (difficulty != TutorialDifficulty.Advanced)
-            return;
-
         try
         {
-            await _hatGap.AwardAsync(userId, AdvancedTutorialHatGapReward, HatGapTransactionType.Earn, "TutorialComplete", ct);
+            var reward = HatGapEconomy.TutorialCompletionReward[difficulty];
+            await _hatGap.AwardAsync(userId, reward, HatGapTransactionType.Earn, "TutorialComplete", ct);
         }
         catch
         {
@@ -160,6 +154,7 @@ public class CompleteTutorialStepHandler
                 streak.LongestStreak = streak.CurrentStreak;
 
             await _streakLogs.UpdateAsync(streak, ct);
+            await AwardStreakMilestoneAsync(userId, streak.CurrentStreak, ct);
         }
         catch
         {
@@ -167,7 +162,31 @@ public class CompleteTutorialStepHandler
         }
     }
 
-    // FT-27: fixed +3 Hạt Gấp bonus on quest completion — no Streak/Free Fold Day multiplier.
+    // Streak milestone bonus — fires whenever CurrentStreak lands exactly on a milestone day count
+    // (naturally once per streak run since CurrentStreak only increments by 1 at a time).
+    private async Task AwardStreakMilestoneAsync(Guid userId, int currentStreak, CancellationToken ct)
+    {
+        if (!HatGapEconomy.StreakMilestoneReward.TryGetValue(currentStreak, out var reward))
+            return;
+
+        try
+        {
+            await _hatGap.AwardAsync(userId, reward, HatGapTransactionType.Earn, $"StreakMilestone{currentStreak}", ct);
+            await _notifications.NotifyUserAsync(
+                userId: userId,
+                type: NotificationType.StreakMilestoneReached,
+                message: $"Chuỗi {currentStreak} ngày liên tiếp! Bạn nhận được +{reward} Hạt Gấp 🔥",
+                entityType: nameof(StreakLog),
+                entityId: userId,
+                ct: ct);
+        }
+        catch
+        {
+            // Hạt Gấp award failure must not affect the main step-completion flow
+        }
+    }
+
+    // FT-27: Daily Quest bonus = base reward × streak multiplier, capped at ×1.5 on Free Fold Day (Sunday).
     private async Task UpdateQuestProgressAsync(Guid userId, CancellationToken ct)
     {
         try
@@ -176,7 +195,8 @@ public class CompleteTutorialStepHandler
             if (quest is null)
                 return;
 
-            var progress = await _questProgress.GetOrCreateAsync(userId, quest.Id, GetTodayGmt7(), ct);
+            var today = GetTodayGmt7();
+            var progress = await _questProgress.GetOrCreateAsync(userId, quest.Id, today, ct);
             if (progress.IsCompleted)
                 return;
 
@@ -184,7 +204,13 @@ public class CompleteTutorialStepHandler
             if (progress.Progress >= quest.TargetValue)
             {
                 progress.IsCompleted = true;
-                await _hatGap.AwardAsync(userId, DailyQuestHatGapReward, HatGapTransactionType.Earn, "DailyQuestBonus", ct);
+
+                var streak = await _streakLogs.GetByUserIdAsync(userId, ct);
+                var isFreeFoldDay = today.DayOfWeek == DayOfWeek.Sunday;
+                var multiplier = HatGapEconomy.GetStreakMultiplier(streak.CurrentStreak, isFreeFoldDay);
+                var reward = (int)Math.Round(HatGapEconomy.DailyQuestBaseReward * multiplier, MidpointRounding.AwayFromZero);
+
+                await _hatGap.AwardAsync(userId, reward, HatGapTransactionType.Earn, "DailyQuestBonus", ct);
             }
 
             await _questProgress.UpdateAsync(progress, ct);

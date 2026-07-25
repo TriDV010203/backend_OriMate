@@ -23,8 +23,8 @@ public class ManagerRejectHandler
         var tutorial = await _tutorialRepo.GetByIdWithStepsAsync(command.TutorialId, ct)
             ?? throw new NotFoundException($"Tutorial {command.TutorialId} not found.");
 
-        if (tutorial.Status != TutorialStatus.PendingManagerReview)
-            throw new DomainException("Only tutorials pending manager review can be rejected.");
+        if (tutorial.Status != TutorialStatus.PendingManagerReview && tutorial.Status != TutorialStatus.Published)
+            throw new DomainException("Only tutorials pending manager review or already published can be sent back for revision.");
 
         var fromStatus = tutorial.Status;
         tutorial.Status = TutorialStatus.RevisionRequired;

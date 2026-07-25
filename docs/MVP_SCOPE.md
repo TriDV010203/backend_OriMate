@@ -77,6 +77,7 @@
 | FT-28 | Hạt Gấp | Chỉ sink Streak Freeze |
 | FT-11 | Tutorial variants | Nếu kịp |
 | FT-08 | SEO & feed ranking nâng cao | Nếu kịp |
+| FT-33 | Curated Learning Path | Chuyển từ Won't-have sang Should-have 2026-07-25 (xác nhận qua chat). Admin/Manager tạo `LearningPath` gồm các `LearningPathItem` trỏ tới `Tutorial` có `IsOfficial = true` (đã được Admin/Manager viết qua FT-04 admin-create) và `Status = Published`. Không review queue thêm — Admin/Manager đã có quyền publish. Giữ đơn giản: Draft → Published → Archived, không hard-delete |
 
 ---
 
@@ -86,7 +87,9 @@
 |---|---|---|
 | FT-23 | Weekly Challenge & pairwise | Rủi ro kỹ thuật cao |
 | FT-24 | Clan Quest & League | Phụ thuộc FT-23 |
-| FT-29/30/31/33 | Onboarding đầy đủ, Re-engagement, Discovery nâng cao, Learning Path | Không có trong 3 tuần |
+| FT-29/30/31 | Onboarding đầy đủ, Re-engagement, Discovery nâng cao | Không có trong 3 tuần |
+
+**FT-33 (Learning Path) đã được xác nhận bằng văn bản 2026-07-25 để chuyển sang code ngay** (tương tự tiền lệ FT-20) — xem mục 3 bên dưới.
 
 ---
 

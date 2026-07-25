@@ -60,6 +60,13 @@ public class AchievementRepository : IAchievementRepository
     public Task<int> CountByUserAsync(Guid userId, CancellationToken ct = default)
         => _db.Achievements.CountAsync(a => a.UserId == userId, ct);
 
+    public async Task<HashSet<Guid>> GetCompletedTutorialIdsAsync(Guid userId, CancellationToken ct = default)
+        => (await _db.Achievements
+            .Where(a => a.UserId == userId)
+            .Select(a => a.TutorialId)
+            .ToListAsync(ct))
+            .ToHashSet();
+
     public async Task AddAsync(Achievement achievement, CancellationToken ct = default)
     {
         _db.Achievements.Add(achievement);
