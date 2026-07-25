@@ -1,5 +1,6 @@
 using Moq;
 using OrigamiPlatform.Application.Commands.Achievements;
+using OrigamiPlatform.Application.Common;
 using OrigamiPlatform.Application.DTOs.Achievements;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
@@ -12,9 +13,20 @@ public class CreateAchievementHandlerTests
     private readonly Mock<IAchievementRepository> _achievements = new();
     private readonly Mock<IPersonalMilestoneRepository> _milestones = new();
     private readonly Mock<INotificationService> _notifications = new();
+    private readonly Mock<IHatGapTransactionRepository> _hatGapTransactions = new();
+    private readonly Mock<ILearningPathRepository> _learningPaths = new();
+    private readonly Mock<ILearningPathCompletionRepository> _pathCompletions = new();
 
+    // HatGapAwardService is a concrete, non-virtual class (Moq can't stub it), so the handler
+    // is exercised against a real instance backed by a mocked transaction repository instead.
     private CreateAchievementHandler CreateHandler()
-        => new(_achievements.Object, _milestones.Object, _notifications.Object);
+        => new(
+            _achievements.Object,
+            _milestones.Object,
+            _notifications.Object,
+            new HatGapAwardService(_hatGapTransactions.Object),
+            _learningPaths.Object,
+            _pathCompletions.Object);
 
     private static Achievement BuildAchievement(Guid userId, Guid tutorialId, string? note = null, string? photoUrl = null)
         => new()
