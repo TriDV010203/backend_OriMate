@@ -27,5 +27,11 @@ public enum NotificationType
     AccountActivated,
 
     // FT-20 Personal Milestone
-    MilestoneUnlocked
+    MilestoneUnlocked,
+
+    // FT-33 Learning Path completion reward
+    LearningPathCompleted,
+
+    // Streak milestone reward (7/14/30-day streaks)
+    StreakMilestoneReached
 }

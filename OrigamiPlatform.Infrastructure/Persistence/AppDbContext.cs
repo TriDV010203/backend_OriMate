@@ -53,6 +53,7 @@ public class AppDbContext : DbContext
     // Learning Path (FT-33)
     public DbSet<LearningPath> LearningPaths => Set<LearningPath>();
     public DbSet<LearningPathItem> LearningPathItems => Set<LearningPathItem>();
+    public DbSet<LearningPathCompletion> LearningPathCompletions => Set<LearningPathCompletion>();
 
     // Clan
     public DbSet<Clan> Clans => Set<Clan>();

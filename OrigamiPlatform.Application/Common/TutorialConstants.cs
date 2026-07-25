@@ -8,4 +8,9 @@ public static class TutorialConstants
     /// (written directly by Admin/Manager staff), regardless of which staff account authored them.
     /// </summary>
     public const string OfficialAuthorDisplayName = "Đội ngũ OriGami";
+
+    /// <summary>
+    /// BR-29: number of leading steps of a VIP tutorial visible to non-subscribers before the rest is locked.
+    /// </summary>
+    public const int VipFreePreviewStepCount = 2;
 }

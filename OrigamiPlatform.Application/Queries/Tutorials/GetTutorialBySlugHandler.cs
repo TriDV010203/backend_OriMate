@@ -40,15 +40,15 @@ public class GetTutorialBySlugHandler
 
         var isVipLocked = isVip && !hasAccess;
 
-        // BR-29: VIP tutorials show steps 1-3 free, step 4+ locked for non-subscribers
+        // BR-29: VIP tutorials show the first N steps free, the rest locked for non-subscribers
         var steps = tutorial.Steps
             .OrderBy(s => s.StepOrder)
             .Select(s => new TutorialStepDto(
                 s.Id,
                 s.StepOrder,
-                isVipLocked && s.StepOrder > 3 ? string.Empty : s.Description,
-                isVipLocked && s.StepOrder > 3 ? null : s.ImageUrl,
-                IsLocked: isVipLocked && s.StepOrder > 3))
+                isVipLocked && s.StepOrder > TutorialConstants.VipFreePreviewStepCount ? string.Empty : s.Description,
+                isVipLocked && s.StepOrder > TutorialConstants.VipFreePreviewStepCount ? null : s.ImageUrl,
+                IsLocked: isVipLocked && s.StepOrder > TutorialConstants.VipFreePreviewStepCount))
             .ToList();
 
         var likeCount = await _likes.GetLikeCountAsync(tutorial.Id, TargetType.Tutorial);

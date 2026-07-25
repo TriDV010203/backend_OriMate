@@ -17,6 +17,7 @@ public class GamificationController : ControllerBase
     private readonly GetMyStreakHandler _getMyStreak;
     private readonly GetMyQuestProgressHandler _getMyQuestProgress;
     private readonly GetMyHatGapBalanceHandler _getMyHatGapBalance;
+    private readonly GetMyHatGapLevelHandler _getMyHatGapLevel;
     private readonly PurchaseStreakFreezeHandler _purchaseStreakFreeze;
 
     public GamificationController(
@@ -24,9 +25,10 @@ public class GamificationController : ControllerBase
         GetMyStreakHandler getMyStreak,
         GetMyQuestProgressHandler getMyQuestProgress,
         GetMyHatGapBalanceHandler getMyHatGapBalance,
+        GetMyHatGapLevelHandler getMyHatGapLevel,
         PurchaseStreakFreezeHandler purchaseStreakFreeze)
-        => (_getMySkillLevel, _getMyStreak, _getMyQuestProgress, _getMyHatGapBalance, _purchaseStreakFreeze)
-            = (getMySkillLevel, getMyStreak, getMyQuestProgress, getMyHatGapBalance, purchaseStreakFreeze);
+        => (_getMySkillLevel, _getMyStreak, _getMyQuestProgress, _getMyHatGapBalance, _getMyHatGapLevel, _purchaseStreakFreeze)
+            = (getMySkillLevel, getMyStreak, getMyQuestProgress, getMyHatGapBalance, getMyHatGapLevel, purchaseStreakFreeze);
 
     /// <summary>GET /api/gamification/skill-level — current user's SkillPoints and SkillLevel (FT-25).</summary>
     [HttpGet("skill-level")]
@@ -57,6 +59,14 @@ public class GamificationController : ControllerBase
     public async Task<IActionResult> GetMyHatGapBalance(CancellationToken ct)
     {
         var result = await _getMyHatGapBalance.HandleAsync(new GetMyHatGapBalanceQuery(GetCurrentUserId()), ct);
+        return Ok(result);
+    }
+
+    /// <summary>GET /api/gamification/level — current user's Hạt Gấp level and progress to the next level.</summary>
+    [HttpGet("level")]
+    public async Task<IActionResult> GetMyLevel(CancellationToken ct)
+    {
+        var result = await _getMyHatGapLevel.HandleAsync(new GetMyHatGapLevelQuery(GetCurrentUserId()), ct);
         return Ok(result);
     }
 

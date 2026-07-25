@@ -16,6 +16,7 @@ using OrigamiPlatform.Application.Commands.Reports;
 using OrigamiPlatform.Application.Commands.Shop;
 using OrigamiPlatform.Application.Commands.Tutorials;
 using OrigamiPlatform.Application.Commands.TutorialProgress;
+using OrigamiPlatform.Application.Commands.Uploads;
 using OrigamiPlatform.Application.Commands.Users;
 using OrigamiPlatform.Application.Commands.Wishlists;
 using OrigamiPlatform.Application.Common;
@@ -77,6 +78,7 @@ public static class DependencyInjection
         services.AddScoped<IUserDailyQuestProgressRepository, UserDailyQuestProgressRepository>();
         services.AddScoped<IHatGapTransactionRepository, HatGapTransactionRepository>();
         services.AddScoped<ILearningPathRepository, LearningPathRepository>();
+        services.AddScoped<ILearningPathCompletionRepository, LearningPathCompletionRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -84,6 +86,7 @@ public static class DependencyInjection
         services.AddSingleton<IBlockedWordService, BlockedWordService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
         services.AddScoped<HatGapAwardService>();
 
         // Handlers — Auth
@@ -96,6 +99,9 @@ public static class DependencyInjection
         services.AddScoped<RefreshTokenHandler>();
         services.AddScoped<ChangePasswordHandler>();
         services.AddScoped<LogoutHandler>();
+
+        // Handlers — Uploads
+        services.AddScoped<UploadImageHandler>();
 
         // Handlers — Tutorials (public)
         services.AddScoped<GetTutorialsHandler>();
@@ -183,6 +189,7 @@ public static class DependencyInjection
         services.AddScoped<GetMyStreakHandler>();
         services.AddScoped<GetMyQuestProgressHandler>();
         services.AddScoped<GetMyHatGapBalanceHandler>();
+        services.AddScoped<GetMyHatGapLevelHandler>();
         services.AddScoped<PurchaseStreakFreezeHandler>();
 
         // Handlers — VIP Subscription (FT-16, FT-17)
