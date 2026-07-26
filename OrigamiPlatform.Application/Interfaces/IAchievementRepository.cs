@@ -1,4 +1,5 @@
 using OrigamiPlatform.Domain.Entities;
+using OrigamiPlatform.Domain.Enums;
 
 namespace OrigamiPlatform.Application.Interfaces;
 
@@ -21,6 +22,9 @@ public interface IAchievementRepository
     Task<bool> PublishedTutorialExistsAsync(Guid tutorialId, CancellationToken ct = default);
 
     Task<int> CountByUserAsync(Guid userId, CancellationToken ct = default);
+
+    /// <summary>Used by FT-35 badge thresholds that only count completions of a given difficulty (e.g. "10 bài Khó").</summary>
+    Task<int> CountByUserAndDifficultyAsync(Guid userId, TutorialDifficulty difficulty, CancellationToken ct = default);
 
     Task<HashSet<Guid>> GetCompletedTutorialIdsAsync(Guid userId, CancellationToken ct = default);
 

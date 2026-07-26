@@ -66,6 +66,15 @@ public class AppDbContext : DbContext
     public DbSet<UserDailyQuestProgress> UserDailyQuestProgresses => Set<UserDailyQuestProgress>();
     public DbSet<HatGapTransaction> HatGapTransactions => Set<HatGapTransaction>();
 
+    // Daily Challenge (FT-34)
+    public DbSet<DailyChallenge> DailyChallenges => Set<DailyChallenge>();
+    public DbSet<DailyChallengeSubmission> DailyChallengeSubmissions => Set<DailyChallengeSubmission>();
+    public DbSet<ChallengeStreakLog> ChallengeStreakLogs => Set<ChallengeStreakLog>();
+
+    // Badge System (FT-35)
+    public DbSet<Badge> Badges => Set<Badge>();
+    public DbSet<UserBadge> UserBadges => Set<UserBadge>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

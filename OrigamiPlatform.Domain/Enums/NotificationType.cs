@@ -33,5 +33,12 @@ public enum NotificationType
     LearningPathCompleted,
 
     // Streak milestone reward (7/14/30-day streaks)
-    StreakMilestoneReached
+    StreakMilestoneReached,
+
+    // FT-34 Daily Challenge
+    TutorialSelectedAsChallenge,
+    DailyChallengeResult,
+
+    // FT-35 Badge System
+    BadgeEarned
 }

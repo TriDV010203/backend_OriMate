@@ -14,7 +14,7 @@ public class UploadImageHandler
 
     private static readonly HashSet<string> AllowedFolders = new(StringComparer.OrdinalIgnoreCase)
     {
-        "tutorials", "achievements", "learning-paths", "community-posts"
+        "tutorials", "achievements", "learning-paths", "community-posts", "daily-challenge"
     };
 
     private readonly IFileStorageService _fileStorage;

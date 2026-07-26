@@ -70,6 +70,8 @@
 | FT-26 | Daily Streak | `Gamification` | `GamificationController` | `StreakLog` | User |
 | FT-27 | Daily Quest | `Gamification` | `GamificationController` | `DailyQuest`, `UserDailyQuestProgress` | User |
 | FT-28 | Hạt Gấp & Paper Pattern | `Gamification` | `GamificationController` | `HatGapTransaction`, `PaperPattern` | User |
+| FT-34 | Daily Challenge | `DailyChallenge` | `DailyChallengeController` | `DailyChallenge`, `DailyChallengeSubmission`, `ChallengeStreakLog` | Admin, Manager, User |
+| FT-35 | Badge System (Danh hiệu) | `DailyChallenge`/`Gamification` (đăng ký ở `GamificationController`) | `GamificationController` | `Badge`, `UserBadge` | User |
 
 ### FE-08: Personalised Discovery & Onboarding *(Could-have)*
 | FT | Tên | Feature folder | Controller | Entity chính | Actor |

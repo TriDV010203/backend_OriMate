@@ -19,6 +19,7 @@ public class CreateAchievementHandler
     private readonly HatGapAwardService _hatGap;
     private readonly ILearningPathRepository _learningPaths;
     private readonly ILearningPathCompletionRepository _pathCompletions;
+    private readonly BadgeAwardService _badges;
 
     public CreateAchievementHandler(
         IAchievementRepository achievements,
@@ -26,9 +27,10 @@ public class CreateAchievementHandler
         INotificationService notifications,
         HatGapAwardService hatGap,
         ILearningPathRepository learningPaths,
-        ILearningPathCompletionRepository pathCompletions)
-        => (_achievements, _milestones, _notifications, _hatGap, _learningPaths, _pathCompletions)
-            = (achievements, milestones, notifications, hatGap, learningPaths, pathCompletions);
+        ILearningPathCompletionRepository pathCompletions,
+        BadgeAwardService badges)
+        => (_achievements, _milestones, _notifications, _hatGap, _learningPaths, _pathCompletions, _badges)
+            = (achievements, milestones, notifications, hatGap, learningPaths, pathCompletions, badges);
 
     public async Task<AchievementDto> HandleAsync(
         CreateAchievementCommand command,
@@ -68,6 +70,8 @@ public class CreateAchievementHandler
         var created = await _achievements.GetByIdAsync(achievement.Id, ct)
             ?? throw new NotFoundException("Achievement not found after creation.");
 
+        await CheckDifficultyBadgeAsync(command.UserId, created.Tutorial.Difficulty, ct);
+
         return created.ToDto();
     }
 
@@ -106,11 +110,32 @@ public class CreateAchievementHandler
                     entityId: milestone.Id,
                     ct: ct
                 );
+
+                // FT-35: badge catalog mirrors the same 10/30/50/100 thresholds
+                await _badges.TryAwardAsync(userId, $"TUTORIAL_COUNT_{threshold}", ct: ct);
             }
         }
         catch
         {
             // milestone unlock failure must not affect the main achievement creation flow
+        }
+    }
+
+    // FT-35: "10 bài Khó" badge — counted separately from the flat PersonalMilestone thresholds above.
+    private async Task CheckDifficultyBadgeAsync(Guid userId, TutorialDifficulty difficulty, CancellationToken ct)
+    {
+        if (difficulty != TutorialDifficulty.Advanced)
+            return;
+
+        try
+        {
+            var advancedCount = await _achievements.CountByUserAndDifficultyAsync(userId, TutorialDifficulty.Advanced, ct);
+            if (advancedCount >= 10)
+                await _badges.TryAwardAsync(userId, "DIFFICULTY_ADVANCED_10", ct: ct);
+        }
+        catch
+        {
+            // badge award failure must not affect the main achievement creation flow
         }
     }
 
