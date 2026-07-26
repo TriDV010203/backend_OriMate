@@ -16,4 +16,8 @@ public interface IVipSubscriptionRepository
         CancellationToken ct = default);
 
     Task<int> CountActiveSubscribersAsync(Guid creatorId, CancellationToken ct = default);
+
+    Task<int> CountAllActiveSubscriptionsAsync(CancellationToken ct = default);
+
+    Task<IEnumerable<VipSubscription>> GetActiveSubscribersByCreatorAsync(Guid creatorId, CancellationToken ct = default);
 }

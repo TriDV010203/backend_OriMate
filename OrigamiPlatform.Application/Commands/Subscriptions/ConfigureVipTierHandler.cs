@@ -1,7 +1,7 @@
+using OrigamiPlatform.Application.Common;
 using OrigamiPlatform.Application.DTOs.Subscriptions;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
-using OrigamiPlatform.Domain.Exceptions;
 
 namespace OrigamiPlatform.Application.Commands.Subscriptions;
 
@@ -16,18 +16,16 @@ public class ConfigureVipTierHandler
         ConfigureVipTierCommand command,
         CancellationToken ct = default)
     {
-        if (command.Price < 0)
-            throw new DomainException("Price must not be negative.");
-
         var existing = await _settings.GetByCreatorIdAsync(command.CreatorId, ct);
 
+        // BR-VIP-05: price is platform-fixed — creators can only toggle IsActive.
         if (existing is null)
         {
             var settings = new CreatorVipSettings
             {
                 Id = Guid.NewGuid(),
                 CreatorId = command.CreatorId,
-                Price = command.Price,
+                Price = VipConstants.FixedPriceVnd,
                 IsActive = command.IsActive,
                 CreatedAt = DateTime.UtcNow
             };
@@ -37,7 +35,7 @@ public class ConfigureVipTierHandler
             return settings.ToDto();
         }
 
-        existing.Price = command.Price;
+        existing.Price = VipConstants.FixedPriceVnd;
         existing.IsActive = command.IsActive;
         existing.UpdatedAt = DateTime.UtcNow;
 

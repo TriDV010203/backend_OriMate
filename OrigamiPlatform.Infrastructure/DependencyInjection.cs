@@ -199,6 +199,9 @@ public static class DependencyInjection
         services.AddScoped<RejectPaymentHandler>();
         services.AddScoped<GetMySubscriptionsHandler>();
         services.AddScoped<GetCreatorRevenueHandler>();
+        services.AddScoped<GetAllTransactionsHandler>();
+        services.AddScoped<GetPlatformRevenueHandler>();
+        services.AddScoped<GetMyVipTierHandler>();
 
         // Handlers — Shop (FT-18)
         services.AddScoped<GetShopLinksHandler>();
