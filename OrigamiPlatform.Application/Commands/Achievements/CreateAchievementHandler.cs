@@ -140,7 +140,7 @@ public class CreateAchievementHandler
             }, ct);
 
             await _hatGap.AwardAsync(
-                userId, HatGapEconomy.LearningPathCompletionReward, HatGapTransactionType.Earn, "LearningPathComplete", ct);
+                userId, HatGapEconomy.LearningPathCompletionReward, HatGapTransactionType.Earn, $"LearningPathComplete_{path.Id}", ct);
 
             await _notifications.NotifyUserAsync(
                 userId: userId,
