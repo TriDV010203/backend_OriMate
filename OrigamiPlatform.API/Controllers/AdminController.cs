@@ -16,6 +16,7 @@ public class AdminController : ControllerBase
     private readonly GetCategoriesHandler _getCategories;
     private readonly CreateCategoryHandler _createCategory;
     private readonly UpdateCategoryHandler _updateCategory;
+    private readonly DeleteCategoryHandler _deleteCategory;
     private readonly GetBlockedWordsHandler _getBlockedWords;
     private readonly CreateBlockedWordHandler _createBlockedWord;
     private readonly RemoveBlockedWordHandler _removeBlockedWord;
@@ -29,6 +30,7 @@ public class AdminController : ControllerBase
         GetCategoriesHandler getCategories,
         CreateCategoryHandler createCategory,
         UpdateCategoryHandler updateCategory,
+        DeleteCategoryHandler deleteCategory,
         GetBlockedWordsHandler getBlockedWords,
         CreateBlockedWordHandler createBlockedWord,
         RemoveBlockedWordHandler removeBlockedWord,
@@ -41,6 +43,7 @@ public class AdminController : ControllerBase
         _getCategories = getCategories;
         _createCategory = createCategory;
         _updateCategory = updateCategory;
+        _deleteCategory = deleteCategory;
         _getBlockedWords = getBlockedWords;
         _createBlockedWord = createBlockedWord;
         _removeBlockedWord = removeBlockedWord;
@@ -72,6 +75,13 @@ public class AdminController : ControllerBase
     {
         var result = await _updateCategory.HandleAsync(new UpdateCategoryCommand(GetCurrentUserId(), id, req), ct);
         return Ok(result);
+    }
+
+    [HttpDelete("categories/{id:int}")]
+    public async Task<IActionResult> DeleteCategory(int id, CancellationToken ct)
+    {
+        await _deleteCategory.HandleAsync(new DeleteCategoryCommand(GetCurrentUserId(), id), ct);
+        return Ok(new { message = "Category deleted." });
     }
 
     // ── BLOCKED WORDS ───────────────────────────────────────────────────

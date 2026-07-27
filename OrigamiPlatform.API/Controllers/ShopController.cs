@@ -13,20 +13,30 @@ namespace OrigamiPlatform.API.Controllers;
 public class ShopController : ControllerBase
 {
     private readonly GetShopLinksHandler _getShopLinks;
+    private readonly GetAdminShopLinksHandler _getAdminShopLinks;
     private readonly CreateShopLinkHandler _createShopLink;
     private readonly UpdateShopLinkHandler _updateShopLink;
 
     public ShopController(
         GetShopLinksHandler getShopLinks,
+        GetAdminShopLinksHandler getAdminShopLinks,
         CreateShopLinkHandler createShopLink,
         UpdateShopLinkHandler updateShopLink)
-        => (_getShopLinks, _createShopLink, _updateShopLink) = (getShopLinks, createShopLink, updateShopLink);
+        => (_getShopLinks, _getAdminShopLinks, _createShopLink, _updateShopLink) = (getShopLinks, getAdminShopLinks, createShopLink, updateShopLink);
 
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> GetShopLinks(CancellationToken ct)
     {
         var result = await _getShopLinks.HandleAsync(new GetShopLinksQuery(), ct);
+        return Ok(result);
+    }
+
+    [HttpGet("admin")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAdminShopLinks(CancellationToken ct)
+    {
+        var result = await _getAdminShopLinks.HandleAsync(new GetAdminShopLinksQuery(), ct);
         return Ok(result);
     }
 
