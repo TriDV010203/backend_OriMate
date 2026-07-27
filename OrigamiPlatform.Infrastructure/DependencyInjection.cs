@@ -5,6 +5,7 @@ using OrigamiPlatform.Application.Commands.Auth;
 using OrigamiPlatform.Application.Commands.Clan;
 using OrigamiPlatform.Application.Commands.Comments;
 using OrigamiPlatform.Application.Commands.CommunityPosts;
+using OrigamiPlatform.Application.Commands.DailyChallenge;
 using OrigamiPlatform.Application.Commands.Follows;
 using OrigamiPlatform.Application.Commands.Gamification;
 using OrigamiPlatform.Application.Commands.Journals;
@@ -26,6 +27,7 @@ using OrigamiPlatform.Application.Queries.AdminConfiguration;
 using OrigamiPlatform.Application.Queries.Clan;
 using OrigamiPlatform.Application.Queries.Comments;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
+using OrigamiPlatform.Application.Queries.DailyChallenge;
 using OrigamiPlatform.Application.Queries.Gamification;
 using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.LearningPaths;
@@ -38,6 +40,7 @@ using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Application.Queries.Users;
 using OrigamiPlatform.Application.Queries.Wishlists;
 using OrigamiPlatform.Application.Commands.Subscriptions;
+using OrigamiPlatform.Infrastructure.BackgroundJobs;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
 using OrigamiPlatform.Infrastructure.Services;
 
@@ -79,6 +82,11 @@ public static class DependencyInjection
         services.AddScoped<IHatGapTransactionRepository, HatGapTransactionRepository>();
         services.AddScoped<ILearningPathRepository, LearningPathRepository>();
         services.AddScoped<ILearningPathCompletionRepository, LearningPathCompletionRepository>();
+        services.AddScoped<IDailyChallengeRepository, DailyChallengeRepository>();
+        services.AddScoped<IDailyChallengeSubmissionRepository, DailyChallengeSubmissionRepository>();
+        services.AddScoped<IChallengeStreakRepository, ChallengeStreakRepository>();
+        services.AddScoped<IBadgeRepository, BadgeRepository>();
+        services.AddScoped<IUserBadgeRepository, UserBadgeRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -88,6 +96,7 @@ public static class DependencyInjection
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
         services.AddScoped<HatGapAwardService>();
+        services.AddScoped<BadgeAwardService>();
 
         // Handlers — Auth
         services.AddScoped<RegisterUserHandler>();
@@ -192,6 +201,10 @@ public static class DependencyInjection
         services.AddScoped<GetMyHatGapLevelHandler>();
         services.AddScoped<PurchaseStreakFreezeHandler>();
 
+        // Handlers — Badge System (FT-35)
+        services.AddScoped<GetBadgeCatalogHandler>();
+        services.AddScoped<GetMyBadgesHandler>();
+
         // Handlers — VIP Subscription (FT-16, FT-17)
         services.AddScoped<ConfigureVipTierHandler>();
         services.AddScoped<SubscribeHandler>();
@@ -199,6 +212,9 @@ public static class DependencyInjection
         services.AddScoped<RejectPaymentHandler>();
         services.AddScoped<GetMySubscriptionsHandler>();
         services.AddScoped<GetCreatorRevenueHandler>();
+        services.AddScoped<GetAllTransactionsHandler>();
+        services.AddScoped<GetPlatformRevenueHandler>();
+        services.AddScoped<GetMyVipTierHandler>();
 
         // Handlers — Shop (FT-18)
         services.AddScoped<GetShopLinksHandler>();
@@ -223,6 +239,21 @@ public static class DependencyInjection
         services.AddScoped<LeaveClanHandler>();
         services.AddScoped<GetMyClanHandler>();
         services.AddScoped<GetPendingInvitesHandler>();
+
+        // Handlers — Daily Challenge (FT-34)
+        services.AddScoped<AdminScheduleDailyChallengeHandler>();
+        services.AddScoped<SubmitDailyChallengeHandler>();
+        services.AddScoped<ActivateDailyChallengeHandler>();
+        services.AddScoped<CloseDailyChallengeResultHandler>();
+        services.AddScoped<GetTodayChallengeHandler>();
+        services.AddScoped<GetChallengeSubmissionsHandler>();
+        services.AddScoped<GetChallengeStreakLeaderboardHandler>();
+        services.AddScoped<GetChallengeResultHandler>();
+        services.AddScoped<GetChallengeSuggestionsHandler>();
+        services.AddScoped<GetAdminChallengeCalendarHandler>();
+
+        // Background jobs
+        services.AddHostedService<DailyChallengeSchedulerService>();
 
         return services;
     }

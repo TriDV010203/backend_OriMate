@@ -19,6 +19,8 @@ public class GamificationController : ControllerBase
     private readonly GetMyHatGapBalanceHandler _getMyHatGapBalance;
     private readonly GetMyHatGapLevelHandler _getMyHatGapLevel;
     private readonly PurchaseStreakFreezeHandler _purchaseStreakFreeze;
+    private readonly GetBadgeCatalogHandler _getBadgeCatalog;
+    private readonly GetMyBadgesHandler _getMyBadges;
 
     public GamificationController(
         GetMySkillLevelHandler getMySkillLevel,
@@ -26,9 +28,11 @@ public class GamificationController : ControllerBase
         GetMyQuestProgressHandler getMyQuestProgress,
         GetMyHatGapBalanceHandler getMyHatGapBalance,
         GetMyHatGapLevelHandler getMyHatGapLevel,
-        PurchaseStreakFreezeHandler purchaseStreakFreeze)
-        => (_getMySkillLevel, _getMyStreak, _getMyQuestProgress, _getMyHatGapBalance, _getMyHatGapLevel, _purchaseStreakFreeze)
-            = (getMySkillLevel, getMyStreak, getMyQuestProgress, getMyHatGapBalance, getMyHatGapLevel, purchaseStreakFreeze);
+        PurchaseStreakFreezeHandler purchaseStreakFreeze,
+        GetBadgeCatalogHandler getBadgeCatalog,
+        GetMyBadgesHandler getMyBadges)
+        => (_getMySkillLevel, _getMyStreak, _getMyQuestProgress, _getMyHatGapBalance, _getMyHatGapLevel, _purchaseStreakFreeze, _getBadgeCatalog, _getMyBadges)
+            = (getMySkillLevel, getMyStreak, getMyQuestProgress, getMyHatGapBalance, getMyHatGapLevel, purchaseStreakFreeze, getBadgeCatalog, getMyBadges);
 
     /// <summary>GET /api/gamification/skill-level — current user's SkillPoints and SkillLevel (FT-25).</summary>
     [HttpGet("skill-level")]
@@ -75,6 +79,23 @@ public class GamificationController : ControllerBase
     public async Task<IActionResult> PurchaseStreakFreeze(CancellationToken ct)
     {
         var result = await _purchaseStreakFreeze.HandleAsync(new PurchaseStreakFreezeCommand(GetCurrentUserId()), ct);
+        return Ok(result);
+    }
+
+    /// <summary>GET /api/gamification/badges — full badge catalog (FT-35).</summary>
+    [HttpGet("badges")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetBadgeCatalog(CancellationToken ct)
+    {
+        var result = await _getBadgeCatalog.HandleAsync(new GetBadgeCatalogQuery(), ct);
+        return Ok(result);
+    }
+
+    /// <summary>GET /api/gamification/me/badges — current user's earned badges (FT-35).</summary>
+    [HttpGet("me/badges")]
+    public async Task<IActionResult> GetMyBadges(CancellationToken ct)
+    {
+        var result = await _getMyBadges.HandleAsync(new GetMyBadgesQuery(GetCurrentUserId()), ct);
         return Ok(result);
     }
 

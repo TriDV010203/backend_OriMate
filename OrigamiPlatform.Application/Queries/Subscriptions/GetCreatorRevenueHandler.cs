@@ -27,17 +27,25 @@ public class GetCreatorRevenueHandler
         var periodEnd = periodStart.AddMonths(1);
 
         var activeSubscriberCount = await _vipSubscriptions.CountActiveSubscribersAsync(query.CreatorId, ct);
-        var confirmedRevenue = await _transactions.GetConfirmedRevenueAsync(
+        var pendingCount = await _transactions.CountPendingByCreatorAsync(query.CreatorId, ct);
+        var netRevenueThisMonth = await _transactions.GetConfirmedRevenueAsync(
             query.CreatorId,
             periodStart,
             periodEnd,
             ct);
+        var netRevenueAllTime = await _transactions.GetTotalConfirmedRevenueAsync(query.CreatorId, ct);
+
+        var subscribers = await _vipSubscriptions.GetActiveSubscribersByCreatorAsync(query.CreatorId, ct);
+        var subscriberDtos = subscribers.Select(s => s.ToSubscriberDto()).ToList();
 
         return new CreatorRevenueDto(
             query.CreatorId,
             activeSubscriberCount,
-            confirmedRevenue,
+            pendingCount,
+            netRevenueThisMonth,
+            netRevenueAllTime,
             periodStart,
-            periodEnd);
+            periodEnd,
+            subscriberDtos);
     }
 }

@@ -19,6 +19,7 @@ public static class SeedData
         await SeedBlockedWordsAsync(context);
         await SeedAdminAccountsAsync(context, passwordHasher);
         await SeedDailyQuestsAsync(context);
+        await SeedBadgesAsync(context);
         await context.SaveChangesAsync();
     }
 
@@ -104,5 +105,51 @@ public static class SeedData
             TargetValue = 3,
             IsActive = true
         });
+    }
+
+    // FT-35: badge catalog — not admin-editable in v1, awarded automatically via BadgeAwardService
+    // from the existing PersonalMilestone/Streak trigger points plus the new Daily Challenge flow.
+    private static async Task SeedBadgesAsync(AppDbContext context)
+    {
+        if (await context.Badges.AnyAsync()) return;
+
+        var now = DateTime.UtcNow;
+
+        Badge Make(string code, string name, string description, string icon, BadgeCategory category, int? threshold = null, TutorialDifficulty? difficultyFilter = null)
+            => new()
+            {
+                Id = Guid.NewGuid(),
+                Code = code,
+                Name = name,
+                Description = description,
+                IconEmoji = icon,
+                Category = category,
+                Threshold = threshold,
+                DifficultyFilter = difficultyFilter,
+                IsActive = true,
+                CreatedAt = now
+            };
+
+        var badges = new[]
+        {
+            Make("TUTORIAL_COUNT_10", "Người mới bắt đầu", "Hoàn thành 10 hướng dẫn.", "🌱", BadgeCategory.TutorialCount, 10),
+            Make("TUTORIAL_COUNT_30", "Thợ gấp chăm chỉ", "Hoàn thành 30 hướng dẫn.", "🧵", BadgeCategory.TutorialCount, 30),
+            Make("TUTORIAL_COUNT_50", "Nghệ nhân", "Hoàn thành 50 hướng dẫn.", "🎨", BadgeCategory.TutorialCount, 50),
+            Make("TUTORIAL_COUNT_100", "Bậc thầy Origami", "Hoàn thành 100 hướng dẫn.", "👑", BadgeCategory.TutorialCount, 100),
+            Make("DIFFICULTY_ADVANCED_10", "Chinh phục bài Khó", "Hoàn thành 10 hướng dẫn ở mức Khó.", "🔥", BadgeCategory.DifficultyCount, 10, TutorialDifficulty.Advanced),
+            Make("STREAK_LEARNING_7", "7 ngày kiên trì", "Duy trì chuỗi học tập 7 ngày liên tiếp.", "📘", BadgeCategory.StreakLearning, 7),
+            Make("STREAK_LEARNING_14", "14 ngày bền bỉ", "Duy trì chuỗi học tập 14 ngày liên tiếp.", "📗", BadgeCategory.StreakLearning, 14),
+            Make("STREAK_LEARNING_30", "30 ngày huyền thoại", "Duy trì chuỗi học tập 30 ngày liên tiếp.", "📙", BadgeCategory.StreakLearning, 30),
+            Make("STREAK_CHALLENGE_3", "Khởi đầu thử thách", "Tham gia Thử thách ngày 3 ngày liên tiếp.", "🔰", BadgeCategory.StreakChallenge, 3),
+            Make("STREAK_CHALLENGE_7", "Chiến binh thử thách", "Tham gia Thử thách ngày 7 ngày liên tiếp.", "🏅", BadgeCategory.StreakChallenge, 7),
+            Make("STREAK_CHALLENGE_30", "Huyền thoại thử thách", "Tham gia Thử thách ngày 30 ngày liên tiếp.", "🏆", BadgeCategory.StreakChallenge, 30),
+            Make("CHALLENGE_RANK1_FIRST", "Quán quân ngày", "Đạt hạng 1 trong một Thử thách ngày.", "🥇", BadgeCategory.ChallengeRank),
+            Make("CHALLENGE_TOP3_FIRST", "Vào Top 3", "Lọt Top 3 một Thử thách ngày.", "🥉", BadgeCategory.ChallengeRank, 1),
+            Make("CHALLENGE_TOP3_5X", "Top 3 quen mặt", "Lọt Top 3 Thử thách ngày 5 lần.", "⭐", BadgeCategory.ChallengeRank, 5),
+            Make("CHALLENGE_AUTHOR_SELECTED", "Tác giả được chọn", "Hướng dẫn của bạn được chọn làm Thử thách ngày.", "✍️", BadgeCategory.Author, 1),
+            Make("CHALLENGE_AUTHOR_5X", "Tác giả nổi bật", "Hướng dẫn của bạn được chọn làm Thử thách ngày 5 lần.", "🌟", BadgeCategory.Author, 5),
+        };
+
+        await context.Badges.AddRangeAsync(badges);
     }
 }

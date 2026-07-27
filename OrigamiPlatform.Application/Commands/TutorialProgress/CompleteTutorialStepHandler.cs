@@ -25,6 +25,7 @@ public class CompleteTutorialStepHandler
     private readonly IUserDailyQuestProgressRepository _questProgress;
     private readonly HatGapAwardService _hatGap;
     private readonly INotificationService _notifications;
+    private readonly BadgeAwardService _badges;
 
     public CompleteTutorialStepHandler(
         ITutorialStepProgressRepository progress,
@@ -33,9 +34,10 @@ public class CompleteTutorialStepHandler
         IDailyQuestRepository dailyQuests,
         IUserDailyQuestProgressRepository questProgress,
         HatGapAwardService hatGap,
-        INotificationService notifications)
-        => (_progress, _users, _streakLogs, _dailyQuests, _questProgress, _hatGap, _notifications)
-            = (progress, users, streakLogs, dailyQuests, questProgress, hatGap, notifications);
+        INotificationService notifications,
+        BadgeAwardService badges)
+        => (_progress, _users, _streakLogs, _dailyQuests, _questProgress, _hatGap, _notifications, _badges)
+            = (progress, users, streakLogs, dailyQuests, questProgress, hatGap, notifications, badges);
 
     public async Task<TutorialProgressDto> HandleAsync(
         CompleteTutorialStepCommand command, CancellationToken ct = default)
@@ -179,6 +181,9 @@ public class CompleteTutorialStepHandler
                 entityType: nameof(StreakLog),
                 entityId: userId,
                 ct: ct);
+
+            // FT-35: badge catalog mirrors the same 7/14/30-day thresholds
+            await _badges.TryAwardAsync(userId, $"STREAK_LEARNING_{currentStreak}", ct: ct);
         }
         catch
         {

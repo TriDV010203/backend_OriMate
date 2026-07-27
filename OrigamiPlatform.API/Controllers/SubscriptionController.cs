@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using OrigamiPlatform.Application.Commands.Subscriptions;
 using OrigamiPlatform.Application.DTOs.Subscriptions;
 using OrigamiPlatform.Application.Queries.Subscriptions;
+using OrigamiPlatform.Domain.Enums;
 using OrigamiPlatform.Domain.Exceptions;
 
 namespace OrigamiPlatform.API.Controllers;
@@ -20,6 +21,9 @@ public class SubscriptionController : ControllerBase
     private readonly RejectPaymentHandler _rejectPayment;
     private readonly GetMySubscriptionsHandler _getMySubscriptions;
     private readonly GetCreatorRevenueHandler _getCreatorRevenue;
+    private readonly GetAllTransactionsHandler _getAllTransactions;
+    private readonly GetPlatformRevenueHandler _getPlatformRevenue;
+    private readonly GetMyVipTierHandler _getMyVipTier;
 
     public SubscriptionController(
         ConfigureVipTierHandler configureVipTier,
@@ -27,7 +31,10 @@ public class SubscriptionController : ControllerBase
         ConfirmPaymentHandler confirmPayment,
         RejectPaymentHandler rejectPayment,
         GetMySubscriptionsHandler getMySubscriptions,
-        GetCreatorRevenueHandler getCreatorRevenue)
+        GetCreatorRevenueHandler getCreatorRevenue,
+        GetAllTransactionsHandler getAllTransactions,
+        GetPlatformRevenueHandler getPlatformRevenue,
+        GetMyVipTierHandler getMyVipTier)
     {
         _configureVipTier = configureVipTier;
         _subscribe = subscribe;
@@ -35,13 +42,23 @@ public class SubscriptionController : ControllerBase
         _rejectPayment = rejectPayment;
         _getMySubscriptions = getMySubscriptions;
         _getCreatorRevenue = getCreatorRevenue;
+        _getAllTransactions = getAllTransactions;
+        _getPlatformRevenue = getPlatformRevenue;
+        _getMyVipTier = getMyVipTier;
+    }
+
+    [HttpGet("vip-tier")]
+    public async Task<IActionResult> GetMyVipTier(CancellationToken ct)
+    {
+        var result = await _getMyVipTier.HandleAsync(new GetMyVipTierQuery(GetCurrentUserId()), ct);
+        return Ok(result);
     }
 
     [HttpPut("vip-tier")]
     public async Task<IActionResult> ConfigureVipTier(ConfigureVipTierRequest request, CancellationToken ct)
     {
         var result = await _configureVipTier.HandleAsync(
-            new ConfigureVipTierCommand(GetCurrentUserId(), request.Price, request.IsActive),
+            new ConfigureVipTierCommand(GetCurrentUserId(), request.IsActive),
             ct);
 
         return Ok(result);
@@ -102,6 +119,29 @@ public class SubscriptionController : ControllerBase
             new GetCreatorRevenueQuery(creatorId, GetCurrentUserId()),
             ct);
 
+        return Ok(result);
+    }
+
+    [HttpGet("transactions")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAllTransactions(
+        [FromQuery] TransactionStatus? status,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _getAllTransactions.HandleAsync(
+            new GetAllTransactionsQuery(status, page, pageSize),
+            ct);
+
+        return Ok(result);
+    }
+
+    [HttpGet("admin/revenue")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetPlatformRevenue(CancellationToken ct)
+    {
+        var result = await _getPlatformRevenue.HandleAsync(new GetPlatformRevenueQuery(), ct);
         return Ok(result);
     }
 

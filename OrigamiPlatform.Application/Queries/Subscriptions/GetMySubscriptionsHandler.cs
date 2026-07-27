@@ -11,7 +11,7 @@ public class GetMySubscriptionsHandler
     public GetMySubscriptionsHandler(IVipSubscriptionRepository vipSubscriptions)
         => _vipSubscriptions = vipSubscriptions;
 
-    public async Task<PagedResult<VipSubscriptionDto>> HandleAsync(
+    public async Task<PagedResult<MySubscriptionDto>> HandleAsync(
         GetMySubscriptionsQuery query,
         CancellationToken ct = default)
     {
@@ -24,9 +24,9 @@ public class GetMySubscriptionsHandler
             pageSize,
             ct);
 
-        var dtos = items.Select(s => s.ToDto()).ToList();
+        var dtos = items.Select(s => s.ToMyDto()).ToList();
 
-        return new PagedResult<VipSubscriptionDto>(
+        return new PagedResult<MySubscriptionDto>(
             dtos,
             totalCount,
             page,

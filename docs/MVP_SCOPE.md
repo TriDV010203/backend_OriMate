@@ -78,6 +78,8 @@
 | FT-11 | Tutorial variants | Nếu kịp |
 | FT-08 | SEO & feed ranking nâng cao | Nếu kịp |
 | FT-33 | Curated Learning Path | Chuyển từ Won't-have sang Should-have 2026-07-25 (xác nhận qua chat). Admin/Manager tạo `LearningPath` gồm các `LearningPathItem` trỏ tới `Tutorial` có `IsOfficial = true` (đã được Admin/Manager viết qua FT-04 admin-create) và `Status = Published`. Không review queue thêm — Admin/Manager đã có quyền publish. Giữ đơn giản: Draft → Published → Archived, không hard-delete |
+| FT-34 | Daily Challenge | Mới, 2026-07-26 (xác nhận qua chat). Admin/Manager chọn (thủ công, lên lịch trước) hoặc hệ thống tự chọn (fallback nếu quên) 1 `Tutorial` bất kỳ đã `Published` (không giới hạn `IsOfficial`) làm thử thách mỗi ngày (mốc GMT+7). User nộp ảnh tự do (không gate theo `TutorialStepProgress`), xếp hạng theo lượt thích, top 3 nhận thưởng. Có `ChallengeStreakLog` **riêng biệt** với `StreakLog` (FT-26) — chỉ tăng khi nộp bài thử thách, không tính khi học tutorial thường |
+| FT-35 | Badge System (Danh hiệu) | Mới, 2026-07-26 (xác nhận qua chat). Bổ sung tầng "danh hiệu hiển thị" còn thiếu (hiện chỉ có Hạt Gấp + `PersonalMilestone`) — cấp cho số lượng bài hoàn thành, số bài Khó, streak học tập, streak/hạng thử thách ngày, tác giả được chọn làm thử thách. Hook vào các trigger đã có (`CreateAchievementHandler`, `CompleteTutorialStepHandler`) thay vì viết lại logic đếm |
 
 ---
 
@@ -85,11 +87,13 @@
 
 | FT | Tên | Ghi chú |
 |---|---|---|
-| FT-23 | Weekly Challenge & pairwise | Rủi ro kỹ thuật cao |
+| FT-23 | Weekly Challenge & pairwise | Rủi ro kỹ thuật cao — **khác với FT-34 Daily Challenge**: FT-23 là theo tuần, có pairwise vote và actor Contributor Reviewer; FT-34 là theo ngày, xếp hạng bằng lượt thích, không cần vai trò mới |
 | FT-24 | Clan Quest & League | Phụ thuộc FT-23 |
 | FT-29/30/31 | Onboarding đầy đủ, Re-engagement, Discovery nâng cao | Không có trong 3 tuần |
 
 **FT-33 (Learning Path) đã được xác nhận bằng văn bản 2026-07-25 để chuyển sang code ngay** (tương tự tiền lệ FT-20) — xem mục 3 bên dưới.
+
+**FT-34 (Daily Challenge) và FT-35 (Badge System) đã được xác nhận qua chat 2026-07-26 để chuyển sang code ngay** (tương tự tiền lệ FT-20, FT-33) — xem mục 3 bên trên.
 
 ---
 

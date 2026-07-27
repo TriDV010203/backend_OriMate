@@ -1,3 +1,4 @@
+using OrigamiPlatform.Application.Common;
 using OrigamiPlatform.Application.DTOs.Subscriptions;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
@@ -40,13 +41,20 @@ public class SubscribeHandler
         if (hasActiveSubscription)
             throw new DomainException("You already have an active VIP subscription with this Creator.");
 
+        // BR-VIP-05: price is platform-fixed, not the creator-configured settings.Price.
+        var amount = VipConstants.FixedPriceVnd;
+        var platformFee = Math.Round(amount * VipConstants.PlatformCommissionRate, 2);
+        var creatorNet = amount - platformFee;
+
         var transaction = new Transaction
         {
             Id = Guid.NewGuid(),
             UserId = command.SubscriberId,
             CreatorId = command.CreatorId,
             TransactionType = TransactionType.VipSubscription,
-            Amount = settings.Price,
+            Amount = amount,
+            PlatformFeeAmount = platformFee,
+            CreatorNetAmount = creatorNet,
             Status = TransactionStatus.PendingConfirmation,
             ReferenceCode = command.ReferenceCode,
             CreatedAt = DateTime.UtcNow

@@ -60,6 +60,9 @@ public class AchievementRepository : IAchievementRepository
     public Task<int> CountByUserAsync(Guid userId, CancellationToken ct = default)
         => _db.Achievements.CountAsync(a => a.UserId == userId, ct);
 
+    public Task<int> CountByUserAndDifficultyAsync(Guid userId, TutorialDifficulty difficulty, CancellationToken ct = default)
+        => _db.Achievements.CountAsync(a => a.UserId == userId && a.Tutorial.Difficulty == difficulty, ct);
+
     public async Task<HashSet<Guid>> GetCompletedTutorialIdsAsync(Guid userId, CancellationToken ct = default)
         => (await _db.Achievements
             .Where(a => a.UserId == userId)

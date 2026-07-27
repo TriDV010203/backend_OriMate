@@ -42,6 +42,8 @@ public class VipSubscriptionRepository : IVipSubscriptionRepository
         CancellationToken ct = default)
     {
         var query = _db.VipSubscriptions
+            .Include(s => s.Creator).ThenInclude(u => u.Profile)
+            .Include(s => s.Transaction)
             .Where(s => s.SubscriberId == subscriberId)
             .OrderByDescending(s => s.CreatedAt);
 
@@ -60,4 +62,18 @@ public class VipSubscriptionRepository : IVipSubscriptionRepository
             .CountAsync(s => s.CreatorId == creatorId
                           && s.Status == SubscriptionStatus.Active
                           && s.EndDate > DateTime.UtcNow, ct);
+
+    public Task<int> CountAllActiveSubscriptionsAsync(CancellationToken ct = default)
+        => _db.VipSubscriptions
+            .CountAsync(s => s.Status == SubscriptionStatus.Active
+                          && s.EndDate > DateTime.UtcNow, ct);
+
+    public async Task<IEnumerable<VipSubscription>> GetActiveSubscribersByCreatorAsync(Guid creatorId, CancellationToken ct = default)
+        => await _db.VipSubscriptions
+            .Include(s => s.Subscriber).ThenInclude(u => u.Profile)
+            .Where(s => s.CreatorId == creatorId
+                     && s.Status == SubscriptionStatus.Active
+                     && s.EndDate > DateTime.UtcNow)
+            .OrderBy(s => s.EndDate)
+            .ToListAsync(ct);
 }
