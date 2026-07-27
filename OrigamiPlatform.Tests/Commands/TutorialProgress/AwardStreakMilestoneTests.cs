@@ -20,9 +20,11 @@ public class AwardStreakMilestoneTests
     private readonly Mock<IUserDailyQuestProgressRepository> _questProgress = new();
     private readonly Mock<IHatGapTransactionRepository> _hatGapTransactions = new();
     private readonly Mock<INotificationService> _notifications = new();
+    private readonly Mock<IBadgeRepository> _badges = new();
+    private readonly Mock<IUserBadgeRepository> _userBadges = new();
 
-    // HatGapAwardService is a concrete, non-virtual class (Moq can't stub it), so the handler
-    // is exercised against a real instance backed by a mocked transaction repository instead.
+    // HatGapAwardService/BadgeAwardService are concrete, non-virtual classes (Moq can't stub them),
+    // so the handler is exercised against real instances backed by mocked repositories instead.
     private CompleteTutorialStepHandler CreateHandler()
         => new(
             _progress.Object,
@@ -31,7 +33,8 @@ public class AwardStreakMilestoneTests
             _dailyQuests.Object,
             _questProgress.Object,
             new HatGapAwardService(_hatGapTransactions.Object),
-            _notifications.Object);
+            _notifications.Object,
+            new BadgeAwardService(_badges.Object, _userBadges.Object, _notifications.Object));
 
     private static DateOnly TodayGmt7() => DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7));
 

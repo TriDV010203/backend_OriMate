@@ -16,9 +16,11 @@ public class CreateAchievementHandlerTests
     private readonly Mock<IHatGapTransactionRepository> _hatGapTransactions = new();
     private readonly Mock<ILearningPathRepository> _learningPaths = new();
     private readonly Mock<ILearningPathCompletionRepository> _pathCompletions = new();
+    private readonly Mock<IBadgeRepository> _badges = new();
+    private readonly Mock<IUserBadgeRepository> _userBadges = new();
 
-    // HatGapAwardService is a concrete, non-virtual class (Moq can't stub it), so the handler
-    // is exercised against a real instance backed by a mocked transaction repository instead.
+    // HatGapAwardService/BadgeAwardService are concrete, non-virtual classes (Moq can't stub them),
+    // so the handler is exercised against real instances backed by mocked repositories instead.
     private CreateAchievementHandler CreateHandler()
         => new(
             _achievements.Object,
@@ -26,7 +28,8 @@ public class CreateAchievementHandlerTests
             _notifications.Object,
             new HatGapAwardService(_hatGapTransactions.Object),
             _learningPaths.Object,
-            _pathCompletions.Object);
+            _pathCompletions.Object,
+            new BadgeAwardService(_badges.Object, _userBadges.Object, _notifications.Object));
 
     private static Achievement BuildAchievement(Guid userId, Guid tutorialId, string? note = null, string? photoUrl = null)
         => new()
