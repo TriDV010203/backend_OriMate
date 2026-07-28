@@ -14,7 +14,7 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
 {
     public PasswordAndSecurityControllerTests(CustomWebApplicationFactory factory) : base(factory)
     {
-    }    
+    }
 
     [Fact]
     public async Task ForgotPassword_WithValidActiveEmail_ShouldSetResetToken()
@@ -87,9 +87,13 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
         await _dbContext.SaveChangesAsync();
 
         var newPassword = "NewSecurePassword123!";
-        var requestPayload = new { Token = resetToken, NewPassword = newPassword };
-
-        // WHEN
+        // Truyền đầy đủ Token, NewPassword và ConfirmPassword theo DTO chuẩn của Dev
+        var requestPayload = new
+        {
+            Token = resetToken,
+            NewPassword = newPassword,
+            ConfirmPassword = newPassword
+        };
         var response = await _client.PostAsJsonAsync("/api/auth/reset-password", requestPayload);
 
         // THEN
@@ -120,8 +124,14 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
         await _dbContext.Users.AddAsync(testUser);
         await _dbContext.SaveChangesAsync();
 
-        // WHEN: Truyền mật khẩu chỉ có 3 ký tự
-        var response = await _client.PostAsJsonAsync("/api/auth/reset-password", new { Token = resetToken, NewPassword = "123" });
+        // Truyền đầy đủ ConfirmPassword cho mật khẩu yếu
+        var requestPayload = new
+        {
+            Token = resetToken,
+            NewPassword = "123",
+            ConfirmPassword = "123"
+        };
+        var response = await _client.PostAsJsonAsync("/api/auth/reset-password", requestPayload);
 
         // THEN
         response.IsSuccessStatusCode.Should().BeFalse("Hệ thống phải từ chối mật khẩu không đủ độ mạnh");
@@ -152,7 +162,8 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
 
         var newPassword = "BrandNewPassword123!";
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/change-password");
-        httpRequest.Content = JsonContent.Create(new { CurrentPassword = oldPassword, NewPassword = newPassword });
+        // Bổ sung ConfirmPassword cho ChangePasswordRequest
+        httpRequest.Content = JsonContent.Create(new { CurrentPassword = oldPassword, NewPassword = newPassword, ConfirmPassword = newPassword });
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authData!.Token);
 
         // WHEN
@@ -186,7 +197,7 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
         var authData = await loginResponse.Content.ReadFromJsonAsync<AuthResponse>();
 
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/change-password");
-        httpRequest.Content = JsonContent.Create(new { CurrentPassword = "WrongOldPassword999!", NewPassword = "NewPassword123!" });
+        httpRequest.Content = JsonContent.Create(new { CurrentPassword = "WrongOldPassword999!", NewPassword = "NewPassword123!", ConfirmPassword = "NewPassword123!" });
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authData!.Token);
 
         // WHEN
@@ -199,8 +210,8 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
     [Fact]
     public async Task ChangePassword_WithNewPasswordSameAsOld_ShouldReturnBadRequest()
     {
-        // GIVEN
-        var email = "same_pass@origami.com";
+        // GIVEN
+        var email = "same_pass@origami.com";
         var password = "SamePassword123!";
         var testUser = new User
         {
@@ -218,13 +229,13 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
 
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/change-password");
         httpRequest.Content = JsonContent.Create(new { CurrentPassword = password, NewPassword = password }); // Mật khẩu mới trùng cũ
-        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authData!.Token);
+        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authData!.Token);
 
-        // WHEN
-        var response = await _client.SendAsync(httpRequest);
+        // WHEN
+        var response = await _client.SendAsync(httpRequest);
 
-        // THEN
-        response.IsSuccessStatusCode.Should().BeFalse("Hệ thống không được phép cho đổi mật khẩu mới trùng mật khẩu cũ");
+        // THEN
+        response.IsSuccessStatusCode.Should().BeFalse("Hệ thống không được phép cho đổi mật khẩu mới trùng mật khẩu cũ");
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 }
