@@ -16,6 +16,58 @@ public class VerifyEmailControllerTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task ResendVerification_WithUnverifiedUser_ShouldGenerateNewToken()
+    {
+        var email = "resend_test@origami.com";
+        var testUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = email,
+            PasswordHash = "Hash",
+            Status = OrigamiPlatform.Domain.Enums.AccountStatus.Unverified,
+            VerificationToken = "OLD_TOKEN_123",
+            CreatedAt = DateTime.UtcNow
+        };
+        await _dbContext.Users.AddAsync(testUser);
+        await _dbContext.SaveChangesAsync();
+
+        var requestPayload = new { Email = email };
+
+        var response = await _client.PostAsJsonAsync("/api/auth/resend-verification", requestPayload);
+
+        response.IsSuccessStatusCode.Should().BeTrue("API Resend Verification phải trả về 200 OK");
+
+        var userInDb = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
+        userInDb!.VerificationToken.Should().NotBeNullOrEmpty("Hệ thống phải cấp Verification Token mới");
+        userInDb.VerificationToken.Should().NotBe("OLD_TOKEN_123", "Token mới phải khác token cũ");
+    }
+
+    [Fact]
+    public async Task ResendVerification_WithAlreadyActiveUser_ShouldReturnBadRequest()
+    {
+        // GIVEN: User đã Active
+        var email = "already_active@origami.com";
+        var testUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = email,
+            PasswordHash = "Hash",
+            Status = OrigamiPlatform.Domain.Enums.AccountStatus.Active, // Trạng thái đã kích hoạt
+            CreatedAt = DateTime.UtcNow
+        };
+        await _dbContext.Users.AddAsync(testUser);
+        await _dbContext.SaveChangesAsync();
+
+        // WHEN
+        var response = await _client.PostAsJsonAsync("/api/auth/resend-verification", new { Email = email });
+
+        // THEN: Phải bị chặn
+        response.IsSuccessStatusCode.Should().BeFalse("Không được phép gửi lại mail kích hoạt cho tài khoản đã Active");
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Conflict);
+    }
+
+
+    [Fact]
     public async Task VerifyEmail_WithValidToken_ShouldActivateUser()
     {
         // GIVEN
