@@ -110,9 +110,10 @@ public class TutorialsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>GET /api/tutorials/categories — Active categories, for the authoring form's category dropdown.</summary>
+    /// <summary>GET /api/tutorials/categories — Active categories, for the authoring form's category dropdown
+    /// and for the public library page's category filter.</summary>
     [HttpGet("categories")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<IActionResult> GetCategories(CancellationToken ct)
     {
         var result = await _getCategories.HandleAsync(new GetCategoriesQuery(), ct);

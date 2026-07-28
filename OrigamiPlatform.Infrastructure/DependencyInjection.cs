@@ -144,6 +144,7 @@ public static class DependencyInjection
         services.AddScoped<GetCategoriesHandler>();
         services.AddScoped<CreateCategoryHandler>();
         services.AddScoped<UpdateCategoryHandler>();
+        services.AddScoped<DeleteCategoryHandler>();
         services.AddScoped<GetBlockedWordsHandler>();
         services.AddScoped<CreateBlockedWordHandler>();
         services.AddScoped<RemoveBlockedWordHandler>();
@@ -218,6 +219,7 @@ public static class DependencyInjection
 
         // Handlers — Shop (FT-18)
         services.AddScoped<GetShopLinksHandler>();
+        services.AddScoped<GetAdminShopLinksHandler>();
         services.AddScoped<CreateShopLinkHandler>();
         services.AddScoped<UpdateShopLinkHandler>();
 
