@@ -33,13 +33,12 @@ public class VerifyEmailControllerTests : IntegrationTestBase
         await _dbContext.Users.AddAsync(testUser);
         await _dbContext.SaveChangesAsync();
 
-        // WHEN: Gọi API Verify dưới dạng GET với Query Parameter (?token=...)
         var response = await _client.GetAsync($"/api/auth/verify-email?token={token}");
 
-        // THEN
         response.IsSuccessStatusCode.Should().BeTrue("API phải trả về 200 OK khi token hợp lệ");
 
-        var userInDb = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+        var userInDb = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
+
         userInDb!.Status.Should().Be(OrigamiPlatform.Domain.Enums.AccountStatus.Active);
         userInDb.VerificationToken.Should().BeNullOrEmpty();
     }
@@ -47,7 +46,6 @@ public class VerifyEmailControllerTests : IntegrationTestBase
     [Fact]
     public async Task VerifyEmail_WithInvalidToken_ShouldReturnBadRequest()
     {
-        // GIVEN
         var email = "invalid_token@origami.com";
         var testUser = new User
         {
@@ -61,10 +59,8 @@ public class VerifyEmailControllerTests : IntegrationTestBase
         await _dbContext.Users.AddAsync(testUser);
         await _dbContext.SaveChangesAsync();
 
-        // WHEN: Gửi token sai qua query parameter
         var response = await _client.GetAsync("/api/auth/verify-email?token=WRONG_TOKEN_000");
 
-        // THEN
         response.IsSuccessStatusCode.Should().BeFalse();
         response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.NotFound, HttpStatusCode.Unauthorized);
 

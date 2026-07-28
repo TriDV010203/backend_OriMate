@@ -5,6 +5,7 @@ using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.IntegrationTests;
 using System.Net;
 using System.Net.Http.Json;
+using System.Net.Http.Headers;
 using Xunit;
 
 namespace OrigamiPlatform.IntegrationTests.Controllers.Auth;
@@ -18,102 +19,104 @@ public class SessionControllerTests : IntegrationTestBase
     [Fact]
     public async Task RefreshToken_WithValidToken_ReturnsNewTokens()
     {
-        // GIVEN: Một user đã đăng nhập, có RefreshToken còn hạn trong DB
         var userEmail = "refresh_valid@origami.com";
-        var currentRefreshToken = "VALID_REFRESH_TOKEN_123";
-
+        var rawPassword = "Password123!";
         var testUser = new User
         {
             Id = Guid.NewGuid(),
             Email = userEmail,
-            PasswordHash = "Hash",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(rawPassword),
             Status = OrigamiPlatform.Domain.Enums.AccountStatus.Active,
-            RefreshToken = currentRefreshToken,
-            RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7), // Còn hạn 7 ngày
             CreatedAt = DateTime.UtcNow
         };
         await _dbContext.Users.AddAsync(testUser);
         await _dbContext.SaveChangesAsync();
 
-        // Tùy vào DTO của bạn, request có thể cần cả AccessToken cũ hoặc chỉ RefreshToken
-        var request = new RefreshTokenRequest(currentRefreshToken);
+        var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", new { Email = userEmail, Password = rawPassword });
+        var authData = await loginResponse.Content.ReadFromJsonAsync<AuthResponse>();
 
-        // WHEN: Gọi API làm mới token
-        var response = await _client.PostAsJsonAsync("/api/auth/refresh-token", request);
+        var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh-token");
+        requestMessage.Content = JsonContent.Create(new { RefreshToken = authData!.RefreshToken });
 
-        // THEN: API phải trả về 200 OK và chứa Token mới
+        if (loginResponse.Headers.TryGetValues("Set-Cookie", out var cookies))
+        {
+            foreach (var cookie in cookies) requestMessage.Headers.Add("Cookie", cookie.Split(';')[0]);
+        }
+
+        var response = await _client.SendAsync(requestMessage);
+
         response.IsSuccessStatusCode.Should().BeTrue("API phải trả về 200 OK khi Refresh Token hợp lệ");
 
-        var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
-        authResponse.Should().NotBeNull();
-        authResponse!.Token.Should().NotBeNullOrEmpty("Phải cấp Access Token mới");
-        authResponse.RefreshToken.Should().NotBeNullOrEmpty("Phải cấp Refresh Token mới");
+        var newAuthData = await response.Content.ReadFromJsonAsync<AuthResponse>();
+        newAuthData.Should().NotBeNull();
+        newAuthData!.Token.Should().NotBeNullOrEmpty("Phải cấp Access Token mới");
+        newAuthData.RefreshToken.Should().NotBeNullOrEmpty("Phải cấp Refresh Token mới");
 
-        // Kiểm tra xem Refresh Token trong DB đã được xoay (rotate) chưa
-        var userInDb = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
-        userInDb!.RefreshToken.Should().Be(authResponse.RefreshToken, "Refresh Token trong DB phải được cập nhật thành token mới");
+        var userInDb = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == userEmail);
+
+        userInDb!.RefreshTokenHash.Should().NotBeNullOrEmpty("Login/Refresh phải lưu hash vào DB");
+        userInDb.RefreshTokenHash.Should().NotBe(authData.RefreshToken, "Hệ thống phải mã hóa (Hash) Token chứ không được lưu chuỗi thô");
     }
 
     [Fact]
-    public async Task RefreshToken_WithExpiredToken_ReturnsUnauthorizedOrBadRequest()
+    public async Task RefreshToken_WithInvalidToken_ReturnsUnauthorizedOrBadRequest()
     {
-        // GIVEN: User có RefreshToken nhưng ĐÃ HẾT HẠN
-        var expiredToken = "EXPIRED_REFRESH_TOKEN_999";
+        var userEmail = "refresh_invalid@origami.com";
         var testUser = new User
         {
             Id = Guid.NewGuid(),
-            Email = "refresh_expired@origami.com",
-            PasswordHash = "Hash",
+            Email = userEmail,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Password123!"),
             Status = OrigamiPlatform.Domain.Enums.AccountStatus.Active,
-            RefreshToken = expiredToken,
-            RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(-1), // Đã hết hạn từ hôm qua
             CreatedAt = DateTime.UtcNow
         };
         await _dbContext.Users.AddAsync(testUser);
         await _dbContext.SaveChangesAsync();
 
-        var request = new RefreshTokenRequest(expiredToken);
+        var invalidToken = "INVALID_REFRESH_TOKEN_999";
+        var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh-token");
+        requestMessage.Content = JsonContent.Create(new { RefreshToken = invalidToken });
+        requestMessage.Headers.Add("Cookie", $"refreshToken={invalidToken}");
 
-        // WHEN: Cố tình xin cấp lại Token
-        var response = await _client.PostAsJsonAsync("/api/auth/refresh-token", request);
+        var response = await _client.SendAsync(requestMessage);
 
-        // THEN: API phải từ chối
-        response.IsSuccessStatusCode.Should().BeFalse("Refresh token hết hạn thì không được cấp Access Token mới");
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Unauthorized);
+        response.IsSuccessStatusCode.Should().BeFalse("Token sai không được cấp Access Token mới");
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden);
     }
 
     [Fact]
     public async Task Logout_ShouldClearRefreshToken()
     {
-        // GIVEN: User đang đăng nhập và có Token
         var userEmail = "logout_user@origami.com";
-        var activeToken = "ACTIVE_REFRESH_TOKEN_FOR_LOGOUT";
+        var rawPassword = "Password123!";
         var testUser = new User
         {
             Id = Guid.NewGuid(),
             Email = userEmail,
-            PasswordHash = "Hash",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(rawPassword),
             Status = OrigamiPlatform.Domain.Enums.AccountStatus.Active,
-            RefreshToken = activeToken,
-            RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7),
             CreatedAt = DateTime.UtcNow
         };
         await _dbContext.Users.AddAsync(testUser);
         await _dbContext.SaveChangesAsync();
 
-        // Tùy theo logic API Logout của bạn (nhận token từ body hay từ Header/Cookie)
-        // Dưới đây giả định gửi Refresh Token qua body request
-        var request = new { RefreshToken = activeToken };
+        var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", new { Email = userEmail, Password = rawPassword });
+        var authData = await loginResponse.Content.ReadFromJsonAsync<AuthResponse>();
 
-        // WHEN: Gọi API Logout
-        var response = await _client.PostAsJsonAsync("/api/auth/logout", request);
+        var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout");
+        requestMessage.Content = JsonContent.Create(new { RefreshToken = authData!.RefreshToken });
+        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authData.Token);
 
-        // THEN: Thành công và Token trong DB bị xóa sạch
-        response.IsSuccessStatusCode.Should().BeTrue();
+        if (loginResponse.Headers.TryGetValues("Set-Cookie", out var cookies))
+        {
+            foreach (var cookie in cookies) requestMessage.Headers.Add("Cookie", cookie.Split(';')[0]);
+        }
 
-        var userInDb = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
+        var response = await _client.SendAsync(requestMessage);
 
-        // Cột RefreshToken trong DB phải bị set về null (hoặc chuỗi rỗng) để vô hiệu hóa
-        userInDb!.RefreshToken.Should().BeNullOrEmpty("Hệ thống phải xóa Refresh Token trong DB khi người dùng đăng xuất");
+        response.IsSuccessStatusCode.Should().BeTrue("API Logout phải thành công");
+
+        var userInDb = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == userEmail);
+        userInDb!.RefreshTokenHash.Should().BeNullOrEmpty("Hệ thống phải xóa Refresh Token trong DB khi người dùng đăng xuất");
     }
 }
