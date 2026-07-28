@@ -237,6 +237,7 @@ public static class DependencyInjection
         services.AddScoped<InviteMemberHandler>();
         services.AddScoped<AcceptInviteHandler>();
         services.AddScoped<LeaveClanHandler>();
+        services.AddScoped<TransferOwnershipHandler>();
         services.AddScoped<GetMyClanHandler>();
         services.AddScoped<GetPendingInvitesHandler>();
 

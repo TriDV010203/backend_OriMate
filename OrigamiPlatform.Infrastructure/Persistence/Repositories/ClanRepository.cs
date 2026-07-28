@@ -21,4 +21,10 @@ public class ClanRepository : IClanRepository
         _db.Clans.Add(clan);
         await _db.SaveChangesAsync(ct);
     }
+
+    public async Task UpdateAsync(Clan clan, CancellationToken ct = default)
+    {
+        _db.Clans.Update(clan);
+        await _db.SaveChangesAsync(ct);
+    }
 }
