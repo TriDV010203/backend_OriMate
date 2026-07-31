@@ -273,4 +273,12 @@ public class TutorialRepository : ITutorialRepository
             pageSize,
             (int)Math.Ceiling(totalCount / (double)pageSize));
     }
+
+    public async Task<List<Tutorial>> GetAllPublishedWithCategoryAsync(CancellationToken ct = default)
+    {
+        return await _db.Tutorials
+            .Include(t => t.Category)
+            .Where(t => t.Status == TutorialStatus.Published)
+            .ToListAsync(ct);
+    }
 }
