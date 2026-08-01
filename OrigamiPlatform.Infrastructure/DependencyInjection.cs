@@ -139,6 +139,7 @@ public static class DependencyInjection
         services.AddScoped<GetAdminTutorialsHandler>();
         services.AddScoped<GetTutorialForAdminHandler>();
         services.AddScoped<AdminUpdateTutorialHandler>();
+        services.AddScoped<SetOfficialTutorialHandler>();
 
         // Handlers — AdminConfiguration (FT-03)
         services.AddScoped<GetCategoriesHandler>();

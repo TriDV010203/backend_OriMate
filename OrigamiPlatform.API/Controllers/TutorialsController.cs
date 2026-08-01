@@ -2,8 +2,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OrigamiPlatform.Application.Commands.AdminConfiguration;
 using OrigamiPlatform.Application.Commands.Tutorials;
 using OrigamiPlatform.Application.DTOs;
+using OrigamiPlatform.Application.DTOs.Tutorials;
 using OrigamiPlatform.Application.Features.Tutorials.DTOs;
 using OrigamiPlatform.Application.Queries.AdminConfiguration;
 using OrigamiPlatform.Application.Queries.Tutorials;
@@ -36,6 +38,7 @@ public class TutorialsController : ControllerBase
     private readonly GetAdminTutorialsHandler _getAdminTutorials;
     private readonly GetTutorialForAdminHandler _getTutorialForAdmin;
     private readonly AdminUpdateTutorialHandler _adminUpdateTutorial;
+    private readonly SetOfficialTutorialHandler _setOfficialTutorial;
 
     public TutorialsController(
         GetTutorialsHandler getTutorials,
@@ -58,7 +61,8 @@ public class TutorialsController : ControllerBase
         ManagerRejectEditHandler managerRejectEdit,
         GetAdminTutorialsHandler getAdminTutorials,
         GetTutorialForAdminHandler getTutorialForAdmin,
-        AdminUpdateTutorialHandler adminUpdateTutorial)
+        AdminUpdateTutorialHandler adminUpdateTutorial,
+        SetOfficialTutorialHandler setOfficialTutorial)
     {
         _getTutorials = getTutorials;
         _getTutorialBySlug = getTutorialBySlug;
@@ -81,6 +85,7 @@ public class TutorialsController : ControllerBase
         _getAdminTutorials = getAdminTutorials;
         _getTutorialForAdmin = getTutorialForAdmin;
         _adminUpdateTutorial = adminUpdateTutorial;
+        _setOfficialTutorial = setOfficialTutorial;
     }
 
     // ── Public ───────────────────────────────────────────────────────────────
@@ -333,6 +338,23 @@ public class TutorialsController : ControllerBase
         var result = await _adminUpdateTutorial.HandleAsync(
             new AdminUpdateTutorialCommand(id, actorId, actorRole, request), ct);
         return Ok(result);
+    }
+
+    /// <summary>
+    /// PUT /api/admin/tutorials/{tutorialId}/official — FT-32: mark/unmark a tutorial as official curated content.
+    /// Route uses "~/" to publish under /api/admin instead of this controller's /api/tutorials prefix, so it can
+    /// carry its own [Authorize(Roles = "Admin,Manager")] without inheriting AdminController's Admin-only class
+    /// restriction (which would otherwise AND together and lock Manager out).
+    /// </summary>
+    [HttpPut("~/api/admin/tutorials/{tutorialId:guid}/official")]
+    [Authorize(Roles = "Admin,Manager")]
+    public async Task<IActionResult> SetOfficialTutorial(
+        Guid tutorialId, [FromBody] SetOfficialTutorialRequest request, CancellationToken ct)
+    {
+        var actorId = GetCurrentUserId()!.Value;
+        await _setOfficialTutorial.HandleAsync(
+            new SetOfficialTutorialCommand(actorId, tutorialId, request.IsOfficial), ct);
+        return Ok(new MessageResponse("Tutorial official status updated."));
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
