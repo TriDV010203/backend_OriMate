@@ -275,6 +275,7 @@ public static class DependencyInjection
 
         // Background jobs
         services.AddHostedService<DailyChallengeSchedulerService>();
+        services.AddHostedService<ReengagementJob>();
 
         return services;
     }
