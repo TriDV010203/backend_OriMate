@@ -188,6 +188,10 @@ public static class DependencyInjection
         services.AddScoped<GetFollowersHandler>();
         services.AddScoped<GetFollowingHandler>();
 
+        // Handlers — Onboarding (FT-29)
+        services.AddScoped<CompleteOnboardingHandler>();
+        services.AddScoped<GetOnboardingStatusHandler>();
+
         // Handlers — Tutorial step progress (per user)
         services.AddScoped<CompleteTutorialStepHandler>();
         services.AddScoped<UncompleteTutorialStepHandler>();

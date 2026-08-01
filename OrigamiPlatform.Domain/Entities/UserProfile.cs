@@ -10,6 +10,7 @@ public class UserProfile
     public string? AvatarUrl { get; set; }
     public int SkillPoints { get; set; }
     public SkillLevel SkillLevel { get; set; }
+    public bool IsOnboardingCompleted { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 
