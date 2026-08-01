@@ -7,5 +7,8 @@ public record CreateTutorialRequest(
     string Difficulty,
     string Type,
     string? CoverImageUrl,
-    IList<CreateTutorialStepRequest>? Steps
+    IList<CreateTutorialStepRequest>? Steps,
+    string? MetaTitle = null,
+    string? MetaDescription = null,
+    string? Tags = null
 );

@@ -31,6 +31,12 @@ public class CreateTutorialHandler
         if (await _blockedWords.ContainsBlockedWordAsync(request.Description, ct))
             throw new DomainException("Description contains a blocked word. BR-23.");
 
+        // FT-08: SEO metadata is optional but still content text — BR-23 applies when supplied
+        if (!string.IsNullOrWhiteSpace(request.MetaTitle) && await _blockedWords.ContainsBlockedWordAsync(request.MetaTitle, ct))
+            throw new DomainException("Meta title contains a blocked word. BR-23.");
+        if (!string.IsNullOrWhiteSpace(request.MetaDescription) && await _blockedWords.ContainsBlockedWordAsync(request.MetaDescription, ct))
+            throw new DomainException("Meta description contains a blocked word. BR-23.");
+
         if (!Enum.TryParse<TutorialType>(request.Type, ignoreCase: true, out var tutorialType))
             throw new DomainException($"Invalid tutorial type '{request.Type}'. Valid values: Free, VIP.");
 
@@ -64,6 +70,9 @@ public class CreateTutorialHandler
             Type = tutorialType,
             Difficulty = tutorialDifficulty,
             Status = TutorialStatus.Draft,
+            MetaTitle = request.MetaTitle,
+            MetaDescription = request.MetaDescription,
+            Tags = request.Tags,
             CreatedAt = DateTime.UtcNow
         };
 

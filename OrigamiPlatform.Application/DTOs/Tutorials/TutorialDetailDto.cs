@@ -17,5 +17,8 @@ public record TutorialDetailDto(
     int LikeCount,
     int WishlistCount,
     bool IsLikedByCurrentUser,
-    bool IsWishlistedByCurrentUser
+    bool IsWishlistedByCurrentUser,
+    string? MetaTitle = null,
+    string? MetaDescription = null,
+    string? Tags = null
 );

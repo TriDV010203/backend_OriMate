@@ -12,6 +12,12 @@ public class Tutorial
     public string Description { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty;
     public string? CoverImageUrl { get; set; }
+
+    // FT-08: SEO metadata — all optional, author may leave blank
+    public string? MetaTitle { get; set; }
+    public string? MetaDescription { get; set; }
+    public string? Tags { get; set; } // CSV, e.g. "origami,crane,beginner"
+
     public TutorialType Type { get; set; }
     public TutorialStatus Status { get; set; }
     public TutorialDifficulty Difficulty { get; set; }
