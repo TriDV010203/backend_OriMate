@@ -88,6 +88,8 @@ public static class DependencyInjection
         services.AddScoped<IBadgeRepository, BadgeRepository>();
         services.AddScoped<IUserBadgeRepository, UserBadgeRepository>();
         services.AddScoped<ITutorialVariantRepository, TutorialVariantRepository>();
+        services.AddScoped<IPaperPatternRepository, PaperPatternRepository>();
+        services.AddScoped<IUserPaperPatternRepository, UserPaperPatternRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -236,6 +238,8 @@ public static class DependencyInjection
         services.AddScoped<GetAdminShopLinksHandler>();
         services.AddScoped<CreateShopLinkHandler>();
         services.AddScoped<UpdateShopLinkHandler>();
+        services.AddScoped<GetPaperPatternsHandler>();
+        services.AddScoped<PurchasePaperPatternHandler>();
 
         // Handlers — Learning Path (FT-33)
         services.AddScoped<GetLearningPathsHandler>();

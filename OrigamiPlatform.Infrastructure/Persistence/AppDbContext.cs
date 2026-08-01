@@ -66,6 +66,8 @@ public class AppDbContext : DbContext
     public DbSet<DailyQuest> DailyQuests => Set<DailyQuest>();
     public DbSet<UserDailyQuestProgress> UserDailyQuestProgresses => Set<UserDailyQuestProgress>();
     public DbSet<HatGapTransaction> HatGapTransactions => Set<HatGapTransaction>();
+    public DbSet<PaperPattern> PaperPatterns => Set<PaperPattern>(); // FT-28
+    public DbSet<UserPaperPattern> UserPaperPatterns => Set<UserPaperPattern>(); // FT-28
 
     // Daily Challenge (FT-34)
     public DbSet<DailyChallenge> DailyChallenges => Set<DailyChallenge>();
