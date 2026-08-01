@@ -30,7 +30,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\Community\" />
     <Folder Include="Controllers\GamificationAndPortfolio\" />
     <Folder Include="Controllers\Clan\" />
     <Folder Include="Controllers\VipAndShop\" />
