@@ -87,6 +87,7 @@ public static class DependencyInjection
         services.AddScoped<IChallengeStreakRepository, ChallengeStreakRepository>();
         services.AddScoped<IBadgeRepository, BadgeRepository>();
         services.AddScoped<IUserBadgeRepository, UserBadgeRepository>();
+        services.AddScoped<ITutorialVariantRepository, TutorialVariantRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -143,6 +144,11 @@ public static class DependencyInjection
 
         // Handlers — Tutorials AI Recommendation (FT-31)
         services.AddScoped<GetRecommendedTutorialsHandler>();
+
+        // Handlers — Tutorial Variants (FT-11)
+        services.AddScoped<AddVariantHandler>();
+        services.AddScoped<RemoveVariantHandler>();
+        services.AddScoped<GetVariantsHandler>();
 
         // Handlers — AdminConfiguration (FT-03)
         services.AddScoped<GetCategoriesHandler>();

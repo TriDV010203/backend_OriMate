@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<TutorialStep> TutorialSteps => Set<TutorialStep>();
     public DbSet<TutorialReviewHistory> TutorialReviewHistories => Set<TutorialReviewHistory>();
     public DbSet<Category> Categories => Set<Category>();
+    public DbSet<TutorialVariant> TutorialVariants => Set<TutorialVariant>(); // FT-11
 
     // Community
     public DbSet<CommunityPost> CommunityPosts => Set<CommunityPost>();

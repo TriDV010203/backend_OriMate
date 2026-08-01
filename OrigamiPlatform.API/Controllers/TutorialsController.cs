@@ -40,6 +40,9 @@ public class TutorialsController : ControllerBase
     private readonly AdminUpdateTutorialHandler _adminUpdateTutorial;
     private readonly SetOfficialTutorialHandler _setOfficialTutorial;
     private readonly GetRecommendedTutorialsHandler _getRecommendedTutorials;
+    private readonly AddVariantHandler _addVariant;
+    private readonly RemoveVariantHandler _removeVariant;
+    private readonly GetVariantsHandler _getVariants;
 
     public TutorialsController(
         GetTutorialsHandler getTutorials,
@@ -64,7 +67,10 @@ public class TutorialsController : ControllerBase
         GetTutorialForAdminHandler getTutorialForAdmin,
         AdminUpdateTutorialHandler adminUpdateTutorial,
         SetOfficialTutorialHandler setOfficialTutorial,
-        GetRecommendedTutorialsHandler getRecommendedTutorials)
+        GetRecommendedTutorialsHandler getRecommendedTutorials,
+        AddVariantHandler addVariant,
+        RemoveVariantHandler removeVariant,
+        GetVariantsHandler getVariants)
     {
         _getTutorials = getTutorials;
         _getTutorialBySlug = getTutorialBySlug;
@@ -89,6 +95,9 @@ public class TutorialsController : ControllerBase
         _adminUpdateTutorial = adminUpdateTutorial;
         _setOfficialTutorial = setOfficialTutorial;
         _getRecommendedTutorials = getRecommendedTutorials;
+        _addVariant = addVariant;
+        _removeVariant = removeVariant;
+        _getVariants = getVariants;
     }
 
     // ── Public ───────────────────────────────────────────────────────────────
@@ -372,6 +381,39 @@ public class TutorialsController : ControllerBase
         await _setOfficialTutorial.HandleAsync(
             new SetOfficialTutorialCommand(actorId, tutorialId, request.IsOfficial), ct);
         return Ok(new MessageResponse("Tutorial official status updated."));
+    }
+
+    // ── Variants (FT-11) ─────────────────────────────────────────────────────
+
+    /// <summary>POST /api/tutorials/{parentId}/variants — Author links another of their own tutorials as a variant.</summary>
+    [HttpPost("{parentId:guid}/variants")]
+    [Authorize]
+    public async Task<IActionResult> AddVariant(
+        Guid parentId, [FromBody] AddVariantRequest request, CancellationToken ct)
+    {
+        var requesterId = GetCurrentUserId()!.Value;
+        await _addVariant.HandleAsync(
+            new AddVariantCommand(requesterId, parentId, request.VariantTutorialId, request.DifficultyDelta), ct);
+        return Ok(new MessageResponse("Variant linked."));
+    }
+
+    /// <summary>DELETE /api/tutorials/{parentId}/variants/{variantId} — Author unlinks a variant.</summary>
+    [HttpDelete("{parentId:guid}/variants/{variantId:guid}")]
+    [Authorize]
+    public async Task<IActionResult> RemoveVariant(Guid parentId, Guid variantId, CancellationToken ct)
+    {
+        var requesterId = GetCurrentUserId()!.Value;
+        await _removeVariant.HandleAsync(new RemoveVariantCommand(requesterId, parentId, variantId), ct);
+        return Ok(new MessageResponse("Variant unlinked."));
+    }
+
+    /// <summary>GET /api/tutorials/{parentId}/variants — List variants linked to a tutorial.</summary>
+    [HttpGet("{parentId:guid}/variants")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetVariants(Guid parentId, CancellationToken ct)
+    {
+        var result = await _getVariants.HandleAsync(new GetVariantsQuery(parentId), ct);
+        return Ok(result);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
