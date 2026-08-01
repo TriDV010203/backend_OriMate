@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using OrigamiPlatform.Application.DTOs.Auth;
 using OrigamiPlatform.Domain.Entities;
+using OrigamiPlatform.Domain.Enums;
 using OrigamiPlatform.IntegrationTests;
 using System.Net;
 using System.Net.Http.Headers;
@@ -237,5 +238,50 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
         // THEN
         response.IsSuccessStatusCode.Should().BeFalse("Hệ thống không được phép cho đổi mật khẩu mới trùng mật khẩu cũ");
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task ChangePassword_ShouldRevokeAllExistingRefreshTokens()
+    {
+        // GIVEN: Tạo User active, tiến hành đăng nhập để lấy cặp Token (Access & Refresh Token)
+        var email = "revoke_tokens@origami.com";
+        var oldPassword = "OldPassword123!";
+        var testUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(oldPassword),
+            Status = AccountStatus.Active,
+            CreatedAt = DateTime.UtcNow
+        };
+        await _dbContext.Users.AddAsync(testUser);
+        await _dbContext.SaveChangesAsync();
+
+        var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", new { Email = email, Password = oldPassword });
+        loginResponse.IsSuccessStatusCode.Should().BeTrue();
+        var authData = await loginResponse.Content.ReadFromJsonAsync<AuthResponse>();
+        var oldRefreshToken = authData!.RefreshToken;
+
+        // WHEN: User thực hiện đổi mật khẩu mới thành công
+        var newPassword = "BrandNewPassword123!";
+        var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/change-password");
+        httpRequest.Content = JsonContent.Create(new { CurrentPassword = oldPassword, NewPassword = newPassword, ConfirmPassword = newPassword });
+        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authData.Token);
+
+        var changeResponse = await _client.SendAsync(httpRequest);
+        changeResponse.IsSuccessStatusCode.Should().BeTrue("Đổi mật khẩu thành công");
+
+        // THEN: Cố tình dùng Refresh Token cũ để gọi API cấp lại Access Token mới
+        var refreshRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh-token");
+        refreshRequest.Content = JsonContent.Create(new { RefreshToken = oldRefreshToken });
+        var refreshResponse = await _client.SendAsync(refreshRequest);
+
+        // Phải bị từ chối do hệ thống đã revoke toàn bộ token cũ
+        refreshResponse.IsSuccessStatusCode.Should().BeFalse("Refresh token cũ phải bị vô hiệu hóa hoàn toàn sau khi đổi mật khẩu (BR-AUTH-02)");
+        refreshResponse.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Unauthorized);
+
+        // Kiểm tra chéo dưới cơ sở dữ liệu: RefreshTokenHash phải bị xóa sạch
+        var userInDb = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
+        userInDb!.RefreshTokenHash.Should().BeNullOrEmpty("Hệ thống phải thu hồi và xóa sạch Refresh Token trong DB");
     }
 }

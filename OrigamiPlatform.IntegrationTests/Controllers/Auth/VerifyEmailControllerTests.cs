@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using OrigamiPlatform.Application.Commands.Auth;
 using OrigamiPlatform.Domain.Entities;
+using OrigamiPlatform.Domain.Enums;
 using OrigamiPlatform.IntegrationTests;
 using System.Net;
 using System.Net.Http.Json;
@@ -45,23 +46,20 @@ public class VerifyEmailControllerTests : IntegrationTestBase
     [Fact]
     public async Task ResendVerification_WithAlreadyActiveUser_ShouldReturnBadRequest()
     {
-        // GIVEN: User đã Active
         var email = "already_active@origami.com";
         var testUser = new User
         {
             Id = Guid.NewGuid(),
             Email = email,
             PasswordHash = "Hash",
-            Status = OrigamiPlatform.Domain.Enums.AccountStatus.Active, // Trạng thái đã kích hoạt
+            Status = OrigamiPlatform.Domain.Enums.AccountStatus.Active, 
             CreatedAt = DateTime.UtcNow
         };
         await _dbContext.Users.AddAsync(testUser);
         await _dbContext.SaveChangesAsync();
 
-        // WHEN
         var response = await _client.PostAsJsonAsync("/api/auth/resend-verification", new { Email = email });
 
-        // THEN: Phải bị chặn
         response.IsSuccessStatusCode.Should().BeFalse("Không được phép gửi lại mail kích hoạt cho tài khoản đã Active");
         response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Conflict);
     }
@@ -70,7 +68,6 @@ public class VerifyEmailControllerTests : IntegrationTestBase
     [Fact]
     public async Task VerifyEmail_WithValidToken_ShouldActivateUser()
     {
-        // GIVEN
         var email = "unverified@origami.com";
         var token = "VALID_TOKEN_12345";
         var testUser = new User
@@ -118,5 +115,36 @@ public class VerifyEmailControllerTests : IntegrationTestBase
 
         var userInDb = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
         userInDb!.Status.Should().Be(OrigamiPlatform.Domain.Enums.AccountStatus.Unverified);
+    }
+
+    [Fact]
+    public async Task ResendVerification_ShouldInvalidatePreviousUnusedToken()
+    {
+        var email = "invalidate_old_token@origami.com";
+        var oldToken = "OLD_VERIFICATION_TOKEN_ABC";
+        var testUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = email,
+            PasswordHash = "Hash",
+            Status = AccountStatus.Unverified,
+            VerificationToken = oldToken,
+            CreatedAt = DateTime.UtcNow
+        };
+        await _dbContext.Users.AddAsync(testUser);
+        await _dbContext.SaveChangesAsync();
+
+        var resendResponse = await _client.PostAsJsonAsync("/api/auth/resend-verification", new { Email = email });
+        resendResponse.IsSuccessStatusCode.Should().BeTrue("Yêu cầu gửi lại mã xác thực thành công");
+
+        var verifyOldResponse = await _client.GetAsync($"/api/auth/verify-email?token={oldToken}");
+
+        verifyOldResponse.IsSuccessStatusCode.Should().BeFalse("Token xác thực cũ phải mất hiệu lực ngay sau khi yêu cầu gửi mã mới (FT-02)");
+        verifyOldResponse.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Unauthorized, HttpStatusCode.NotFound);
+
+        var userInDb = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
+        userInDb!.Status.Should().Be(AccountStatus.Unverified);
+        userInDb.VerificationToken.Should().NotBe(oldToken, "Token cũ trong DB phải được thay thế bằng token mới sinh");
+        userInDb.VerificationToken.Should().NotBeNullOrEmpty();
     }
 }

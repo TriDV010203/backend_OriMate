@@ -93,19 +93,15 @@ public class AuthWorkflowTests : IntegrationTestBase
         var userInDb = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
         var resetToken = userInDb!.PasswordResetToken;
 
-        // BƯỚC 2: Thực hiện đặt lại mật khẩu mới thành công
         var resetRequest = new { Token = resetToken, NewPassword = newPassword, ConfirmPassword = newPassword };
         var resetResponse = await _client.PostAsJsonAsync("/api/auth/reset-password", resetRequest);
         resetResponse.IsSuccessStatusCode.Should().BeTrue("Đặt lại mật khẩu thành công");
 
-        // BƯỚC 3: CỐ TÌNH DÙNG LẠI MẬT KHẨU CŨ (OldPassword) ĐỂ ĐĂNG NHẬP
         var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", new LoginRequest(email, oldPassword));
 
-        // THEN: Phải bị chặn
         loginResponse.IsSuccessStatusCode.Should().BeFalse("Luồng Reset Pass đã hoàn tất, mật khẩu cũ không được phép có hiệu lực nữa");
-        loginResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest); // Hoặc 401 Unauthorized
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest); 
 
-        // Bonus kiểm tra chéo: Dùng mật khẩu MỚI thì phải đăng nhập được
         var loginNewResponse = await _client.PostAsJsonAsync("/api/auth/login", new LoginRequest(email, newPassword));
         loginNewResponse.IsSuccessStatusCode.Should().BeTrue("Phải dùng mật khẩu mới mới đăng nhập được");
     }

@@ -17,13 +17,10 @@ public class RegisterControllerTests : IntegrationTestBase
     [Fact]
     public async Task Register_ValidData_ReturnsSuccessAndPersistsUser()
     {
-        // GIVEN
         var request = new RegisterRequest("newuser@origami.com", "StrongPassword123!", "Origami Master");
 
-        // WHEN
         var response = await _client.PostAsJsonAsync("/api/auth/register", request);
 
-        // THEN
         response.IsSuccessStatusCode.Should().BeTrue();
 
         var userInDb = await _dbContext.Users
@@ -39,7 +36,6 @@ public class RegisterControllerTests : IntegrationTestBase
     [Fact]
     public async Task Register_DuplicateEmail_ReturnsBadRequest()
     {
-        // GIVEN
         var email = "duplicate@origami.com";
         await _dbContext.Users.AddAsync(new User
         {
@@ -53,10 +49,8 @@ public class RegisterControllerTests : IntegrationTestBase
 
         var request = new RegisterRequest(email, "ValidPassword123!", "Another Guy");
 
-        // WHEN
         var response = await _client.PostAsJsonAsync("/api/auth/register", request);
 
-        // THEN
         response.IsSuccessStatusCode.Should().BeFalse();
         var count = await _dbContext.Users.CountAsync(u => u.Email == email);
         count.Should().Be(1);
@@ -65,13 +59,10 @@ public class RegisterControllerTests : IntegrationTestBase
     [Fact]
     public async Task Register_InvalidPassword_ReturnsBadRequest()
     {
-        // GIVEN: Mật khẩu không đủ độ mạnh
         var request = new RegisterRequest("weakpass@origami.com", "123", "Weak User");
 
-        // WHEN
         var response = await _client.PostAsJsonAsync("/api/auth/register", request);
 
-        // THEN
         response.IsSuccessStatusCode.Should().BeFalse();
     }
 }
