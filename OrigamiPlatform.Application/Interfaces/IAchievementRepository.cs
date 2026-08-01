@@ -28,6 +28,9 @@ public interface IAchievementRepository
 
     Task<HashSet<Guid>> GetCompletedTutorialIdsAsync(Guid userId, CancellationToken ct = default);
 
+    /// <summary>FT-31: distinct CategoryId of tutorials the user has an Achievement for — used to bias recommendations toward categories already learned.</summary>
+    Task<List<int>> GetCompletedCategoryIdsAsync(Guid userId, CancellationToken ct = default);
+
     Task AddAsync(Achievement achievement, CancellationToken ct = default);
 
     Task UpdateAsync(Achievement achievement, CancellationToken ct = default);

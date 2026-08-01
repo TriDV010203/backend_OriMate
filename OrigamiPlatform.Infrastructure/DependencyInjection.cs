@@ -141,6 +141,9 @@ public static class DependencyInjection
         services.AddScoped<AdminUpdateTutorialHandler>();
         services.AddScoped<SetOfficialTutorialHandler>();
 
+        // Handlers — Tutorials AI Recommendation (FT-31)
+        services.AddScoped<GetRecommendedTutorialsHandler>();
+
         // Handlers — AdminConfiguration (FT-03)
         services.AddScoped<GetCategoriesHandler>();
         services.AddScoped<CreateCategoryHandler>();

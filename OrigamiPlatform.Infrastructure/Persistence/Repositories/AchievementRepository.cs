@@ -70,6 +70,13 @@ public class AchievementRepository : IAchievementRepository
             .ToListAsync(ct))
             .ToHashSet();
 
+    public async Task<List<int>> GetCompletedCategoryIdsAsync(Guid userId, CancellationToken ct = default)
+        => await _db.Achievements
+            .Where(a => a.UserId == userId)
+            .Select(a => a.Tutorial.CategoryId)
+            .Distinct()
+            .ToListAsync(ct);
+
     public async Task AddAsync(Achievement achievement, CancellationToken ct = default)
     {
         _db.Achievements.Add(achievement);

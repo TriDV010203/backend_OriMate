@@ -39,6 +39,7 @@ public class TutorialsController : ControllerBase
     private readonly GetTutorialForAdminHandler _getTutorialForAdmin;
     private readonly AdminUpdateTutorialHandler _adminUpdateTutorial;
     private readonly SetOfficialTutorialHandler _setOfficialTutorial;
+    private readonly GetRecommendedTutorialsHandler _getRecommendedTutorials;
 
     public TutorialsController(
         GetTutorialsHandler getTutorials,
@@ -62,7 +63,8 @@ public class TutorialsController : ControllerBase
         GetAdminTutorialsHandler getAdminTutorials,
         GetTutorialForAdminHandler getTutorialForAdmin,
         AdminUpdateTutorialHandler adminUpdateTutorial,
-        SetOfficialTutorialHandler setOfficialTutorial)
+        SetOfficialTutorialHandler setOfficialTutorial,
+        GetRecommendedTutorialsHandler getRecommendedTutorials)
     {
         _getTutorials = getTutorials;
         _getTutorialBySlug = getTutorialBySlug;
@@ -86,6 +88,7 @@ public class TutorialsController : ControllerBase
         _getTutorialForAdmin = getTutorialForAdmin;
         _adminUpdateTutorial = adminUpdateTutorial;
         _setOfficialTutorial = setOfficialTutorial;
+        _getRecommendedTutorials = getRecommendedTutorials;
     }
 
     // ── Public ───────────────────────────────────────────────────────────────
@@ -112,6 +115,20 @@ public class TutorialsController : ControllerBase
     {
         var result = await _getTutorialBySlug.HandleAsync(
             new GetTutorialBySlugQuery(slug, GetCurrentUserId()), ct);
+        return Ok(result);
+    }
+
+    /// <summary>GET /api/tutorials/recommended — FT-31 rule-based recommendation. Anonymous callers
+    /// and users with no completed tutorial yet get the most-liked Beginner tutorials.</summary>
+    [HttpGet("recommended")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetRecommended(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken ct = default)
+    {
+        var result = await _getRecommendedTutorials.HandleAsync(
+            new GetRecommendedTutorialsQuery(GetCurrentUserId(), page, pageSize), ct);
         return Ok(result);
     }
 
