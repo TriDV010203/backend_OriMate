@@ -16,7 +16,7 @@ public class GetLearningPathsHandler
         var page = Math.Max(1, query.Page);
         var pageSize = Math.Clamp(query.PageSize, 1, 50);
 
-        var result = await _learningPathRepo.GetPublishedAsync(query.Search, page, pageSize, ct);
+        var result = await _learningPathRepo.GetPublishedAsync(query.Search, query.ModeId, page, pageSize, ct);
 
         return new PagedResult<LearningPathListItemDto>(
             result.Items.Select(lp => lp.ToListItemDto()).ToList(),

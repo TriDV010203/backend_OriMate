@@ -13,11 +13,13 @@ public class CreateLearningPathHandler
 {
     private readonly ILearningPathRepository _learningPathRepo;
     private readonly ITutorialRepository _tutorialRepo;
+    private readonly ILearningPathModeRepository _modeRepo;
     private readonly IBlockedWordService _blockedWords;
 
     public CreateLearningPathHandler(
-        ILearningPathRepository learningPathRepo, ITutorialRepository tutorialRepo, IBlockedWordService blockedWords)
-        => (_learningPathRepo, _tutorialRepo, _blockedWords) = (learningPathRepo, tutorialRepo, blockedWords);
+        ILearningPathRepository learningPathRepo, ITutorialRepository tutorialRepo,
+        ILearningPathModeRepository modeRepo, IBlockedWordService blockedWords)
+        => (_learningPathRepo, _tutorialRepo, _modeRepo, _blockedWords) = (learningPathRepo, tutorialRepo, modeRepo, blockedWords);
 
     public async Task<LearningPathDto> HandleAsync(CreateLearningPathCommand command, CancellationToken ct = default)
     {
@@ -33,6 +35,11 @@ public class CreateLearningPathHandler
         if (await _blockedWords.ContainsBlockedWordAsync(request.Description, ct))
             throw new DomainException("Description contains a blocked word. BR-23.");
 
+        var mode = await _modeRepo.GetByIdAsync(request.LearningPathModeId, ct)
+            ?? throw new NotFoundException($"Learning path mode {request.LearningPathModeId} not found.");
+        if (!mode.IsActive)
+            throw new DomainException("This mode is not active.");
+
         var items = await LearningPathItemValidator.BuildItemsAsync(_tutorialRepo, request.TutorialIds, ct);
 
         var now = DateTime.UtcNow;
@@ -40,6 +47,8 @@ public class CreateLearningPathHandler
         {
             Id = Guid.NewGuid(),
             CreatedByUserId = command.ActorId,
+            LearningPathModeId = mode.Id,
+            LearningPathMode = mode,
             Title = request.Title,
             Description = request.Description,
             CoverImageUrl = request.CoverImageUrl,

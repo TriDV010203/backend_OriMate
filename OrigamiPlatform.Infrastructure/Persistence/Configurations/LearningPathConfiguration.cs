@@ -21,6 +21,11 @@ public class LearningPathConfiguration : IEntityTypeConfiguration<LearningPath>
                .HasForeignKey(lp => lp.CreatedByUserId)
                .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(lp => lp.LearningPathMode)
+               .WithMany(m => m.LearningPaths)
+               .HasForeignKey(lp => lp.LearningPathModeId)
+               .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasMany(lp => lp.Items)
                .WithOne(i => i.LearningPath)
                .HasForeignKey(i => i.LearningPathId)

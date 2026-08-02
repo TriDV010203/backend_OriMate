@@ -13,17 +13,21 @@ public class LearningPathRepository : ILearningPathRepository
     public LearningPathRepository(AppDbContext db) => _db = db;
 
     private IQueryable<LearningPath> BaseQuery() => _db.LearningPaths
+        .Include(lp => lp.LearningPathMode)
         .Include(lp => lp.Items.OrderBy(i => i.ItemOrder))
             .ThenInclude(i => i.Tutorial).ThenInclude(t => t.Category)
         .AsSplitQuery();
 
     public async Task<PagedResult<LearningPath>> GetPublishedAsync(
-        string? search, int page, int pageSize, CancellationToken ct = default)
+        string? search, Guid? modeId, int page, int pageSize, CancellationToken ct = default)
     {
         var query = BaseQuery().Where(lp => lp.Status == LearningPathStatus.Published);
 
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(lp => lp.Title.Contains(search) || lp.Description.Contains(search));
+
+        if (modeId.HasValue)
+            query = query.Where(lp => lp.LearningPathModeId == modeId.Value);
 
         var totalCount = await query.CountAsync(ct);
 
@@ -47,7 +51,7 @@ public class LearningPathRepository : ILearningPathRepository
             .FirstOrDefaultAsync(ct);
 
     public async Task<PagedResult<LearningPath>> GetAllForAdminAsync(
-        string? search, LearningPathStatus? status, int page, int pageSize, CancellationToken ct = default)
+        string? search, LearningPathStatus? status, Guid? modeId, int page, int pageSize, CancellationToken ct = default)
     {
         var query = BaseQuery().AsQueryable();
 
@@ -56,6 +60,9 @@ public class LearningPathRepository : ILearningPathRepository
 
         if (status.HasValue)
             query = query.Where(lp => lp.Status == status.Value);
+
+        if (modeId.HasValue)
+            query = query.Where(lp => lp.LearningPathModeId == modeId.Value);
 
         var totalCount = await query.CountAsync(ct);
 

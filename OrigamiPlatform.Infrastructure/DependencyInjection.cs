@@ -10,6 +10,7 @@ using OrigamiPlatform.Application.Commands.Follows;
 using OrigamiPlatform.Application.Commands.Gamification;
 using OrigamiPlatform.Application.Commands.Journals;
 using OrigamiPlatform.Application.Commands.LearningPaths;
+using OrigamiPlatform.Application.Commands.LearningPathModes;
 using OrigamiPlatform.Application.Commands.Likes;
 using OrigamiPlatform.Application.Commands.Moderation;
 using OrigamiPlatform.Application.Commands.Notifications;
@@ -31,6 +32,7 @@ using OrigamiPlatform.Application.Queries.DailyChallenge;
 using OrigamiPlatform.Application.Queries.Gamification;
 using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.LearningPaths;
+using OrigamiPlatform.Application.Queries.LearningPathModes;
 using OrigamiPlatform.Application.Queries.Notifications;
 using OrigamiPlatform.Application.Queries.Reports;
 using OrigamiPlatform.Application.Queries.Shop;
@@ -82,6 +84,9 @@ public static class DependencyInjection
         services.AddScoped<IHatGapTransactionRepository, HatGapTransactionRepository>();
         services.AddScoped<ILearningPathRepository, LearningPathRepository>();
         services.AddScoped<ILearningPathCompletionRepository, LearningPathCompletionRepository>();
+        services.AddScoped<ILearningPathModeRepository, LearningPathModeRepository>();
+        services.AddScoped<ILearningPathModeUnlockTestRepository, LearningPathModeUnlockTestRepository>();
+        services.AddScoped<IModeUnlockSubmissionRepository, ModeUnlockSubmissionRepository>();
         services.AddScoped<IDailyChallengeRepository, DailyChallengeRepository>();
         services.AddScoped<IDailyChallengeSubmissionRepository, DailyChallengeSubmissionRepository>();
         services.AddScoped<IChallengeStreakRepository, ChallengeStreakRepository>();
@@ -251,6 +256,17 @@ public static class DependencyInjection
         services.AddScoped<UpdateLearningPathHandler>();
         services.AddScoped<PublishLearningPathHandler>();
         services.AddScoped<ArchiveLearningPathHandler>();
+
+        // Handlers — Learning Path Modes (tiered roadmap + unlock test)
+        services.AddScoped<GetLearningPathModesHandler>();
+        services.AddScoped<GetAdminLearningPathModesHandler>();
+        services.AddScoped<GetModeUnlockSubmissionsHandler>();
+        services.AddScoped<CreateLearningPathModeHandler>();
+        services.AddScoped<UpdateLearningPathModeHandler>();
+        services.AddScoped<UpsertModeUnlockTestHandler>();
+        services.AddScoped<SubmitModeUnlockTestHandler>();
+        services.AddScoped<ApproveModeUnlockSubmissionHandler>();
+        services.AddScoped<RejectModeUnlockSubmissionHandler>();
 
         // Handlers — Clan (FT-22)
         services.AddScoped<CreateClanHandler>();

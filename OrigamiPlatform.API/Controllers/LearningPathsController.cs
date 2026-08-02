@@ -52,11 +52,12 @@ public class LearningPathsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetLearningPaths(
         [FromQuery] string? search,
+        [FromQuery] Guid? modeId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var result = await _getLearningPaths.HandleAsync(new GetLearningPathsQuery(search, page, pageSize), ct);
+        var result = await _getLearningPaths.HandleAsync(new GetLearningPathsQuery(search, modeId, page, pageSize), ct);
         return Ok(result);
     }
 
@@ -86,12 +87,13 @@ public class LearningPathsController : ControllerBase
     public async Task<IActionResult> GetAdminLearningPaths(
         [FromQuery] string? search,
         [FromQuery] string? status,
+        [FromQuery] Guid? modeId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
         var result = await _getAdminLearningPaths.HandleAsync(
-            new GetAdminLearningPathsQuery(search, status, page, pageSize), ct);
+            new GetAdminLearningPathsQuery(search, status, modeId, page, pageSize), ct);
         return Ok(result);
     }
 
