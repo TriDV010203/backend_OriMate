@@ -1,0 +1,37 @@
+name: Backend Build & Test
+
+on:
+  pull_request:
+    branches: [ master ]
+  push:
+    branches: [ master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore OrigamiPlatform.slnx
+
+      - name: Build (Release, no warnings as errors — chỉ cảnh báo)
+        run: dotnet build OrigamiPlatform.slnx --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test OrigamiPlatform.slnx --configuration Release --no-build --verbosity normal
+
+      - name: Check for FamilyProject/Ad leftover (guard chống merge nhầm code đã xoá)
+        run: |
+          if grep -rEl "FamilyProject|FamilySubscription|AdCampaign|AdBanner|AdImpression|AdClick|AdPlacement" \
+            --include="*.cs" . | grep -v "/Migrations/"; then
+            echo "::error::Tìm thấy code liên quan FamilyProject/Ad — đã bị loại khỏi scope BRD v5.0, không được thêm lại."
+            exit 1
+          fi

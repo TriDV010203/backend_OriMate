@@ -17,14 +17,16 @@ public class AchievementsController : ControllerBase
     private readonly UpdateAchievementHandler _updateAchievement;
     private readonly DeleteAchievementHandler _deleteAchievement;
     private readonly GetUserAchievementsHandler _getUserAchievements;
+    private readonly GetMyMilestonesHandler _getMyMilestones;
 
     public AchievementsController(
         CreateAchievementHandler createAchievement,
         UpdateAchievementHandler updateAchievement,
         DeleteAchievementHandler deleteAchievement,
-        GetUserAchievementsHandler getUserAchievements)
-        => (_createAchievement, _updateAchievement, _deleteAchievement, _getUserAchievements)
-            = (createAchievement, updateAchievement, deleteAchievement, getUserAchievements);
+        GetUserAchievementsHandler getUserAchievements,
+        GetMyMilestonesHandler getMyMilestones)
+        => (_createAchievement, _updateAchievement, _deleteAchievement, _getUserAchievements, _getMyMilestones)
+            = (createAchievement, updateAchievement, deleteAchievement, getUserAchievements, getMyMilestones);
 
     [HttpPost]
     [Authorize]
@@ -94,6 +96,14 @@ public class AchievementsController : ControllerBase
             new GetUserAchievementsQuery(userId, userId, page, pageSize),
             ct);
 
+        return Ok(result);
+    }
+
+    [HttpGet("milestones")]
+    [Authorize]
+    public async Task<IActionResult> GetMyMilestones(CancellationToken ct)
+    {
+        var result = await _getMyMilestones.HandleAsync(new GetMyMilestonesQuery(GetCurrentUserId()), ct);
         return Ok(result);
     }
 

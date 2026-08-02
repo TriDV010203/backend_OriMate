@@ -6,6 +6,5 @@ public enum UserRoleType
     User,
     ContributorReviewer,
     Manager,
-    Admin,
-    AdvertisingPartner
+    Admin
 }

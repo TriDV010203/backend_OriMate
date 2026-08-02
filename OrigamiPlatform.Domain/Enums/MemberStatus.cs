@@ -4,5 +4,6 @@ public enum MemberStatus
 {
     Invited,
     Active,
+    Declined,
     Removed
 }

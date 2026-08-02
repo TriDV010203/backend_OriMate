@@ -7,7 +7,7 @@ public record TutorialResponse(
     string Description,
     string? CoverImageUrl,
     string Type,
-    string? Difficulty,
+    string Difficulty,
     int CategoryId,
     string Status,
     DateTime CreatedAt,

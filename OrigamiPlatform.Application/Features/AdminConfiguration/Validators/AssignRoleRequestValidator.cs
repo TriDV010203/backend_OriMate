@@ -8,8 +8,7 @@ public static class AssignRoleRequestValidator
     private static readonly HashSet<string> AssignableRoles =
     [
         nameof(UserRoleType.ContributorReviewer),
-        nameof(UserRoleType.Manager),
-        nameof(UserRoleType.AdvertisingPartner)
+        nameof(UserRoleType.Manager)
     ];
 
     public static void Validate(string role)

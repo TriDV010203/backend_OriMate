@@ -1,0 +1,113 @@
+# MVP_SCOPE.md (v2) — OriMate, phạm vi code 3 tuần
+
+## References
+- `FT_MAPPING_v5.md` — mapping FT ↔ feature/entity/actor
+- `CLAUDE.md` — pattern code (Command/Query/Handler)
+- Team: 5 người (2 FE + 3 BE, có dùng AI hỗ trợ code)
+
+⚠️ **v2 thay thế hoàn toàn v1** — sau khi audit `Application/` bằng `tree /F`, thực tế code đã có sẵn khác đáng kể so với giả định ban đầu. File này dựa trên trạng thái thật, không dựa trên BRD suy diễn nữa.
+
+⚠️ **Quy tắc cho AI coding agent (cập nhật 2026-07):** Mục **1. VIỆC CẦN LÀM NGAY** và **2. MUST-HAVE CÒN THIẾU** đã **Done 100%** (18/18 FT, xác nhận qua RTW Sheet 3). Giờ được phép code **3. SHOULD-HAVE** theo đúng thứ tự ưu tiên ghi trong bảng — vẫn KHÔNG code bất kỳ FT nào ở mục **4. WON'T-HAVE** nếu chưa có xác nhận rõ ràng bằng văn bản (giống cách FT-20 vừa được chuyển từ Won't-have sang Should-have hôm nay) — không tự ý suy diễn "chắc cũng nên làm luôn".
+
+---
+
+## 0. Audit — trạng thái thực tế (tính đến thời điểm chốt v2)
+
+| Feature | Trạng thái | Ghi chú |
+|---|---|---|
+| Auth (FT-01, FT-02) | ✅ Đã code đủ | Login/Register/VerifyEmail/ResendVerification/Forgot/Reset/ChangePassword/RefreshToken/Logout — Command/Handler đầy đủ |
+| Achievements (FT-19) | ✅ Đã code đủ | Create/Update/Delete + GetUserAchievements |
+| Comments (FT-13) | ✅ Đã code | Add/Delete + GetComments |
+| CommunityPosts / Likes (FT-12) | ✅ Đã code | Create post, Toggle like, GetCommunityFeed |
+| Follows (FT-13) | ✅ Đã code | ToggleFollow |
+| Notifications (FT-13) | ✅ Đã code | Mark read (all/single) + GetNotifications |
+| Reports (FT-12/14) | ✅ Đã code | Submit/Handle + GetPendingReports |
+| Wishlists | ✅ Đã code | Bonus — không nằm trong Must-have gốc nhưng đã có sẵn, giữ luôn |
+| TutorialProgress (FT-09) | ✅ Đã code | Complete/UncompleteStep + GetTutorialProgress |
+| Users/Profile (FT-15) | ✅ Đã code | UpdateProfile + GetCreatorProfile |
+| Journals (FT-21) | ✅ Đã code VÀ đã bật route thật (JournalsController + DI đầy đủ) | Đã xác nhận qua audit ModelSnapshot 2026-07 — quyết định "không bật route" trước đây chưa từng được thực thi. Chính thức chuyển sang Should-have Done, xem mục 3 |
+| **Tutorials — Write (FT-04, 05, 07)** | 🔴 Cần refactor | Đang chạy qua `TutorialService` (Service pattern cũ) — quyết định refactor sang Command/Handler |
+| **Tutorials — Read (FT-06, 08)** | ✅ Đã migrate | `GetTutorialsQuery`, `GetTutorialBySlugQuery` đã theo Command/Query |
+| **AdminConfiguration (FT-03)** | 🔴 Cần refactor | Đang chạy qua `AdminConfigService` — quyết định refactor sang Command/Handler |
+| **Stuck button (FT-10)** | ⚪ Chưa code | Không thấy feature `StuckThread`/`Stuck` nào trong Commands/Queries |
+| **VIP Subscription (FT-16, 17)** | ⚪ Chưa code gì | `Commands/Subscriptions/` rỗng — chỉ có sẵn `IVipSubscriptionRepository` interface. **Đây là must-have chưa động tới** |
+| Moderation nâng cao (FT-14 phần CTV) | ⚪ Chưa code | Folder `Commands/Moderation/` rỗng |
+| FamilyProjects (scope cũ) | 🗑️ Cần xoá | Đã code khá đủ (6 Command/Handler) — **xoá theo quyết định đã chốt** |
+| AdCampaigns / Ads (scope cũ) | 🗑️ Cần xoá | Đã code khá đủ (4 Command/Handler + 6 Query/Handler) — **xoá theo quyết định đã chốt** |
+| Clan, DailyQuest, Streak, HatGap, Shop | ⚪ Chưa code | Đúng như dự kiến — thuộc Should-have, làm sau khi Must-have xong |
+
+---
+
+## 1. VIỆC CẦN LÀM NGAY — trước khi chạm vào bất kỳ FT mới nào (Ngày 1-2, Tuần 1)
+
+| # | Việc | Ước lượng | Người phù hợp |
+|---|---|---|---|
+| 1 | **Xoá code FamilyProjects**: `Commands/FamilyProjects/`, `DTOs/FamilyProjects/`, `IFamilyProjectRepository.cs`, `IFamilySubscriptionRepository.cs`, entity `FamilyProject*`/`FamilySubscription`, DI registration, controller/route liên quan (nếu có ở API layer) | ~0.5 ngày | BE3 |
+| 2 | **Xoá code AdCampaigns/Ads**: `Commands/AdCampaigns/`, `Queries/AdCampaigns/`, `DTOs/AdCampaigns/`, `IAdCampaignRepository.cs`, entity `Ad*`, `AdBudgetDepletionJob`, DI registration, controller/route | ~0.5 ngày | BE3 |
+| 3 | **Xoá migration liên quan** đến 2 nhóm bảng trên (nếu đã apply lên DB dev) — tạo migration mới drop bảng, KHÔNG sửa tay migration cũ | ~0.5 ngày | Người đang giữ quyền tạo migration (theo Git Workflow, chỉ 1 người/lần) |
+| 4 | **Refactor `TutorialService` → Command/Handler**: tách thành `CreateTutorialCommand/Handler`, `SubmitTutorialCommand/Handler`, `ReviewTutorialCommand/Handler` (Publish/RejectNeedChanges/Remove — theo đúng 1 vòng Manager, BR-TUT-01), `EditTutorialCommand/Handler` (working copy). Giữ nguyên `DTOs/Tutorials/*Dto.cs` cho phần Read đã có; phần Write đổi từ `Request/Response` sang convention Command/Dto cho khớp phần còn lại | ~1 - 1.5 ngày | BE1 |
+| 5 | **Refactor `AdminConfigService` → Command/Handler**: `CreateCategoryCommand`, `UpdateCategoryCommand`, `CreateBlockedWordCommand`, `AssignRoleCommand`, `RemoveRoleCommand`, `SuspendUserCommand` + Handler tương ứng. Giữ nguyên các Validator FluentValidation đã có (`Validators/` của AdminConfiguration) — chỉ đổi target sang Command | ~0.5 - 1 ngày | BE2 |
+
+**Tổng ước lượng: ~2.5 - 3.5 ngày** trên 3 người BE, làm song song → tương đương ~1 ngày lịch nếu chia đúng người. Đây là phần "nợ kỹ thuật" phải trả trước, không tính vào thời gian làm feature mới.
+
+---
+
+## 2. MUST-HAVE CÒN THIẾU (làm sau khi mục 1 xong)
+
+| FT | Tên | Việc cần làm | Người phù hợp |
+|---|---|---|---|
+| FT-16 | VIP Subscription | **Giai đoạn 1 (trong 3 tuần):** xác nhận thủ công — `CreateTransactionCommand`, `ConfirmPaymentCommand` (Admin xác nhận), `SubscribeCommand` kích hoạt VIP khi Transaction Confirmed, `GetMySubscriptionsQuery`. Ước lượng lại về **~1 - 1.5 ngày** (như bản gốc). Thiết kế `Transaction` đủ field để giai đoạn 2 (SePay) cắm thêm mà không đổi schema — xem ERD | BE3 |
+| FT-17 | Creator dashboard | `GetCreatorRevenueQuery` — chỉ cần tổng subscriber + tổng transaction confirmed | BE3 |
+
+**Giai đoạn 2 — SePay webhook:** KHÔNG nằm trong 3 tuần này, làm sau khi có hạ tầng public (xem `docs/DEPLOYMENT.md`). Không chặn tiến độ MVP, không cần tài khoản sandbox/ngrok ngay bây giờ.
+| FT-10 | Stuck button | `CreateStuckThreadCommand`, dùng lại `Comment` (TargetType=StuckThread) đã có sẵn cho phần reply | BE1 (sau khi xong refactor Tutorials, vì cùng domain) |
+| FT-14 (CTV) | Moderation cơ bản | `DeleteViolatingCommentCommand` (CTV), review logic đã một phần nằm trong Reports — chỉ cần bổ sung quyền CTV | BE2 |
+
+---
+
+## 3. SHOULD-HAVE — chỉ làm nếu mục 1+2 xong sớm, ưu tiên đơn giản hoá tối đa
+
+| FT | Tên | Đơn giản hoá |
+|---|---|---|
+| FT-21 | Folding Journal | ✅ **Đã Done** — code + route đã live thật (JournalsController), không cần làm gì thêm. Đã có AC/NAC trong SRS Part 3. Chỉ cần FE build UI nếu muốn dùng |
+| FT-18 | Shop affiliate | ✅ **Đã Done** — 2026-07, Entity/Repository/Command/Query/Controller đầy đủ, migration đã apply |
+| FT-20 | Personal Milestone | 🔵 Đang code (2026-07) — quyết định đưa vào scope khi Must-have đã xong 100%, không còn nằm ở Won't-have như bản gốc |
+| FT-22 | Clan | Chỉ create/join/invite/leave |
+| FT-26, FT-27 | Streak + Daily Quest | 1 pool duy nhất |
+| FT-28 | Hạt Gấp | Chỉ sink Streak Freeze |
+| FT-11 | Tutorial variants | Nếu kịp |
+| FT-08 | SEO & feed ranking nâng cao | Nếu kịp |
+| FT-33 | Curated Learning Path | Chuyển từ Won't-have sang Should-have 2026-07-25 (xác nhận qua chat). Admin/Manager tạo `LearningPath` gồm các `LearningPathItem` trỏ tới `Tutorial` có `IsOfficial = true` (đã được Admin/Manager viết qua FT-04 admin-create) và `Status = Published`. Không review queue thêm — Admin/Manager đã có quyền publish. Giữ đơn giản: Draft → Published → Archived, không hard-delete |
+| FT-34 | Daily Challenge | Mới, 2026-07-26 (xác nhận qua chat). Admin/Manager chọn (thủ công, lên lịch trước) hoặc hệ thống tự chọn (fallback nếu quên) 1 `Tutorial` bất kỳ đã `Published` (không giới hạn `IsOfficial`) làm thử thách mỗi ngày (mốc GMT+7). User nộp ảnh tự do (không gate theo `TutorialStepProgress`), xếp hạng theo lượt thích, top 3 nhận thưởng. Có `ChallengeStreakLog` **riêng biệt** với `StreakLog` (FT-26) — chỉ tăng khi nộp bài thử thách, không tính khi học tutorial thường |
+| FT-35 | Badge System (Danh hiệu) | Mới, 2026-07-26 (xác nhận qua chat). Bổ sung tầng "danh hiệu hiển thị" còn thiếu (hiện chỉ có Hạt Gấp + `PersonalMilestone`) — cấp cho số lượng bài hoàn thành, số bài Khó, streak học tập, streak/hạng thử thách ngày, tác giả được chọn làm thử thách. Hook vào các trigger đã có (`CreateAchievementHandler`, `CompleteTutorialStepHandler`) thay vì viết lại logic đếm |
+
+---
+
+## 4. WON'T-HAVE — không code, không bật route
+
+| FT | Tên | Ghi chú |
+|---|---|---|
+| FT-23 | Weekly Challenge & pairwise | Rủi ro kỹ thuật cao — **khác với FT-34 Daily Challenge**: FT-23 là theo tuần, có pairwise vote và actor Contributor Reviewer; FT-34 là theo ngày, xếp hạng bằng lượt thích, không cần vai trò mới |
+| FT-24 | Clan Quest & League | Phụ thuộc FT-23 |
+| FT-29/30/31 | Onboarding đầy đủ, Re-engagement, Discovery nâng cao | Không có trong 3 tuần |
+
+**FT-33 (Learning Path) đã được xác nhận bằng văn bản 2026-07-25 để chuyển sang code ngay** (tương tự tiền lệ FT-20) — xem mục 3 bên dưới.
+
+**FT-34 (Daily Challenge) và FT-35 (Badge System) đã được xác nhận qua chat 2026-07-26 để chuyển sang code ngay** (tương tự tiền lệ FT-20, FT-33) — xem mục 3 bên trên.
+
+---
+
+## 5. Phân công 3 tuần (cập nhật)
+
+| | Tuần 1 | Tuần 2 | Tuần 3 |
+|---|---|---|---|
+| **BE1** | Refactor Tutorials → Command/Handler (mục 1.4) | FT-10 Stuck button + FT-11 (nếu kịp) | Buffer/test/fix bug FE |
+| **BE2** | Refactor AdminConfig → Command/Handler (mục 1.5) | FT-14 Moderation CTV + hỗ trợ Should-have (Clan/Quest) | Buffer/test/fix bug FE |
+| **BE3** | Xoá FamilyProjects + AdCampaigns/Ads (mục 1.1-1.3) | FT-16, FT-17 VIP Subscription (thanh toán thủ công) | FT-18 Shop (nếu kịp) + buffer/test |
+
+- Cuối tuần 2: nếu 3 người đều xong Must-have, dồn lực làm chung Should-have quan trọng nhất (Clan cơ bản + Streak/Quest rút gọn).
+- Tuần 3 luôn dành ≥1-1.5 ngày cuối cho buffer, review PR chéo, Definition of Done.
+
+## 6. Điều kiện mở rộng scope
+
+Chỉ bổ sung FT từ mục 4 nếu: (a) mục 1+2 Done đầy đủ theo Definition of Done, VÀ (b) còn ≥3 ngày buffer trước hạn, VÀ (c) cả 3 BE đồng ý.

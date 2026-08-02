@@ -10,4 +10,6 @@ public interface IWishlistRepository
     Task AddAsync(Wishlist wishlist, CancellationToken ct = default);
     Task RemoveAsync(Wishlist wishlist, CancellationToken ct = default);
     Task<PagedResult<Wishlist>> GetUserWishlistAsync(Guid userId, int page, int pageSize, CancellationToken ct = default);
+    Task<int> GetWishlistCountAsync(Guid targetId, Domain.Enums.TargetType targetType, CancellationToken ct = default);
+    Task<PagedResult<Wishlist>> GetUserWishlistAsync(Guid userId, TargetType? targetType, int page, int pageSize, CancellationToken ct = default);
 }

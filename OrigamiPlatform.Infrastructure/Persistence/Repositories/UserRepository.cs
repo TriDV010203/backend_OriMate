@@ -51,6 +51,15 @@ public class UserRepository : IUserRepository
         await _db.SaveChangesAsync(ct);
     }
 
+    public async Task<HashSet<Guid>> GetFollowingIdsAsync(Guid userId, CancellationToken ct = default)
+    {
+        var ids = await _db.FollowRelationships
+            .Where(f => f.FollowerId == userId)
+            .Select(f => f.FollowingId)
+            .ToListAsync(ct);
+        return ids.ToHashSet();
+    }
+
     public async Task<IReadOnlyList<User>> GetUsersByRoleAsync(UserRoleType role, CancellationToken ct = default)
         => await _db.Users
             .Where(u => u.Roles.Any(r => r.Role == role))

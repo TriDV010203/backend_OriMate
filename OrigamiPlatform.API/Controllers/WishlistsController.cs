@@ -1,9 +1,10 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrigamiPlatform.Application.Commands.Wishlists;
 using OrigamiPlatform.Application.DTOs.Wishlists;
 using OrigamiPlatform.Application.Queries.Wishlists;
+using OrigamiPlatform.Domain.Enums;
+using System.Security.Claims;
 
 namespace OrigamiPlatform.API.Controllers;
 
@@ -21,7 +22,6 @@ public class WishlistsController : ControllerBase
         var userId = GetCurrentUserId();
         var cmd = new ToggleWishlistCommand(userId, request.TargetId, request.TargetType);
 
-        // Gọi Handler, nhận về true (Saved) hoặc false (Unsaved)
         var isSaved = await handler.HandleAsync(cmd, ct);
 
         var message = isSaved ? "Item saved to wishlist." : "Item removed from wishlist.";
@@ -31,12 +31,13 @@ public class WishlistsController : ControllerBase
     [HttpGet("my-wishlist")]
     public async Task<IActionResult> GetMyWishlist(
         [FromServices] GetWishlistHandler handler,
+        [FromQuery] TargetType? type,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         CancellationToken ct = default)
     {
         var userId = GetCurrentUserId();
-        var query = new GetWishlistQuery(userId, page, pageSize);
+        var query = new GetWishlistQuery(userId, type, page, pageSize);
         var result = await handler.HandleAsync(query, ct);
 
         return Ok(result);

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using OrigamiPlatform.Domain.Constants;
 using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
 
@@ -7,7 +8,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Configurations;
 
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
-    internal static readonly Guid AdminId = Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
+    internal static readonly Guid AdminId = SystemUsers.OfficialTutorialAuthorId;
     private static readonly DateTime SeedDate = new(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     public void Configure(EntityTypeBuilder<User> builder)

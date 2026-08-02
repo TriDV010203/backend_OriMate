@@ -37,5 +37,28 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Repositories
             return await _context.Likes
                 .CountAsync(l => l.TargetId == targetId && l.TargetType == targetType);
         }
+
+        public async Task<Dictionary<Guid, int>> GetCountsForTargetsAsync(IEnumerable<Guid> targetIds, TargetType targetType)
+        {
+            var ids = targetIds.ToList();
+            var counts = await _context.Likes
+                .Where(l => l.TargetType == targetType && ids.Contains(l.TargetId))
+                .GroupBy(l => l.TargetId)
+                .Select(g => new { TargetId = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            return counts.ToDictionary(c => c.TargetId, c => c.Count);
+        }
+
+        public async Task<HashSet<Guid>> GetLikedTargetIdsAsync(Guid userId, IEnumerable<Guid> targetIds, TargetType targetType)
+        {
+            var ids = targetIds.ToList();
+            var liked = await _context.Likes
+                .Where(l => l.UserId == userId && l.TargetType == targetType && ids.Contains(l.TargetId))
+                .Select(l => l.TargetId)
+                .ToListAsync();
+
+            return liked.ToHashSet();
+        }
     }
 }

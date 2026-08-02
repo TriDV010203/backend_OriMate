@@ -4,5 +4,9 @@ public enum TargetType
 {
     Tutorial,
     CommunityPost,
-    Comment
+    Comment,
+    StuckThread,
+
+    // FT-34 Daily Challenge submissions
+    DailyChallengeSubmission
 }

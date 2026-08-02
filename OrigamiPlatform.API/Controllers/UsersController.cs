@@ -18,26 +18,54 @@ public class UsersController : ControllerBase
         [FromServices] GetCreatorProfileHandler handler,
         CancellationToken ct)
     {
-        Guid? currentUserId = null;
-
-        if (User.Identity?.IsAuthenticated == true)
-        {
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                              ?? User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
-
-            if (Guid.TryParse(userIdClaim, out var parsedId))
-            {
-                currentUserId = parsedId;
-            }
-        }
-
-        var result = await handler.HandleAsync(new GetCreatorProfileQuery(id, currentUserId), ct);
+        var result = await handler.HandleAsync(new GetCreatorProfileQuery(id, GetCurrentUserId()), ct);
 
         return Ok(result);
     }
 
+    [HttpGet("{id}/followers")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetFollowers(
+        [FromRoute] Guid id,
+        [FromServices] GetFollowersHandler handler,
+        CancellationToken ct,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        var result = await handler.HandleAsync(new GetFollowersQuery(id, GetCurrentUserId(), page, pageSize), ct);
+
+        return Ok(result);
+    }
+
+    [HttpGet("{id}/following")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetFollowing(
+        [FromRoute] Guid id,
+        [FromServices] GetFollowingHandler handler,
+        CancellationToken ct,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        var result = await handler.HandleAsync(new GetFollowingQuery(id, GetCurrentUserId(), page, pageSize), ct);
+
+        return Ok(result);
+    }
+
+    private Guid? GetCurrentUserId()
+    {
+        if (User.Identity?.IsAuthenticated != true)
+        {
+            return null;
+        }
+
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                          ?? User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
+
+        return Guid.TryParse(userIdClaim, out var parsedId) ? parsedId : null;
+    }
+
     [HttpPut("profile")]
-    [Authorize] 
+    [Authorize]
     public async Task<IActionResult> UpdateProfile(
         [FromBody] UpdateProfileRequest request,
         [FromServices] UpdateProfileHandler handler,
@@ -55,5 +83,27 @@ public class UsersController : ControllerBase
         await handler.HandleAsync(command, ct);
 
         return Ok(new { message = "Cập nhật Profile thành công!" });
+    }
+
+    /// <summary>GET /api/users/me/onboarding-status — FT-29: whether the current user has completed first-run onboarding.</summary>
+    [HttpGet("me/onboarding-status")]
+    [Authorize]
+    public async Task<IActionResult> GetOnboardingStatus(
+        [FromServices] GetOnboardingStatusHandler handler,
+        CancellationToken ct)
+    {
+        var result = await handler.HandleAsync(new GetOnboardingStatusQuery(GetCurrentUserId()!.Value), ct);
+        return Ok(result);
+    }
+
+    /// <summary>POST /api/users/me/complete-onboarding — FT-29: marks first-run onboarding as completed.</summary>
+    [HttpPost("me/complete-onboarding")]
+    [Authorize]
+    public async Task<IActionResult> CompleteOnboarding(
+        [FromServices] CompleteOnboardingHandler handler,
+        CancellationToken ct)
+    {
+        await handler.HandleAsync(new CompleteOnboardingCommand(GetCurrentUserId()!.Value), ct);
+        return Ok(new { message = "Onboarding completed." });
     }
 }

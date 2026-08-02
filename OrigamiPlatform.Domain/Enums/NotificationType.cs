@@ -6,7 +6,6 @@ public enum NotificationType
     Like,
     Comment,
     TutorialStatusChanged,
-    FamilyInvite,
     System,
 
     // FT-04 Tutorial review workflow
@@ -25,5 +24,21 @@ public enum NotificationType
 
     // FT-03 Admin actions
     AccountSuspended,
-    AccountActivated
+    AccountActivated,
+
+    // FT-20 Personal Milestone
+    MilestoneUnlocked,
+
+    // FT-33 Learning Path completion reward
+    LearningPathCompleted,
+
+    // Streak milestone reward (7/14/30-day streaks)
+    StreakMilestoneReached,
+
+    // FT-34 Daily Challenge
+    TutorialSelectedAsChallenge,
+    DailyChallengeResult,
+
+    // FT-35 Badge System
+    BadgeEarned
 }

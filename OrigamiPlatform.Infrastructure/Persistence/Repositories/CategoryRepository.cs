@@ -11,14 +11,14 @@ public class CategoryRepository : ICategoryRepository
     public CategoryRepository(AppDbContext db) => _db = db;
 
     public Task<List<Category>> GetAllAsync(CancellationToken ct = default)
-        => _db.Categories.OrderByDescending(c => c.CreatedAt).ToListAsync(ct);
+        => _db.Categories.Where(c => !c.IsDeleted).OrderByDescending(c => c.CreatedAt).ToListAsync(ct);
 
     public Task<Category?> GetByIdAsync(int id, CancellationToken ct = default)
         => _db.Categories.FirstOrDefaultAsync(c => c.Id == id, ct);
 
     public Task<bool> ExistsByNameAsync(string name, int? excludeId = null, CancellationToken ct = default)
         => _db.Categories.AnyAsync(c =>
-            c.Name.ToLower() == name.Trim().ToLower() && (excludeId == null || c.Id != excludeId), ct);
+            !c.IsDeleted && c.Name.ToLower() == name.Trim().ToLower() && (excludeId == null || c.Id != excludeId), ct);
 
     public async Task<Category> AddAsync(Category category, CancellationToken ct = default)
     {

@@ -17,10 +17,12 @@ public class TutorialRepository : ITutorialRepository
     public async Task<(IEnumerable<Tutorial> Items, int TotalCount)> GetPublishedAsync(
         string? search,
         int? categoryId,
-        string? difficulty,
+        TutorialDifficulty? difficulty,
         TutorialType? type,
+        string sortBy,
         int page,
         int pageSize,
+        IReadOnlySet<Guid>? followedCreatorIds = null,
         CancellationToken ct = default)
     {
         var query = _db.Tutorials
@@ -36,16 +38,31 @@ public class TutorialRepository : ITutorialRepository
         if (categoryId.HasValue)
             query = query.Where(t => t.CategoryId == categoryId.Value);
 
-        if (!string.IsNullOrWhiteSpace(difficulty))
-            query = query.Where(t => t.Difficulty == difficulty);
+        if (difficulty.HasValue)
+            query = query.Where(t => t.Difficulty == difficulty.Value);
 
         if (type.HasValue)
             query = query.Where(t => t.Type == type.Value);
 
         var totalCount = await query.CountAsync(ct);
 
-        var items = await query
-            .OrderByDescending(t => t.PublishedAt)
+        IOrderedQueryable<Tutorial> ordered;
+        if (sortBy == "likes")
+        {
+            ordered = query.OrderByDescending(t => _db.Likes.Count(l =>
+                l.TargetType == TargetType.Tutorial && l.TargetId == t.Id));
+        }
+        else
+        {
+            var boostedIds = followedCreatorIds?.ToList() ?? new List<Guid>();
+            ordered = boostedIds.Count > 0
+                ? query
+                    .OrderByDescending(t => boostedIds.Contains(t.AuthorId))
+                    .ThenByDescending(t => t.PublishedAt)
+                : query.OrderByDescending(t => t.PublishedAt);
+        }
+
+        var items = await ordered
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .AsSplitQuery()
@@ -97,32 +114,6 @@ public class TutorialRepository : ITutorialRepository
             (int)Math.Ceiling(totalCount / (double)pageSize));
     }
 
-    public async Task<PagedResult<Tutorial>> GetPendingContributorReviewAsync(
-        int page, int pageSize, CancellationToken ct = default)
-    {
-        var query = _db.Tutorials
-            .Where(t => t.Status == TutorialStatus.PendingCTVReview && !t.IsDeleted)
-            .Include(t => t.Author).ThenInclude(a => a.Profile)
-            .Include(t => t.Steps)
-            .AsQueryable();
-
-        var totalCount = await query.CountAsync(ct);
-
-        var items = await query
-            .OrderBy(t => t.CreatedAt) // FIFO — oldest first
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .AsSplitQuery()
-            .ToListAsync(ct);
-
-        return new PagedResult<Tutorial>(
-            items,
-            totalCount,
-            page,
-            pageSize,
-            (int)Math.Ceiling(totalCount / (double)pageSize));
-    }
-
     public async Task AddAsync(Tutorial tutorial, CancellationToken ct = default)
     {
         _db.Tutorials.Add(tutorial);
@@ -156,20 +147,31 @@ public class TutorialRepository : ITutorialRepository
     public Task<Tutorial?> GetWorkingCopyByParentIdAsync(Guid parentId, CancellationToken ct = default)
         => _db.Tutorials
             .Where(t => t.ParentTutorialId == parentId
-                     && t.Status != TutorialStatus.Rejected
+                     && t.Status != TutorialStatus.Merged
                      && !t.IsDeleted)
             .Include(t => t.Steps)
             .FirstOrDefaultAsync(ct);
 
-    public async Task DeleteAsync(Guid tutorialId, CancellationToken ct = default)
-    {
-        await _db.Tutorials
-            .Where(t => t.Id == tutorialId)
-            .ExecuteDeleteAsync(ct);
-    }
-
     public async Task DeleteStepsByTutorialIdAsync(Guid tutorialId, CancellationToken ct = default)
     {
+        // Callers always load the parent Tutorial via GetByIdWithStepsAsync first, so the
+        // existing TutorialStep rows are already tracked. Removing them through the change
+        // tracker (instead of a raw ExecuteDeleteAsync bulk delete) keeps the tracker's view of
+        // the DB consistent — a bulk delete bypasses tracking, leaving the old entities tracked
+        // as Unchanged, which caused EF to re-issue DELETEs for already-deleted rows (and throw
+        // DbUpdateConcurrencyException) the next time SaveChanges ran after Steps was reassigned.
+        var trackedSteps = _db.ChangeTracker.Entries<TutorialStep>()
+            .Where(e => e.Entity.TutorialId == tutorialId)
+            .Select(e => e.Entity)
+            .ToList();
+
+        if (trackedSteps.Count > 0)
+        {
+            _db.TutorialSteps.RemoveRange(trackedSteps);
+            await _db.SaveChangesAsync(ct);
+        }
+
+        // Safety net for any untracked rows (defensive; shouldn't occur given the load pattern above).
         await _db.TutorialSteps
             .Where(s => s.TutorialId == tutorialId)
             .ExecuteDeleteAsync(ct);
@@ -179,5 +181,144 @@ public class TutorialRepository : ITutorialRepository
     {
         _db.TutorialSteps.AddRange(steps);
         await _db.SaveChangesAsync(ct);
+    }
+
+    public async Task<List<Tutorial>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
+    {
+        return await _db.Tutorials
+            .Include(t => t.Author).ThenInclude(u => u.Profile)
+            .Include(t => t.Category)
+            .Include(t => t.Steps)
+            .Where(t => ids.Contains(t.Id))
+            .Include(t => t.Category)
+            .Include(t => t.Author).ThenInclude(a => a.Profile)
+            .Include(t => t.Steps)
+            .AsSplitQuery()
+            .ToListAsync(ct);
+    }
+
+    // ── Manager review queue ─────────────────────────────────────────────────
+
+    public async Task<PagedResult<Tutorial>> GetPendingManagerReviewAsync(
+        int page, int pageSize, CancellationToken ct = default)
+    {
+        var query = _db.Tutorials
+            .Where(t => t.Status == TutorialStatus.PendingManagerReview && !t.IsDeleted)
+            .Include(t => t.Author).ThenInclude(a => a.Profile)
+            .Include(t => t.Steps)
+            .AsQueryable();
+
+        var totalCount = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderBy(t => t.UpdatedAt ?? t.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .AsSplitQuery()
+            .ToListAsync(ct);
+
+        return new PagedResult<Tutorial>(
+            items,
+            totalCount,
+            page,
+            pageSize,
+            (int)Math.Ceiling(totalCount / (double)pageSize));
+    }
+
+    // ── Admin tutorial management ────────────────────────────────────────────
+
+    public async Task<PagedResult<Tutorial>> GetAllForAdminAsync(
+        string? search,
+        TutorialStatus? status,
+        int? categoryId,
+        bool? isOfficial,
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
+    {
+        // ParentTutorialId == null excludes edit working copies — those are transient drafts
+        // handled through the manager review queue, not standalone entries to manage here.
+        var query = _db.Tutorials
+            .Where(t => t.ParentTutorialId == null && !t.IsDeleted)
+            .Include(t => t.Category)
+            .Include(t => t.Author).ThenInclude(a => a.Profile)
+            .Include(t => t.Steps)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(t => t.Title.Contains(search) || t.Description.Contains(search));
+
+        if (status.HasValue)
+            query = query.Where(t => t.Status == status.Value);
+
+        if (categoryId.HasValue)
+            query = query.Where(t => t.CategoryId == categoryId.Value);
+
+        if (isOfficial.HasValue)
+            query = query.Where(t => t.IsOfficial == isOfficial.Value);
+
+        var totalCount = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderByDescending(t => t.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .AsSplitQuery()
+            .ToListAsync(ct);
+
+        return new PagedResult<Tutorial>(
+            items,
+            totalCount,
+            page,
+            pageSize,
+            (int)Math.Ceiling(totalCount / (double)pageSize));
+    }
+
+    // ── FT-31 AI Recommendation (rule-based) ─────────────────────────────────
+
+    public async Task<PagedResult<Tutorial>> GetRecommendedAsync(
+        IEnumerable<int> categoryIds,
+        TutorialDifficulty[] difficulties,
+        IEnumerable<Guid> excludeTutorialIds,
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
+    {
+        var categoryIdList = categoryIds.ToList();
+        var excludeIdSet = excludeTutorialIds.ToHashSet();
+
+        var query = _db.Tutorials
+            .Where(t => t.Status == TutorialStatus.Published && !t.IsDeleted)
+            .Include(t => t.Category)
+            .Include(t => t.Author).ThenInclude(a => a.Profile)
+            .Include(t => t.Steps)
+            .AsQueryable();
+
+        if (categoryIdList.Count > 0)
+            query = query.Where(t => categoryIdList.Contains(t.CategoryId));
+
+        if (difficulties.Length > 0)
+            query = query.Where(t => difficulties.Contains(t.Difficulty));
+
+        if (excludeIdSet.Count > 0)
+            query = query.Where(t => !excludeIdSet.Contains(t.Id));
+
+        var totalCount = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderByDescending(t => _db.Likes.Count(l =>
+                l.TargetType == TargetType.Tutorial && l.TargetId == t.Id))
+            .ThenByDescending(t => t.PublishedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .AsSplitQuery()
+            .ToListAsync(ct);
+
+        return new PagedResult<Tutorial>(
+            items,
+            totalCount,
+            page,
+            pageSize,
+            (int)Math.Ceiling(totalCount / (double)pageSize));
     }
 }

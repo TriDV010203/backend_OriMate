@@ -57,6 +57,26 @@ public class AchievementRepository : IAchievementRepository
                 && !t.IsDeleted,
             ct);
 
+    public Task<int> CountByUserAsync(Guid userId, CancellationToken ct = default)
+        => _db.Achievements.CountAsync(a => a.UserId == userId, ct);
+
+    public Task<int> CountByUserAndDifficultyAsync(Guid userId, TutorialDifficulty difficulty, CancellationToken ct = default)
+        => _db.Achievements.CountAsync(a => a.UserId == userId && a.Tutorial.Difficulty == difficulty, ct);
+
+    public async Task<HashSet<Guid>> GetCompletedTutorialIdsAsync(Guid userId, CancellationToken ct = default)
+        => (await _db.Achievements
+            .Where(a => a.UserId == userId)
+            .Select(a => a.TutorialId)
+            .ToListAsync(ct))
+            .ToHashSet();
+
+    public async Task<List<int>> GetCompletedCategoryIdsAsync(Guid userId, CancellationToken ct = default)
+        => await _db.Achievements
+            .Where(a => a.UserId == userId)
+            .Select(a => a.Tutorial.CategoryId)
+            .Distinct()
+            .ToListAsync(ct);
+
     public async Task AddAsync(Achievement achievement, CancellationToken ct = default)
     {
         _db.Achievements.Add(achievement);

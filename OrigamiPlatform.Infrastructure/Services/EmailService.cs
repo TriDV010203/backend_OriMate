@@ -40,7 +40,7 @@ public class EmailService : IEmailService
             $"Click the link below to reset your password:\n\n{link}\n\nThis link expires in 1 hour.\n\nIf you did not request a password reset, you can ignore this email.", ct);
     }
 
-    private async Task SendAsync(string toEmail, string subject, string body, CancellationToken ct)
+    public async Task SendAsync(string toEmail, string subject, string body, CancellationToken ct = default)
     {
         var message = new MimeMessage();
         message.From.Add(MailboxAddress.Parse(_from));

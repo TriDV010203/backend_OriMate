@@ -19,6 +19,10 @@ public class DeleteCommentHandler
         if (comment.AuthorId != cmd.UserId)
             throw new ForbiddenException("You are not allowed to delete another user's comment.");
 
-        await _comments.RemoveAsync(comment);
+        // Do not hard-delete content — soft delete via IsDeleted (CLAUDE.md rule)
+        comment.IsDeleted = true;
+        comment.UpdatedAt = DateTime.UtcNow;
+
+        await _comments.UpdateAsync(comment);
     }
 }

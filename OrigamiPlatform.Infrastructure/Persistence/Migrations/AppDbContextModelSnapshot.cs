@@ -60,226 +60,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("Achievements");
                 });
 
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.AdBanner", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("AltText")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<Guid>("CampaignId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("Height")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("Width")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CampaignId");
-
-                    b.ToTable("AdBanners");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.AdCampaign", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("ApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("ApprovedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("BudgetRemaining")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DestinationUrl")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<Guid>("PartnerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("PlacementId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PricingType")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<decimal>("RatePerUnit")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("RejectionReason")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<decimal>("TotalBudget")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApprovedBy");
-
-                    b.HasIndex("PartnerId");
-
-                    b.HasIndex("PlacementId");
-
-                    b.ToTable("AdCampaigns");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.AdClick", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("BannerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CampaignId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("Cost")
-                        .HasColumnType("decimal(18,4)");
-
-                    b.Property<string>("IpAddress")
-                        .HasMaxLength(45)
-                        .HasColumnType("nvarchar(45)");
-
-                    b.Property<DateTime>("OccurredAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("StepId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BannerId");
-
-                    b.HasIndex("CampaignId");
-
-                    b.HasIndex("StepId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("AdClicks");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.AdImpression", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("BannerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CampaignId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("Cost")
-                        .HasColumnType("decimal(18,4)");
-
-                    b.Property<string>("IpAddress")
-                        .HasMaxLength(45)
-                        .HasColumnType("nvarchar(45)");
-
-                    b.Property<DateTime>("OccurredAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("StepId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BannerId");
-
-                    b.HasIndex("CampaignId");
-
-                    b.HasIndex("StepId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("AdImpressions");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.AdPlacement", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AdPlacements");
-                });
-
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.AuditLog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -319,6 +99,59 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("ActorId");
 
                     b.ToTable("AuditLogs");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Badge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("DifficultyFilter")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("IconEmoji")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int?>("Threshold")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("Badges");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.BlockedWord", b =>
@@ -377,6 +210,116 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.ChallengeStreakLog", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("CurrentStreak")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("FreezeCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateOnly?>("LastSubmissionDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("LongestStreak")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("ChallengeStreakLogs");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Clan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Clans");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.ClanInvite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClanId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ClanId", "UserId");
+
+                    b.ToTable("ClanInvites");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.ClanMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClanId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ContributionPoints")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClanId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("ClanMembers");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Comment", b =>
@@ -511,9 +454,114 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex("CreatorId")
+                        .IsUnique();
 
                     b.ToTable("CreatorVipSettings");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.DailyChallenge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("ChallengeDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsAutoGenerated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime?>("ResultCalculatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<Guid>("TutorialId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChallengeDate")
+                        .IsUnique();
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("TutorialId");
+
+                    b.ToTable("DailyChallenges");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.DailyChallengeSubmission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("DailyChallengeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("FinalRank")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("PhotoUrl")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("DailyChallengeId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("DailyChallengeSubmissions");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.DailyQuest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("TargetValue")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DailyQuests");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.EmailLog", b =>
@@ -563,146 +611,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("EmailLogs");
                 });
 
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.FamilyProject", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<Guid>("SubscriptionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("TutorialId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OwnerId");
-
-                    b.HasIndex("SubscriptionId");
-
-                    b.HasIndex("TutorialId");
-
-                    b.ToTable("FamilyProjects");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.FamilyProjectMember", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("ExpiresAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("InvitedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("JoinedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("FamilyProjectMembers");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.FamilyProjectStepProgress", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CompletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("CompletedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("StepId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CompletedBy");
-
-                    b.HasIndex("ProjectId");
-
-                    b.HasIndex("StepId");
-
-                    b.ToTable("FamilyProjectStepProgresses");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.FamilySubscription", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<Guid>("TransactionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TransactionId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("FamilySubscriptions");
-                });
-
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.FollowRelationship", b =>
                 {
                     b.Property<Guid>("FollowerId")
@@ -719,6 +627,40 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("FollowingId");
 
                     b.ToTable("FollowRelationships");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.HatGapTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BalanceAfter")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("HatGapTransactions");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Journal", b =>
@@ -759,14 +701,108 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("Journals");
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPath", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CoverImageUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.ToTable("LearningPaths");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPathCompletion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("LearningPathId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LearningPathId");
+
+                    b.HasIndex("UserId", "LearningPathId")
+                        .IsUnique();
+
+                    b.ToTable("LearningPathCompletions");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPathItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ItemOrder")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("LearningPathId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TutorialId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TutorialId");
+
+                    b.HasIndex("LearningPathId", "TutorialId")
+                        .IsUnique();
+
+                    b.ToTable("LearningPathItems");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Like", b =>
                 {
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("TargetType")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<Guid>("TargetId")
                         .HasColumnType("uniqueidentifier");
@@ -817,6 +853,62 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.PaperPattern", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("PriceInHatGap")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PaperPatterns");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.PersonalMilestone", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Threshold")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UnlockedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Threshold")
+                        .IsUnique();
+
+                    b.ToTable("PersonalMilestones");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Report", b =>
                 {
                     b.Property<Guid>("Id")
@@ -864,10 +956,108 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("Reports");
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.ShopLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ShopLinks");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.StreakLog", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("CurrentStreak")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("FreezeCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateOnly?>("LastActiveDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("LongestStreak")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("StreakLogs");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.StuckThread", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("StepId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TutorialId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StepId");
+
+                    b.HasIndex("TutorialId");
+
+                    b.HasIndex("UserId", "StepId")
+                        .IsUnique();
+
+                    b.ToTable("StuckThreads");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Transaction", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AdminNote")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
@@ -880,6 +1070,15 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("CreatorNetAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PlatformFeeAmount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ReferenceCode")
                         .HasMaxLength(100)
@@ -904,6 +1103,8 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ConfirmedBy");
+
+                    b.HasIndex("CreatorId");
 
                     b.HasIndex("UserId");
 
@@ -934,11 +1135,25 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Difficulty")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
+
+                    b.Property<bool>("IsOfficial")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("MetaDescription")
+                        .HasMaxLength(320)
+                        .HasColumnType("nvarchar(320)");
+
+                    b.Property<string>("MetaTitle")
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
 
                     b.Property<Guid?>("ParentTutorialId")
                         .HasColumnType("uniqueidentifier");
@@ -955,6 +1170,10 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Tags")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -1063,6 +1282,62 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("TutorialSteps");
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.TutorialStepProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("TutorialId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TutorialStepId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TutorialId");
+
+                    b.HasIndex("TutorialStepId");
+
+                    b.HasIndex("UserId", "TutorialStepId")
+                        .IsUnique();
+
+                    b.ToTable("TutorialStepProgresses");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.TutorialVariant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DifficultyDelta")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ParentTutorialId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("VariantTutorialId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VariantTutorialId");
+
+                    b.HasIndex("ParentTutorialId", "VariantTutorialId")
+                        .IsUnique();
+
+                    b.ToTable("TutorialVariants");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1128,6 +1403,87 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserBadge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BadgeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ContextRefId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("EarnedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BadgeId");
+
+                    b.HasIndex("UserId", "BadgeId")
+                        .IsUnique();
+
+                    b.ToTable("UserBadges");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserDailyQuestProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Progress")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("QuestDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("QuestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestId");
+
+                    b.HasIndex("UserId", "QuestId", "QuestDate")
+                        .IsUnique();
+
+                    b.ToTable("UserDailyQuestProgresses");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserPaperPattern", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PaperPatternId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("PurchasedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaperPatternId");
+
+                    b.HasIndex("UserId", "PaperPatternId")
+                        .IsUnique();
+
+                    b.ToTable("UserPaperPatterns");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserProfile", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -1148,6 +1504,23 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<bool>("IsOnboardingCompleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("SkillLevel")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Beginner");
+
+                    b.Property<int>("SkillPoints")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -1160,7 +1533,10 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         {
                             UserId = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DisplayName = "Admin"
+                            DisplayName = "Admin",
+                            IsOnboardingCompleted = false,
+                            SkillLevel = "Beginner",
+                            SkillPoints = 0
                         });
                 });
 
@@ -1273,109 +1649,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.AdBanner", b =>
-                {
-                    b.HasOne("OrigamiPlatform.Domain.Entities.AdCampaign", "Campaign")
-                        .WithMany("Banners")
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Campaign");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.AdCampaign", b =>
-                {
-                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "ApprovedByUser")
-                        .WithMany()
-                        .HasForeignKey("ApprovedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "Partner")
-                        .WithMany()
-                        .HasForeignKey("PartnerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OrigamiPlatform.Domain.Entities.AdPlacement", "Placement")
-                        .WithMany("Campaigns")
-                        .HasForeignKey("PlacementId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ApprovedByUser");
-
-                    b.Navigation("Partner");
-
-                    b.Navigation("Placement");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.AdClick", b =>
-                {
-                    b.HasOne("OrigamiPlatform.Domain.Entities.AdBanner", "Banner")
-                        .WithMany()
-                        .HasForeignKey("BannerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OrigamiPlatform.Domain.Entities.AdCampaign", "Campaign")
-                        .WithMany("Clicks")
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OrigamiPlatform.Domain.Entities.TutorialStep", "Step")
-                        .WithMany()
-                        .HasForeignKey("StepId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Banner");
-
-                    b.Navigation("Campaign");
-
-                    b.Navigation("Step");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.AdImpression", b =>
-                {
-                    b.HasOne("OrigamiPlatform.Domain.Entities.AdBanner", "Banner")
-                        .WithMany()
-                        .HasForeignKey("BannerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OrigamiPlatform.Domain.Entities.AdCampaign", "Campaign")
-                        .WithMany("Impressions")
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OrigamiPlatform.Domain.Entities.TutorialStep", "Step")
-                        .WithMany()
-                        .HasForeignKey("StepId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Banner");
-
-                    b.Navigation("Campaign");
-
-                    b.Navigation("Step");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.AuditLog", b =>
                 {
                     b.HasOne("OrigamiPlatform.Domain.Entities.User", "Actor")
@@ -1384,6 +1657,66 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Actor");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.ChallengeStreakLog", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithOne()
+                        .HasForeignKey("OrigamiPlatform.Domain.Entities.ChallengeStreakLog", "UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Clan", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.ClanInvite", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.Clan", "Clan")
+                        .WithMany()
+                        .HasForeignKey("ClanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Clan");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.ClanMember", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.Clan", "Clan")
+                        .WithMany()
+                        .HasForeignKey("ClanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Clan");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Comment", b =>
@@ -1441,6 +1774,43 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("Creator");
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.DailyChallenge", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.Tutorial", "Tutorial")
+                        .WithMany()
+                        .HasForeignKey("TutorialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Tutorial");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.DailyChallengeSubmission", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.DailyChallenge", "DailyChallenge")
+                        .WithMany("Submissions")
+                        .HasForeignKey("DailyChallengeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DailyChallenge");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.EmailLog", b =>
                 {
                     b.HasOne("OrigamiPlatform.Domain.Entities.User", "Recipient")
@@ -1449,98 +1819,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Recipient");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.FamilyProject", b =>
-                {
-                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "Owner")
-                        .WithMany()
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OrigamiPlatform.Domain.Entities.FamilySubscription", "Subscription")
-                        .WithMany("Projects")
-                        .HasForeignKey("SubscriptionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OrigamiPlatform.Domain.Entities.Tutorial", "Tutorial")
-                        .WithMany()
-                        .HasForeignKey("TutorialId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Owner");
-
-                    b.Navigation("Subscription");
-
-                    b.Navigation("Tutorial");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.FamilyProjectMember", b =>
-                {
-                    b.HasOne("OrigamiPlatform.Domain.Entities.FamilyProject", "Project")
-                        .WithMany("Members")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Project");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.FamilyProjectStepProgress", b =>
-                {
-                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "CompletedByUser")
-                        .WithMany()
-                        .HasForeignKey("CompletedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OrigamiPlatform.Domain.Entities.FamilyProject", "Project")
-                        .WithMany("StepProgresses")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OrigamiPlatform.Domain.Entities.TutorialStep", "Step")
-                        .WithMany("StepProgresses")
-                        .HasForeignKey("StepId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("CompletedByUser");
-
-                    b.Navigation("Project");
-
-                    b.Navigation("Step");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.FamilySubscription", b =>
-                {
-                    b.HasOne("OrigamiPlatform.Domain.Entities.Transaction", "Transaction")
-                        .WithMany()
-                        .HasForeignKey("TransactionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Transaction");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.FollowRelationship", b =>
@@ -1562,6 +1840,17 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("Following");
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.HatGapTransaction", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Journal", b =>
                 {
                     b.HasOne("OrigamiPlatform.Domain.Entities.Tutorial", "LinkedTutorial")
@@ -1578,6 +1867,55 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("LinkedTutorial");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPath", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPathCompletion", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.LearningPath", "LearningPath")
+                        .WithMany()
+                        .HasForeignKey("LearningPathId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LearningPath");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPathItem", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.LearningPath", "LearningPath")
+                        .WithMany("Items")
+                        .HasForeignKey("LearningPathId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.Tutorial", "Tutorial")
+                        .WithMany()
+                        .HasForeignKey("TutorialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LearningPath");
+
+                    b.Navigation("Tutorial");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Like", b =>
@@ -1602,6 +1940,17 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("Recipient");
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.PersonalMilestone", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Report", b =>
                 {
                     b.HasOne("OrigamiPlatform.Domain.Entities.User", "HandledByUser")
@@ -1620,11 +1969,54 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("Reporter");
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.StreakLog", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithOne()
+                        .HasForeignKey("OrigamiPlatform.Domain.Entities.StreakLog", "UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.StuckThread", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.TutorialStep", "Step")
+                        .WithMany()
+                        .HasForeignKey("StepId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.Tutorial", "Tutorial")
+                        .WithMany()
+                        .HasForeignKey("TutorialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Step");
+
+                    b.Navigation("Tutorial");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Transaction", b =>
                 {
                     b.HasOne("OrigamiPlatform.Domain.Entities.User", "ConfirmedByUser")
                         .WithMany()
                         .HasForeignKey("ConfirmedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
@@ -1634,6 +2026,8 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("ConfirmedByUser");
+
+                    b.Navigation("Creator");
 
                     b.Navigation("User");
                 });
@@ -1692,6 +2086,109 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Tutorial");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.TutorialStepProgress", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.Tutorial", "Tutorial")
+                        .WithMany()
+                        .HasForeignKey("TutorialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.TutorialStep", "TutorialStep")
+                        .WithMany()
+                        .HasForeignKey("TutorialStepId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Tutorial");
+
+                    b.Navigation("TutorialStep");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.TutorialVariant", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.Tutorial", "ParentTutorial")
+                        .WithMany()
+                        .HasForeignKey("ParentTutorialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.Tutorial", "VariantTutorial")
+                        .WithMany()
+                        .HasForeignKey("VariantTutorialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ParentTutorial");
+
+                    b.Navigation("VariantTutorial");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserBadge", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.Badge", "Badge")
+                        .WithMany("UserBadges")
+                        .HasForeignKey("BadgeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Badge");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserDailyQuestProgress", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.DailyQuest", "Quest")
+                        .WithMany()
+                        .HasForeignKey("QuestId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Quest");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserPaperPattern", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.PaperPattern", "PaperPattern")
+                        .WithMany()
+                        .HasForeignKey("PaperPatternId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PaperPattern");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserProfile", b =>
@@ -1754,18 +2251,9 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.AdCampaign", b =>
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Badge", b =>
                 {
-                    b.Navigation("Banners");
-
-                    b.Navigation("Clicks");
-
-                    b.Navigation("Impressions");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.AdPlacement", b =>
-                {
-                    b.Navigation("Campaigns");
+                    b.Navigation("UserBadges");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Category", b =>
@@ -1780,16 +2268,14 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("Media");
                 });
 
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.FamilyProject", b =>
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.DailyChallenge", b =>
                 {
-                    b.Navigation("Members");
-
-                    b.Navigation("StepProgresses");
+                    b.Navigation("Submissions");
                 });
 
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.FamilySubscription", b =>
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPath", b =>
                 {
-                    b.Navigation("Projects");
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Tutorial", b =>
@@ -1801,11 +2287,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("ReviewHistories");
 
                     b.Navigation("Steps");
-                });
-
-            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.TutorialStep", b =>
-                {
-                    b.Navigation("StepProgresses");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.User", b =>

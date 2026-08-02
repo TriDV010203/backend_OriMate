@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<TutorialStep> TutorialSteps => Set<TutorialStep>();
     public DbSet<TutorialReviewHistory> TutorialReviewHistories => Set<TutorialReviewHistory>();
     public DbSet<Category> Categories => Set<Category>();
+    public DbSet<TutorialVariant> TutorialVariants => Set<TutorialVariant>(); // FT-11
 
     // Community
     public DbSet<CommunityPost> CommunityPosts => Set<CommunityPost>();
@@ -33,29 +34,49 @@ public class AppDbContext : DbContext
     // Content & Progress
     public DbSet<Achievement> Achievements => Set<Achievement>();
     public DbSet<Journal> Journals => Set<Journal>();
+    public DbSet<TutorialStepProgress> TutorialStepProgresses => Set<TutorialStepProgress>();
+    public DbSet<StuckThread> StuckThreads => Set<StuckThread>();
+    public DbSet<PersonalMilestone> PersonalMilestones => Set<PersonalMilestone>();
 
     // Subscriptions & Payments
     public DbSet<VipSubscription> VipSubscriptions => Set<VipSubscription>();
-    public DbSet<FamilySubscription> FamilySubscriptions => Set<FamilySubscription>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<CreatorVipSettings> CreatorVipSettings => Set<CreatorVipSettings>();
-
-    // Family Projects
-    public DbSet<FamilyProject> FamilyProjects => Set<FamilyProject>();
-    public DbSet<FamilyProjectMember> FamilyProjectMembers => Set<FamilyProjectMember>();
-    public DbSet<FamilyProjectStepProgress> FamilyProjectStepProgresses => Set<FamilyProjectStepProgress>();
-
-    // Ads
-    public DbSet<AdPlacement> AdPlacements => Set<AdPlacement>();
-    public DbSet<AdCampaign> AdCampaigns => Set<AdCampaign>();
-    public DbSet<AdBanner> AdBanners => Set<AdBanner>();
-    public DbSet<AdImpression> AdImpressions => Set<AdImpression>();
-    public DbSet<AdClick> AdClicks => Set<AdClick>();
 
     // System
     public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<BlockedWord> BlockedWords => Set<BlockedWord>();
+
+    // Shop
+    public DbSet<ShopLink> ShopLinks => Set<ShopLink>();
+
+    // Learning Path (FT-33)
+    public DbSet<LearningPath> LearningPaths => Set<LearningPath>();
+    public DbSet<LearningPathItem> LearningPathItems => Set<LearningPathItem>();
+    public DbSet<LearningPathCompletion> LearningPathCompletions => Set<LearningPathCompletion>();
+
+    // Clan
+    public DbSet<Clan> Clans => Set<Clan>();
+    public DbSet<ClanMember> ClanMembers => Set<ClanMember>();
+    public DbSet<ClanInvite> ClanInvites => Set<ClanInvite>();
+
+    // Gamification (FT-26 Streak, FT-27 Daily Quest, FT-28 Hạt Gấp)
+    public DbSet<StreakLog> StreakLogs => Set<StreakLog>();
+    public DbSet<DailyQuest> DailyQuests => Set<DailyQuest>();
+    public DbSet<UserDailyQuestProgress> UserDailyQuestProgresses => Set<UserDailyQuestProgress>();
+    public DbSet<HatGapTransaction> HatGapTransactions => Set<HatGapTransaction>();
+    public DbSet<PaperPattern> PaperPatterns => Set<PaperPattern>(); // FT-28
+    public DbSet<UserPaperPattern> UserPaperPatterns => Set<UserPaperPattern>(); // FT-28
+
+    // Daily Challenge (FT-34)
+    public DbSet<DailyChallenge> DailyChallenges => Set<DailyChallenge>();
+    public DbSet<DailyChallengeSubmission> DailyChallengeSubmissions => Set<DailyChallengeSubmission>();
+    public DbSet<ChallengeStreakLog> ChallengeStreakLogs => Set<ChallengeStreakLog>();
+
+    // Badge System (FT-35)
+    public DbSet<Badge> Badges => Set<Badge>();
+    public DbSet<UserBadge> UserBadges => Set<UserBadge>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

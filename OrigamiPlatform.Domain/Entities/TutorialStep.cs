@@ -11,6 +11,4 @@ public class TutorialStep
     public DateTime? UpdatedAt { get; set; }
 
     public Tutorial Tutorial { get; set; } = null!;
-    public ICollection<FamilyProjectStepProgress> StepProgresses { get; set; } 
-        = new List<FamilyProjectStepProgress>();
 }

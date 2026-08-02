@@ -51,4 +51,29 @@ public class CommunityPostsController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("{id:guid}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetById(
+        Guid id,
+        [FromServices] GetCommunityPostByIdHandler getByIdHandler,
+        CancellationToken ct)
+    {
+        Guid? currentUserId = null;
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (Guid.TryParse(userIdString, out Guid parsedId))
+        {
+            currentUserId = parsedId;
+        }
+
+        var query = new GetCommunityPostByIdQuery(id, currentUserId);
+        var result = await getByIdHandler.HandleAsync(query, ct);
+
+        if (result == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(result);
+    }
 }

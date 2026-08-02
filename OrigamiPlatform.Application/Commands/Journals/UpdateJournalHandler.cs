@@ -7,9 +7,10 @@ namespace OrigamiPlatform.Application.Commands.Journals;
 public class UpdateJournalHandler
 {
     private readonly IJournalRepository _journals;
+    private readonly IBlockedWordService _blockedWords;
 
-    public UpdateJournalHandler(IJournalRepository journals)
-        => _journals = journals;
+    public UpdateJournalHandler(IJournalRepository journals, IBlockedWordService blockedWords)
+        => (_journals, _blockedWords) = (journals, blockedWords);
 
     public async Task<JournalDto> HandleAsync(
         UpdateJournalCommand command,
@@ -18,6 +19,10 @@ public class UpdateJournalHandler
         var (content, imageUrls) = JournalRequestValidator.Validate(
             command.Request.Content,
             command.Request.ImageUrls);
+
+        // FT-17 NAC-01: reject entries containing blocked words before saving.
+        if (await _blockedWords.ContainsBlockedWordAsync(content, ct))
+            throw new DomainException("Your journal entry contains blocked words and cannot be saved.");
 
         var journal = await _journals.GetByIdAsync(command.JournalId, ct)
             ?? throw new NotFoundException("Journal not found.");
