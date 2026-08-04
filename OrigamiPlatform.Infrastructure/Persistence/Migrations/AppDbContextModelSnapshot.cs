@@ -853,6 +853,40 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("Notifications", (string)null);
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.PaperPattern", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("PriceInHatGap")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PaperPatterns");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.PersonalMilestone", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1113,6 +1147,22 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<string>("MetaDescription")
+                        .HasMaxLength(320)
+                        .HasColumnType("nvarchar(320)");
+
+                    b.Property<string>("MetaTitle")
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<string>("Model3DPosterUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("Model3DUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
                     b.Property<Guid?>("ParentTutorialId")
                         .HasColumnType("uniqueidentifier");
 
@@ -1128,6 +1178,10 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Tags")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -1265,6 +1319,33 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("TutorialStepProgresses", (string)null);
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.TutorialVariant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DifficultyDelta")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ParentTutorialId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("VariantTutorialId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VariantTutorialId");
+
+                    b.HasIndex("ParentTutorialId", "VariantTutorialId")
+                        .IsUnique();
+
+                    b.ToTable("TutorialVariants");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1387,6 +1468,30 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("UserDailyQuestProgresses", (string)null);
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserPaperPattern", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PaperPatternId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("PurchasedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaperPatternId");
+
+                    b.HasIndex("UserId", "PaperPatternId")
+                        .IsUnique();
+
+                    b.ToTable("UserPaperPatterns");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserProfile", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -1406,6 +1511,11 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.Property<string>("DisplayName")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsOnboardingCompleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("SkillLevel")
                         .IsRequired()
@@ -1432,6 +1542,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                             UserId = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             DisplayName = "Admin",
+                            IsOnboardingCompleted = false,
                             SkillLevel = "Beginner",
                             SkillPoints = 0
                         });
@@ -2099,6 +2210,25 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.TutorialVariant", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.Tutorial", "ParentTutorial")
+                        .WithMany()
+                        .HasForeignKey("ParentTutorialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.Tutorial", "VariantTutorial")
+                        .WithMany()
+                        .HasForeignKey("VariantTutorialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ParentTutorial");
+
+                    b.Navigation("VariantTutorial");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserBadge", b =>
                 {
                     b.HasOne("OrigamiPlatform.Domain.Entities.Badge", "Badge")
@@ -2133,6 +2263,25 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Quest");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserPaperPattern", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.PaperPattern", "PaperPattern")
+                        .WithMany()
+                        .HasForeignKey("PaperPatternId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PaperPattern");
 
                     b.Navigation("User");
                 });

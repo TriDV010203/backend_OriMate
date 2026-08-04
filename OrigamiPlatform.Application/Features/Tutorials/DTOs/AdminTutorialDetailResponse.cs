@@ -17,5 +17,7 @@ public record AdminTutorialDetailResponse(
     bool IsOfficial,
     IReadOnlyList<TutorialStepDto> Steps,
     DateTime CreatedAt,
-    DateTime? UpdatedAt
+    DateTime? UpdatedAt,
+    string? Model3DUrl = null,
+    string? Model3DPosterUrl = null
 );

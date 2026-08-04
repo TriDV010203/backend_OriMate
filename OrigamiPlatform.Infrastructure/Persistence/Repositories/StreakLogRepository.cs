@@ -27,4 +27,16 @@ public class StreakLogRepository : IStreakLogRepository
         _db.StreakLogs.Update(streakLog);
         await _db.SaveChangesAsync(ct);
     }
+
+    public async Task<List<(Guid UserId, string Email)>> GetUsersInactiveForDaysAsync(int days, CancellationToken ct = default)
+    {
+        var targetDate = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7)).AddDays(-days);
+
+        var rows = await _db.StreakLogs
+            .Where(s => s.LastActiveDate == targetDate)
+            .Join(_db.Users, s => s.UserId, u => u.Id, (s, u) => new { u.Id, u.Email })
+            .ToListAsync(ct);
+
+        return rows.Select(r => (r.Id, r.Email)).ToList();
+    }
 }

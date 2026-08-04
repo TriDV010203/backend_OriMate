@@ -89,6 +89,9 @@ public static class DependencyInjection
         services.AddScoped<IUserBadgeRepository, UserBadgeRepository>();
         services.AddScoped<IWeeklyChallengeSubmissionRepository, WeeklyChallengeSubmissionRepository>();
         services.AddScoped<IWeeklyChallengeRepository, WeeklyChallengeRepository>();
+        services.AddScoped<ITutorialVariantRepository, TutorialVariantRepository>();
+        services.AddScoped<IPaperPatternRepository, PaperPatternRepository>();
+        services.AddScoped<IUserPaperPatternRepository, UserPaperPatternRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -114,6 +117,7 @@ public static class DependencyInjection
 
         // Handlers — Uploads
         services.AddScoped<UploadImageHandler>();
+        services.AddScoped<UploadModel3DHandler>();
 
         // Handlers — Tutorials (public)
         services.AddScoped<GetTutorialsHandler>();
@@ -142,6 +146,15 @@ public static class DependencyInjection
         services.AddScoped<GetAdminTutorialsHandler>();
         services.AddScoped<GetTutorialForAdminHandler>();
         services.AddScoped<AdminUpdateTutorialHandler>();
+        services.AddScoped<SetOfficialTutorialHandler>();
+
+        // Handlers — Tutorials AI Recommendation (FT-31)
+        services.AddScoped<GetRecommendedTutorialsHandler>();
+
+        // Handlers — Tutorial Variants (FT-11)
+        services.AddScoped<AddVariantHandler>();
+        services.AddScoped<RemoveVariantHandler>();
+        services.AddScoped<GetVariantsHandler>();
 
         // Handlers — AdminConfiguration (FT-03)
         services.AddScoped<GetCategoriesHandler>();
@@ -191,6 +204,10 @@ public static class DependencyInjection
         services.AddScoped<GetFollowersHandler>();
         services.AddScoped<GetFollowingHandler>();
 
+        // Handlers — Onboarding (FT-29)
+        services.AddScoped<CompleteOnboardingHandler>();
+        services.AddScoped<GetOnboardingStatusHandler>();
+
         // Handlers — Tutorial step progress (per user)
         services.AddScoped<CompleteTutorialStepHandler>();
         services.AddScoped<UncompleteTutorialStepHandler>();
@@ -225,6 +242,8 @@ public static class DependencyInjection
         services.AddScoped<GetAdminShopLinksHandler>();
         services.AddScoped<CreateShopLinkHandler>();
         services.AddScoped<UpdateShopLinkHandler>();
+        services.AddScoped<GetPaperPatternsHandler>();
+        services.AddScoped<PurchasePaperPatternHandler>();
 
         // Handlers — Learning Path (FT-33)
         services.AddScoped<GetLearningPathsHandler>();
@@ -260,6 +279,7 @@ public static class DependencyInjection
 
         // Background Jobs
         services.AddHostedService<DailyChallengeSchedulerService>();
+        services.AddHostedService<ReengagementJob>();
 
         return services;
     }

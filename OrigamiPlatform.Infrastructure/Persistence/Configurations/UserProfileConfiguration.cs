@@ -17,6 +17,7 @@ public class UserProfileConfiguration : IEntityTypeConfiguration<UserProfile>
         builder.Property(p => p.SkillPoints).IsRequired().HasDefaultValue(0);
         builder.Property(p => p.SkillLevel).HasConversion<string>().HasMaxLength(20).IsRequired()
             .HasDefaultValue(SkillLevel.Beginner);
+        builder.Property(p => p.IsOnboardingCompleted).IsRequired().HasDefaultValue(false);
 
         builder.HasOne(p => p.User)
                .WithOne(u => u.Profile)

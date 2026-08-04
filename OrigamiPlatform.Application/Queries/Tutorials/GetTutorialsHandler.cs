@@ -119,7 +119,10 @@ public class GetTutorialsHandler
             WishlistCount: wishlistCounts.GetValueOrDefault(t.Id, 0),
             CommentCount: commentCounts.GetValueOrDefault(t.Id, 0),
             IsLikedByCurrentUser: userLikedPostIds.Contains(t.Id),
-            IsWishlistedByCurrentUser: userWishlistedPostIds.Contains(t.Id)
+            IsWishlistedByCurrentUser: userWishlistedPostIds.Contains(t.Id),
+            MetaTitle: t.MetaTitle,
+            MetaDescription: t.MetaDescription,
+            Tags: t.Tags
         )).ToList();
 
         return new PagedResult<TutorialListItemDto>(

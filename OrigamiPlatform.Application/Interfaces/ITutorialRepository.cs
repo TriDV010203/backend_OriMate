@@ -49,4 +49,13 @@ public interface ITutorialRepository
         int page,
         int pageSize,
         CancellationToken ct = default);
+
+    // FT-31 AI Recommendation (rule-based)
+    Task<PagedResult<Tutorial>> GetRecommendedAsync(
+        IEnumerable<int> categoryIds,
+        TutorialDifficulty[] difficulties,
+        IEnumerable<Guid> excludeTutorialIds,
+        int page,
+        int pageSize,
+        CancellationToken ct = default);
 }

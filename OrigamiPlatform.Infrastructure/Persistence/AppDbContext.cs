@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<TutorialStep> TutorialSteps => Set<TutorialStep>();
     public DbSet<TutorialReviewHistory> TutorialReviewHistories => Set<TutorialReviewHistory>();
     public DbSet<Category> Categories => Set<Category>();
+    public DbSet<TutorialVariant> TutorialVariants => Set<TutorialVariant>(); // FT-11
 
     // Community
     public DbSet<CommunityPost> CommunityPosts => Set<CommunityPost>();
@@ -65,6 +66,8 @@ public class AppDbContext : DbContext
     public DbSet<DailyQuest> DailyQuests => Set<DailyQuest>();
     public DbSet<UserDailyQuestProgress> UserDailyQuestProgresses => Set<UserDailyQuestProgress>();
     public DbSet<HatGapTransaction> HatGapTransactions => Set<HatGapTransaction>();
+    public DbSet<PaperPattern> PaperPatterns => Set<PaperPattern>(); // FT-28
+    public DbSet<UserPaperPattern> UserPaperPatterns => Set<UserPaperPattern>(); // FT-28
 
     // Daily Challenge (FT-34)
     public DbSet<DailyChallenge> DailyChallenges => Set<DailyChallenge>();
