@@ -47,6 +47,8 @@ public class ManagerApproveEditHandler
         original.Difficulty = workingCopy.Difficulty;
         original.Type = workingCopy.Type;
         original.CoverImageUrl = workingCopy.CoverImageUrl;
+        original.Model3DUrl = workingCopy.Model3DUrl;
+        original.Model3DPosterUrl = workingCopy.Model3DPosterUrl;
         original.UpdatedAt = DateTime.UtcNow;
 
         await _tutorialRepo.UpdateAsync(original, ct);

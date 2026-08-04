@@ -65,6 +65,8 @@ public class AdminCreateTutorialHandler
             Description = request.Description,
             Slug = slug,
             CoverImageUrl = request.CoverImageUrl,
+            Model3DUrl = request.Model3DUrl,
+            Model3DPosterUrl = request.Model3DPosterUrl,
             Type = TutorialType.Free,
             Difficulty = tutorialDifficulty,
             Status = TutorialStatus.Published,
@@ -138,5 +140,7 @@ public class AdminCreateTutorialHandler
         tutorial.CategoryId,
         tutorial.Status.ToString(),
         tutorial.CreatedAt,
-        tutorial.UpdatedAt);
+        tutorial.UpdatedAt,
+        tutorial.Model3DUrl,
+        tutorial.Model3DPosterUrl);
 }

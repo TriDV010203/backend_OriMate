@@ -69,6 +69,8 @@ public class AdminUpdateTutorialHandler
         tutorial.Difficulty = tutorialDifficulty;
         tutorial.Type = tutorialType;
         tutorial.CoverImageUrl = request.CoverImageUrl;
+        tutorial.Model3DUrl = request.Model3DUrl;
+        tutorial.Model3DPosterUrl = request.Model3DPosterUrl;
         tutorial.UpdatedAt = now;
 
         await _tutorialRepo.DeleteStepsByTutorialIdAsync(command.TutorialId, ct);
@@ -128,5 +130,7 @@ public class AdminUpdateTutorialHandler
         tutorial.CategoryId,
         tutorial.Status.ToString(),
         tutorial.CreatedAt,
-        tutorial.UpdatedAt);
+        tutorial.UpdatedAt,
+        tutorial.Model3DUrl,
+        tutorial.Model3DPosterUrl);
 }

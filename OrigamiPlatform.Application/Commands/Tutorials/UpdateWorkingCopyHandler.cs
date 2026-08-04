@@ -63,6 +63,8 @@ public class UpdateWorkingCopyHandler
         workingCopy.Difficulty = tutorialDifficulty;
         workingCopy.Type = tutorialType;
         workingCopy.CoverImageUrl = request.CoverImageUrl;
+        workingCopy.Model3DUrl = request.Model3DUrl;
+        workingCopy.Model3DPosterUrl = request.Model3DPosterUrl;
         workingCopy.MetaTitle = request.MetaTitle;
         workingCopy.MetaDescription = request.MetaDescription;
         workingCopy.Tags = request.Tags;
@@ -111,5 +113,7 @@ public class UpdateWorkingCopyHandler
         tutorial.CategoryId,
         tutorial.Status.ToString(),
         tutorial.CreatedAt,
-        tutorial.UpdatedAt);
+        tutorial.UpdatedAt,
+        tutorial.Model3DUrl,
+        tutorial.Model3DPosterUrl);
 }
