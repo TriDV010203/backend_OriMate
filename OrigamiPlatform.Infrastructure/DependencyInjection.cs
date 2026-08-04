@@ -87,6 +87,8 @@ public static class DependencyInjection
         services.AddScoped<IChallengeStreakRepository, ChallengeStreakRepository>();
         services.AddScoped<IBadgeRepository, BadgeRepository>();
         services.AddScoped<IUserBadgeRepository, UserBadgeRepository>();
+        services.AddScoped<IWeeklyChallengeSubmissionRepository, WeeklyChallengeSubmissionRepository>();
+        services.AddScoped<IWeeklyChallengeRepository, WeeklyChallengeRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -97,6 +99,7 @@ public static class DependencyInjection
         services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
         services.AddScoped<HatGapAwardService>();
         services.AddScoped<BadgeAwardService>();
+        services.AddScoped<IWeeklyChallengeService, WeeklyChallengeService>();
 
         // Handlers — Auth
         services.AddScoped<RegisterUserHandler>();
@@ -255,7 +258,7 @@ public static class DependencyInjection
         services.AddScoped<GetChallengeSuggestionsHandler>();
         services.AddScoped<GetAdminChallengeCalendarHandler>();
 
-        // Background jobs
+        // Background Jobs
         services.AddHostedService<DailyChallengeSchedulerService>();
 
         return services;

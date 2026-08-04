@@ -1,0 +1,112 @@
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
+{
+    /// <inheritdoc />
+    public partial class AddWeeklyChallenge : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.CreateTable(
+                name: "WeeklyChallenges",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Theme = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    StartDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    EndDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    TutorialId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedByUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WeeklyChallenges", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WeeklyChallenges_Tutorials_TutorialId",
+                        column: x => x.TutorialId,
+                        principalTable: "Tutorials",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_WeeklyChallenges_Users_CreatedByUserId",
+                        column: x => x.CreatedByUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WeeklyChallengeSubmissions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    WeeklyChallengeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PhotoUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    Note = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FinalRank = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WeeklyChallengeSubmissions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WeeklyChallengeSubmissions_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_WeeklyChallengeSubmissions_WeeklyChallenges_WeeklyChallengeId",
+                        column: x => x.WeeklyChallengeId,
+                        principalTable: "WeeklyChallenges",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WeeklyChallenges_CreatedByUserId",
+                table: "WeeklyChallenges",
+                column: "CreatedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WeeklyChallenges_StartDate",
+                table: "WeeklyChallenges",
+                column: "StartDate");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WeeklyChallenges_TutorialId",
+                table: "WeeklyChallenges",
+                column: "TutorialId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WeeklyChallengeSubmissions_UserId",
+                table: "WeeklyChallengeSubmissions",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WeeklyChallengeSubmissions_WeeklyChallengeId_UserId",
+                table: "WeeklyChallengeSubmissions",
+                columns: new[] { "WeeklyChallengeId", "UserId" },
+                unique: true);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(
+                name: "WeeklyChallengeSubmissions");
+
+            migrationBuilder.DropTable(
+                name: "WeeklyChallenges");
+        }
+    }
+}

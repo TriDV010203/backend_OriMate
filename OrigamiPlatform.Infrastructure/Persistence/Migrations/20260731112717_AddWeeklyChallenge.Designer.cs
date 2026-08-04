@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OrigamiPlatform.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using OrigamiPlatform.Infrastructure.Persistence;
 namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260731112717_AddWeeklyChallenge")]
+    partial class AddWeeklyChallenge
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -57,7 +60,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId", "TutorialId")
                         .IsUnique();
 
-                    b.ToTable("Achievements", (string)null);
+                    b.ToTable("Achievements");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.AuditLog", b =>
@@ -98,7 +101,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ActorId");
 
-                    b.ToTable("AuditLogs", (string)null);
+                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Badge", b =>
@@ -151,7 +154,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Badges", (string)null);
+                    b.ToTable("Badges");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.BlockedWord", b =>
@@ -175,7 +178,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("Word")
                         .IsUnique();
 
-                    b.ToTable("BlockedWords", (string)null);
+                    b.ToTable("BlockedWords");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Category", b =>
@@ -209,7 +212,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.ChallengeStreakLog", b =>
@@ -237,7 +240,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("ChallengeStreakLogs", (string)null);
+                    b.ToTable("ChallengeStreakLogs");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Clan", b =>
@@ -263,7 +266,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Clans", (string)null);
+                    b.ToTable("Clans");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.ClanInvite", b =>
@@ -292,7 +295,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ClanId", "UserId");
 
-                    b.ToTable("ClanInvites", (string)null);
+                    b.ToTable("ClanInvites");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.ClanMember", b =>
@@ -319,7 +322,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("ClanMembers", (string)null);
+                    b.ToTable("ClanMembers");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Comment", b =>
@@ -361,7 +364,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CommunityPostId");
 
-                    b.ToTable("Comments", (string)null);
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.CommunityPost", b =>
@@ -398,7 +401,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("LinkedTutorialId");
 
-                    b.ToTable("CommunityPosts", (string)null);
+                    b.ToTable("CommunityPosts");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.CommunityPostMedia", b =>
@@ -429,7 +432,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("CommunityPostMedias", (string)null);
+                    b.ToTable("CommunityPostMedias");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.CreatorVipSettings", b =>
@@ -457,7 +460,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("CreatorId")
                         .IsUnique();
 
-                    b.ToTable("CreatorVipSettings", (string)null);
+                    b.ToTable("CreatorVipSettings");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.DailyChallenge", b =>
@@ -502,7 +505,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("TutorialId");
 
-                    b.ToTable("DailyChallenges", (string)null);
+                    b.ToTable("DailyChallenges");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.DailyChallengeSubmission", b =>
@@ -538,7 +541,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("DailyChallengeId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("DailyChallengeSubmissions", (string)null);
+                    b.ToTable("DailyChallengeSubmissions");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.DailyQuest", b =>
@@ -561,7 +564,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DailyQuests", (string)null);
+                    b.ToTable("DailyQuests");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.EmailLog", b =>
@@ -608,7 +611,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("RecipientId");
 
-                    b.ToTable("EmailLogs", (string)null);
+                    b.ToTable("EmailLogs");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.FollowRelationship", b =>
@@ -626,7 +629,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("FollowingId");
 
-                    b.ToTable("FollowRelationships", (string)null);
+                    b.ToTable("FollowRelationships");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.HatGapTransaction", b =>
@@ -660,7 +663,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("HatGapTransactions", (string)null);
+                    b.ToTable("HatGapTransactions");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Journal", b =>
@@ -698,7 +701,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Journals", (string)null);
+                    b.ToTable("Journals");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPath", b =>
@@ -741,7 +744,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CreatedByUserId");
 
-                    b.ToTable("LearningPaths", (string)null);
+                    b.ToTable("LearningPaths");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPathCompletion", b =>
@@ -765,7 +768,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId", "LearningPathId")
                         .IsUnique();
 
-                    b.ToTable("LearningPathCompletions", (string)null);
+                    b.ToTable("LearningPathCompletions");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.LearningPathItem", b =>
@@ -792,7 +795,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("LearningPathId", "TutorialId")
                         .IsUnique();
 
-                    b.ToTable("LearningPathItems", (string)null);
+                    b.ToTable("LearningPathItems");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Like", b =>
@@ -812,7 +815,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasKey("UserId", "TargetType", "TargetId");
 
-                    b.ToTable("Likes", (string)null);
+                    b.ToTable("Likes");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Notification", b =>
@@ -850,7 +853,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("RecipientId");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.PersonalMilestone", b =>
@@ -872,7 +875,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId", "Threshold")
                         .IsUnique();
 
-                    b.ToTable("PersonalMilestones", (string)null);
+                    b.ToTable("PersonalMilestones");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Report", b =>
@@ -919,7 +922,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ReporterId");
 
-                    b.ToTable("Reports", (string)null);
+                    b.ToTable("Reports");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.ShopLink", b =>
@@ -956,7 +959,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ShopLinks", (string)null);
+                    b.ToTable("ShopLinks");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.StreakLog", b =>
@@ -984,7 +987,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("StreakLogs", (string)null);
+                    b.ToTable("StreakLogs");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.StuckThread", b =>
@@ -1013,7 +1016,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId", "StepId")
                         .IsUnique();
 
-                    b.ToTable("StuckThreads", (string)null);
+                    b.ToTable("StuckThreads");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Transaction", b =>
@@ -1074,7 +1077,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Transactions", (string)null);
+                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Tutorial", b =>
@@ -1153,7 +1156,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Tutorials", (string)null);
+                    b.ToTable("Tutorials");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.TutorialReviewHistory", b =>
@@ -1200,7 +1203,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("TutorialId");
 
-                    b.ToTable("TutorialReviewHistories", (string)null);
+                    b.ToTable("TutorialReviewHistories");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.TutorialStep", b =>
@@ -1233,7 +1236,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("TutorialId");
 
-                    b.ToTable("TutorialSteps", (string)null);
+                    b.ToTable("TutorialSteps");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.TutorialStepProgress", b =>
@@ -1262,7 +1265,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId", "TutorialStepId")
                         .IsUnique();
 
-                    b.ToTable("TutorialStepProgresses", (string)null);
+                    b.ToTable("TutorialStepProgresses");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.User", b =>
@@ -1317,7 +1320,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
 
                     b.HasData(
                         new
@@ -1354,7 +1357,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId", "BadgeId")
                         .IsUnique();
 
-                    b.ToTable("UserBadges", (string)null);
+                    b.ToTable("UserBadges");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserDailyQuestProgress", b =>
@@ -1384,7 +1387,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId", "QuestId", "QuestDate")
                         .IsUnique();
 
-                    b.ToTable("UserDailyQuestProgresses", (string)null);
+                    b.ToTable("UserDailyQuestProgresses");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserProfile", b =>
@@ -1424,7 +1427,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("UserProfiles", (string)null);
+                    b.ToTable("UserProfiles");
 
                     b.HasData(
                         new
@@ -1451,7 +1454,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasKey("UserId", "Role");
 
-                    b.ToTable("UserRoles", (string)null);
+                    b.ToTable("UserRoles");
 
                     b.HasData(
                         new
@@ -1504,7 +1507,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("TransactionId");
 
-                    b.ToTable("VipSubscriptions", (string)null);
+                    b.ToTable("VipSubscriptions");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.WeeklyChallenge", b =>
@@ -1552,7 +1555,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("TutorialId");
 
-                    b.ToTable("WeeklyChallenges", (string)null);
+                    b.ToTable("WeeklyChallenges");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.WeeklyChallengeSubmission", b =>
@@ -1564,9 +1567,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("FinalRank")
-                        .HasColumnType("int");
-
-                    b.Property<int>("LikeCount")
                         .HasColumnType("int");
 
                     b.Property<string>("Note")
@@ -1591,7 +1591,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("WeeklyChallengeId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("WeeklyChallengeSubmissions", (string)null);
+                    b.ToTable("WeeklyChallengeSubmissions");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Wishlist", b =>
@@ -1611,7 +1611,7 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasKey("UserId", "TargetType", "TargetId");
 
-                    b.ToTable("Wishlists", (string)null);
+                    b.ToTable("Wishlists");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Achievement", b =>

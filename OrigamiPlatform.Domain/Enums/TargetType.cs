@@ -8,5 +8,8 @@ public enum TargetType
     StuckThread,
 
     // FT-34 Daily Challenge submissions
-    DailyChallengeSubmission
+    DailyChallengeSubmission,
+
+    // FT-23 Weekly Challenge submissions
+    WeeklyChallengeSubmission
 }
