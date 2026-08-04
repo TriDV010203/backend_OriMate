@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using OrigamiPlatform.Application.Common;
 using OrigamiPlatform.Application.Features.Tutorials.DTOs;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Constants;
@@ -34,6 +35,8 @@ public class AdminCreateTutorialHandler
             throw new DomainException("Description must be between 20 and 500 characters. BR-12.");
         if (string.IsNullOrWhiteSpace(request.CoverImageUrl))
             throw new DomainException("A cover image is required to publish directly.");
+
+        Tutorial3DModelValidator.Validate(request.Model3DUrl, request.Model3DPosterUrl);
 
         var steps = request.Steps ?? new List<CreateTutorialStepRequest>();
         if (steps.Count < 3 || steps.Count > 30)
