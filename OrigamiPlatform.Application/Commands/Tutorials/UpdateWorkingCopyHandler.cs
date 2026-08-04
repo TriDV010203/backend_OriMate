@@ -1,4 +1,5 @@
 using OrigamiPlatform.Application.Features.Tutorials.DTOs;
+using OrigamiPlatform.Application.Common;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
@@ -26,6 +27,8 @@ public class UpdateWorkingCopyHandler
 
         if (workingCopy.AuthorId != command.AuthorId)
             throw new ForbiddenException("You are not the author of this tutorial.");
+
+        Tutorial3DModelValidator.Validate(request.Model3DUrl, request.Model3DPosterUrl);
 
         // BR-23: blocked word checks
         if (await _blockedWords.ContainsBlockedWordAsync(request.Title, ct))
@@ -63,6 +66,8 @@ public class UpdateWorkingCopyHandler
         workingCopy.Difficulty = tutorialDifficulty;
         workingCopy.Type = tutorialType;
         workingCopy.CoverImageUrl = request.CoverImageUrl;
+        workingCopy.Model3DUrl = request.Model3DUrl;
+        workingCopy.Model3DPosterUrl = request.Model3DPosterUrl;
         workingCopy.MetaTitle = request.MetaTitle;
         workingCopy.MetaDescription = request.MetaDescription;
         workingCopy.Tags = request.Tags;
@@ -111,5 +116,7 @@ public class UpdateWorkingCopyHandler
         tutorial.CategoryId,
         tutorial.Status.ToString(),
         tutorial.CreatedAt,
-        tutorial.UpdatedAt);
+        tutorial.UpdatedAt,
+        tutorial.Model3DUrl,
+        tutorial.Model3DPosterUrl);
 }

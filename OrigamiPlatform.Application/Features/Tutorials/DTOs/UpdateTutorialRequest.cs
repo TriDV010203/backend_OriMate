@@ -10,5 +10,7 @@ public record UpdateTutorialRequest(
     List<CreateTutorialStepRequest>? Steps,
     string? MetaTitle = null,
     string? MetaDescription = null,
-    string? Tags = null
+    string? Tags = null,
+    string? Model3DUrl = null,
+    string? Model3DPosterUrl = null
 );

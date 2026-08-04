@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using OrigamiPlatform.Application.Common;
 using OrigamiPlatform.Application.Features.Tutorials.DTOs;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
@@ -24,6 +25,8 @@ public class CreateTutorialHandler
             throw new DomainException("Title must be between 5 and 150 characters. BR-12.");
         if (request.Description.Length < 20 || request.Description.Length > 500)
             throw new DomainException("Description must be between 20 and 500 characters. BR-12.");
+
+        Tutorial3DModelValidator.Validate(request.Model3DUrl, request.Model3DPosterUrl);
 
         // BR-23: blocked word check on user-supplied text
         if (await _blockedWords.ContainsBlockedWordAsync(request.Title, ct))
@@ -67,6 +70,8 @@ public class CreateTutorialHandler
             Description = request.Description,
             Slug = slug,
             CoverImageUrl = request.CoverImageUrl,
+            Model3DUrl = request.Model3DUrl,
+            Model3DPosterUrl = request.Model3DPosterUrl,
             Type = tutorialType,
             Difficulty = tutorialDifficulty,
             Status = TutorialStatus.Draft,
@@ -127,5 +132,7 @@ public class CreateTutorialHandler
         tutorial.CategoryId,
         tutorial.Status.ToString(),
         tutorial.CreatedAt,
-        tutorial.UpdatedAt);
+        tutorial.UpdatedAt,
+        tutorial.Model3DUrl,
+        tutorial.Model3DPosterUrl);
 }

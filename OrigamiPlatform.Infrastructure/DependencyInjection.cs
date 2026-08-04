@@ -114,6 +114,7 @@ public static class DependencyInjection
 
         // Handlers — Uploads
         services.AddScoped<UploadImageHandler>();
+        services.AddScoped<UploadModel3DHandler>();
 
         // Handlers — Tutorials (public)
         services.AddScoped<GetTutorialsHandler>();

@@ -39,6 +39,8 @@ public class GetTutorialForAuthorHandler
             tutorial.Status.ToString(),
             steps,
             tutorial.CreatedAt,
-            tutorial.UpdatedAt);
+            tutorial.UpdatedAt,
+            tutorial.Model3DUrl,
+            tutorial.Model3DPosterUrl);
     }
 }

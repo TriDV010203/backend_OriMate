@@ -36,6 +36,8 @@ public class GetTutorialForAdminHandler
             tutorial.IsOfficial,
             steps,
             tutorial.CreatedAt,
-            tutorial.UpdatedAt);
+            tutorial.UpdatedAt,
+            tutorial.Model3DUrl,
+            tutorial.Model3DPosterUrl);
     }
 }
