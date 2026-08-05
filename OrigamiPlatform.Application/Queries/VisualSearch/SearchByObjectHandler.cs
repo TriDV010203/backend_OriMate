@@ -1,6 +1,5 @@
 ﻿using OrigamiPlatform.Application.DTOs.VisualSearch;
 using OrigamiPlatform.Application.Interfaces;
-using OrigamiPlatform.Domain.Constants; // Gọi thư viện chứa file AiDictionary
 using OrigamiPlatform.Domain.Enums;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,29 +14,22 @@ public class SearchByObjectHandler(
 {
     public async Task<ObjectSearchResultDto> HandleAsync(SearchByObjectQuery request, CancellationToken cancellationToken = default)
     {
-        // 1. Gửi ảnh cho AI xử lý và lấy ra nhãn
+        // 1. Gửi ảnh cho AI (YOLOv8) xử lý và lấy ra nhãn
         var rawLabels = await imageLabelingService.DetectLabelsAsync(request.ImageStream);
 
         if (rawLabels == null || !rawLabels.Any())
             return new ObjectSearchResultDto(Message: "Không nhận diện được vật thể trong ảnh.");
 
+        // 2. Lấy trực tiếp từ khóa từ YOLO (vì YOLO đã trả về từ chung chung như "dog", "cat"...)
         var searchKeywords = new HashSet<string>();
         foreach (var raw in rawLabels)
         {
+            // Chỉ cần xóa khoảng trắng thừa và chuyển về chữ thường
             var cleanRaw = raw.Trim().ToLower();
             searchKeywords.Add(cleanRaw);
-
-            // 2. Mở rộng từ khóa (ví dụ có 'dog' thì thêm 'chó'...) dựa vào Dictionary chung
-            foreach (var map in AiDictionary.KeywordMapping)
-            {
-                if (cleanRaw.Contains(map.Key))
-                {
-                    searchKeywords.Add(map.Value);
-                }
-            }
         }
 
-        // 3. Lấy tất cả bài hướng dẫn đã xuất bản
+        // 3. Lấy tất cả bài hướng dẫn đã xuất bản từ Database
         var publishedTutorials = await tutorialRepository.GetAllPublishedWithCategoryAsync(cancellationToken);
 
         // 4. Tìm kiếm từ khóa xuất hiện ở Tiêu đề hoặc Danh mục (tránh lỗi Null)

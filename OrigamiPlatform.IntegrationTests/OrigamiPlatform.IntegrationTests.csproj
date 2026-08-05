@@ -29,10 +29,4 @@
     <ProjectReference Include="..\OrigamiPlatform.API\OrigamiPlatform.API.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Controllers\GamificationAndPortfolio\" />
-    <Folder Include="Controllers\Clan\" />
-    <Folder Include="Controllers\VipAndShop\" />
-  </ItemGroup>
-
 </Project>
