@@ -23,6 +23,19 @@ public class UsersController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>GET /api/users/top-creators — Nhà sáng tạo nổi bật, xếp hạng theo số lượng người theo dõi.</summary>
+    [HttpGet("top-creators")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetTopCreators(
+        [FromServices] GetFeaturedCreatorsHandler handler,
+        CancellationToken ct,
+        [FromQuery] int count = 4)
+    {
+        var result = await handler.HandleAsync(new GetFeaturedCreatorsQuery(count, GetCurrentUserId()), ct);
+
+        return Ok(result);
+    }
+
     [HttpGet("{id}/followers")]
     [AllowAnonymous]
     public async Task<IActionResult> GetFollowers(

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OrigamiPlatform.Domain.Entities;
 
 namespace OrigamiPlatform.Infrastructure.Persistence;
@@ -86,5 +87,34 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        // Toàn bộ DateTime trong hệ thống được lưu dưới dạng UTC (DateTime.UtcNow).
+        // SQL Server "datetime2" không lưu Kind, nên khi EF Core đọc lại, Kind bị reset
+        // về Unspecified. Khi đó System.Text.Json serialize thiếu hậu tố "Z", khiến
+        // frontend (new Date(iso)) hiểu nhầm là giờ local -> lệch đúng bằng offset múi giờ
+        // (7 giờ ở VN) trong mọi nơi hiển thị thời gian (vd "vừa tạo" hiện "7 giờ trước").
+        // Gắn lại Kind=Utc ngay khi đọc từ DB để khắc phục tận gốc cho mọi entity.
+        var utcConverter = new ValueConverter<DateTime, DateTime>(
+            v => v.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(v, DateTimeKind.Utc) : v.ToUniversalTime(),
+            v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+        var utcNullableConverter = new ValueConverter<DateTime?, DateTime?>(
+            v => v.HasValue ? (v.Value.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v.Value.ToUniversalTime()) : v,
+            v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTime))
+                {
+                    property.SetValueConverter(utcConverter);
+                }
+                else if (property.ClrType == typeof(DateTime?))
+                {
+                    property.SetValueConverter(utcNullableConverter);
+                }
+            }
+        }
     }
 }

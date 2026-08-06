@@ -169,6 +169,7 @@ public static class DependencyInjection
         services.AddScoped<CreateBlockedWordHandler>();
         services.AddScoped<RemoveBlockedWordHandler>();
         services.AddScoped<GetUsersHandler>();
+        services.AddScoped<CreateUserByAdminHandler>();
         services.AddScoped<AssignRoleHandler>();
         services.AddScoped<RemoveRoleHandler>();
         services.AddScoped<SuspendUserHandler>();
@@ -207,6 +208,7 @@ public static class DependencyInjection
         services.AddScoped<UpdateProfileHandler>();
         services.AddScoped<GetFollowersHandler>();
         services.AddScoped<GetFollowingHandler>();
+        services.AddScoped<GetFeaturedCreatorsHandler>();
 
         // Handlers — Onboarding (FT-29)
         services.AddScoped<CompleteOnboardingHandler>();

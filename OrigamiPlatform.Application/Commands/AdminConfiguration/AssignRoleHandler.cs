@@ -23,9 +23,17 @@ public class AssignRoleHandler
             ?? throw new NotFoundException($"User {command.UserId} not found.");
 
         var roleType = Enum.Parse<UserRoleType>(req.Role);
+        var currentRoles = user.Roles.Select(r => r.Role).ToList();
 
-        if (user.Roles.Any(r => r.Role == roleType))
-            throw new ConflictException("User already has this role.");
+        if (currentRoles.Count == 1 && currentRoles[0] == roleType)
+            return; // already exactly this role — no-op
+
+        if (command.ActorId == command.UserId && currentRoles.Contains(UserRoleType.Admin) && roleType != UserRoleType.Admin)
+            throw new BadRequestException("Cannot remove your own Admin role.");
+
+        // Assign-role is authoritative: the account ends up with exactly the one role the admin picked.
+        foreach (var existingRole in currentRoles)
+            await _userRepo.RemoveRoleAsync(command.UserId, existingRole, ct);
 
         var userRole = new UserRole
         {

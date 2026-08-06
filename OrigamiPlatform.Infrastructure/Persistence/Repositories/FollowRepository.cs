@@ -86,4 +86,27 @@ public class FollowRepository : IFollowRepository
 
         return new PagedResult<User>(items, totalCount, page, pageSize, totalPages);
     }
+
+    public async Task<IReadOnlyList<User>> GetTopFollowedUsersAsync(int count, CancellationToken ct = default)
+    {
+        var topIds = await _context.FollowRelationships
+            .GroupBy(f => f.FollowingId)
+            .Select(g => new { UserId = g.Key, FollowerCount = g.Count() })
+            .OrderByDescending(x => x.FollowerCount)
+            .Take(count)
+            .Select(x => x.UserId)
+            .ToListAsync(ct);
+
+        var users = await _context.Users
+            .Include(u => u.Profile)
+            .Include(u => u.Roles)
+            .Where(u => topIds.Contains(u.Id))
+            .ToListAsync(ct);
+
+        return topIds
+            .Select(id => users.FirstOrDefault(u => u.Id == id))
+            .Where(u => u != null)
+            .Select(u => u!)
+            .ToList();
+    }
 }

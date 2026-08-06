@@ -21,6 +21,7 @@ public class AdminController : ControllerBase
     private readonly CreateBlockedWordHandler _createBlockedWord;
     private readonly RemoveBlockedWordHandler _removeBlockedWord;
     private readonly GetUsersHandler _getUsers;
+    private readonly CreateUserByAdminHandler _createUser;
     private readonly AssignRoleHandler _assignRole;
     private readonly RemoveRoleHandler _removeRole;
     private readonly SuspendUserHandler _suspendUser;
@@ -35,6 +36,7 @@ public class AdminController : ControllerBase
         CreateBlockedWordHandler createBlockedWord,
         RemoveBlockedWordHandler removeBlockedWord,
         GetUsersHandler getUsers,
+        CreateUserByAdminHandler createUser,
         AssignRoleHandler assignRole,
         RemoveRoleHandler removeRole,
         SuspendUserHandler suspendUser,
@@ -48,6 +50,7 @@ public class AdminController : ControllerBase
         _createBlockedWord = createBlockedWord;
         _removeBlockedWord = removeBlockedWord;
         _getUsers = getUsers;
+        _createUser = createUser;
         _assignRole = assignRole;
         _removeRole = removeRole;
         _suspendUser = suspendUser;
@@ -119,6 +122,13 @@ public class AdminController : ControllerBase
         CancellationToken ct = default)
     {
         var result = await _getUsers.HandleAsync(new GetUsersQuery(keyword, status, role, page, pageSize), ct);
+        return Ok(result);
+    }
+
+    [HttpPost("users")]
+    public async Task<IActionResult> CreateUser(CreateUserByAdminRequest req, CancellationToken ct)
+    {
+        var result = await _createUser.HandleAsync(new CreateUserByAdminCommand(GetCurrentUserId(), req), ct);
         return Ok(result);
     }
 

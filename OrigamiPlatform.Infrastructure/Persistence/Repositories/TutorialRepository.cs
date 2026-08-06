@@ -80,6 +80,48 @@ public class TutorialRepository : ITutorialRepository
             .AsSplitQuery()
             .FirstOrDefaultAsync(ct);
 
+    public async Task<PagedResult<Tutorial>> GetRecommendedAsync(
+        List<int> categoryIds,
+        TutorialDifficulty[] difficulties,
+        HashSet<Guid> excludeIds,
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
+    {
+        var query = _db.Tutorials
+            .Where(t => t.Status == TutorialStatus.Published && !t.IsDeleted)
+            .Include(t => t.Category)
+            .Include(t => t.Author).ThenInclude(a => a.Profile)
+            .Include(t => t.Steps)
+            .AsQueryable();
+
+        if (categoryIds.Count > 0)
+            query = query.Where(t => categoryIds.Contains(t.CategoryId));
+
+        if (difficulties.Length > 0)
+            query = query.Where(t => difficulties.Contains(t.Difficulty));
+
+        if (excludeIds.Count > 0)
+            query = query.Where(t => !excludeIds.Contains(t.Id));
+
+        var totalCount = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderByDescending(t => _db.Likes.Count(l =>
+                l.TargetType == TargetType.Tutorial && l.TargetId == t.Id))
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .AsSplitQuery()
+            .ToListAsync(ct);
+
+        return new PagedResult<Tutorial>(
+            items,
+            totalCount,
+            page,
+            pageSize,
+            (int)Math.Ceiling(totalCount / (double)pageSize));
+    }
+
     // ── FT-04 authoring & review ─────────────────────────────────────────────
 
     public Task<Tutorial?> GetByIdWithStepsAsync(Guid id, CancellationToken ct = default)

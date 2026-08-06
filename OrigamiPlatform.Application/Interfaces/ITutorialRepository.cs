@@ -20,9 +20,19 @@ public interface ITutorialRepository
 
     Task<Tutorial?> GetPublishedBySlugAsync(string slug, CancellationToken ct = default);
 
+    // FT recommendation feed — ordered by LikeCount desc
+    Task<PagedResult<Tutorial>> GetRecommendedAsync(
+        List<int> categoryIds,
+        TutorialDifficulty[] difficulties,
+        HashSet<Guid> excludeIds,
+        int page,
+        int pageSize,
+        CancellationToken ct = default);
+
     // FT-04 authoring & review
     Task<Tutorial?> GetByIdWithStepsAsync(Guid id, CancellationToken ct = default);
-    Task<PagedResult<Tutorial>> GetByAuthorAsync(Guid authorId, int page, int pageSize, CancellationToken ct = default);    
+    Task<PagedResult<Tutorial>> GetByAuthorAsync(Guid authorId, int page, int pageSize, CancellationToken ct = default);
+    Task<int> CountPublishedByAuthorAsync(Guid authorId, CancellationToken ct = default);
     Task AddAsync(Tutorial tutorial, CancellationToken ct = default);
     Task UpdateAsync(Tutorial tutorial, CancellationToken ct = default);
     Task AddReviewHistoryAsync(TutorialReviewHistory history, CancellationToken ct = default);

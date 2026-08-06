@@ -19,8 +19,8 @@ public class ActivateUserHandler
         var user = await _userRepo.GetByIdAsync(command.UserId, ct)
             ?? throw new NotFoundException($"User {command.UserId} not found.");
 
-        if (user.Status != AccountStatus.Suspended)
-            throw new BadRequestException("Only Suspended accounts can be activated.");
+        if (user.Status == AccountStatus.Active)
+            throw new BadRequestException("User account is already active.");
 
         user.Status = AccountStatus.Active;
         user.UpdatedAt = DateTime.UtcNow;
