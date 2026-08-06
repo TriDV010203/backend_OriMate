@@ -2,8 +2,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OrigamiPlatform.Application.Commands.AdminConfiguration;
 using OrigamiPlatform.Application.Commands.Tutorials;
 using OrigamiPlatform.Application.DTOs;
+using OrigamiPlatform.Application.DTOs.Tutorials;
 using OrigamiPlatform.Application.Features.Tutorials.DTOs;
 using OrigamiPlatform.Application.Queries.AdminConfiguration;
 using OrigamiPlatform.Application.Queries.Tutorials;
@@ -36,6 +38,11 @@ public class TutorialsController : ControllerBase
     private readonly GetAdminTutorialsHandler _getAdminTutorials;
     private readonly GetTutorialForAdminHandler _getTutorialForAdmin;
     private readonly AdminUpdateTutorialHandler _adminUpdateTutorial;
+    private readonly SetOfficialTutorialHandler _setOfficialTutorial;
+    private readonly GetRecommendedTutorialsHandler _getRecommendedTutorials;
+    private readonly AddVariantHandler _addVariant;
+    private readonly RemoveVariantHandler _removeVariant;
+    private readonly GetVariantsHandler _getVariants;
 
     public TutorialsController(
         GetTutorialsHandler getTutorials,
@@ -58,7 +65,12 @@ public class TutorialsController : ControllerBase
         ManagerRejectEditHandler managerRejectEdit,
         GetAdminTutorialsHandler getAdminTutorials,
         GetTutorialForAdminHandler getTutorialForAdmin,
-        AdminUpdateTutorialHandler adminUpdateTutorial)
+        AdminUpdateTutorialHandler adminUpdateTutorial,
+        SetOfficialTutorialHandler setOfficialTutorial,
+        GetRecommendedTutorialsHandler getRecommendedTutorials,
+        AddVariantHandler addVariant,
+        RemoveVariantHandler removeVariant,
+        GetVariantsHandler getVariants)
     {
         _getTutorials = getTutorials;
         _getTutorialBySlug = getTutorialBySlug;
@@ -81,6 +93,11 @@ public class TutorialsController : ControllerBase
         _getAdminTutorials = getAdminTutorials;
         _getTutorialForAdmin = getTutorialForAdmin;
         _adminUpdateTutorial = adminUpdateTutorial;
+        _setOfficialTutorial = setOfficialTutorial;
+        _getRecommendedTutorials = getRecommendedTutorials;
+        _addVariant = addVariant;
+        _removeVariant = removeVariant;
+        _getVariants = getVariants;
     }
 
     // ── Public ───────────────────────────────────────────────────────────────
@@ -110,9 +127,24 @@ public class TutorialsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>GET /api/tutorials/categories — Active categories, for the authoring form's category dropdown.</summary>
+    /// <summary>GET /api/tutorials/recommended — FT-31 rule-based recommendation. Anonymous callers
+    /// and users with no completed tutorial yet get the most-liked Beginner tutorials.</summary>
+    [HttpGet("recommended")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetRecommended(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken ct = default)
+    {
+        var result = await _getRecommendedTutorials.HandleAsync(
+            new GetRecommendedTutorialsQuery(GetCurrentUserId(), page, pageSize), ct);
+        return Ok(result);
+    }
+
+    /// <summary>GET /api/tutorials/categories — Active categories, for the authoring form's category dropdown
+    /// and for the public library page's category filter.</summary>
     [HttpGet("categories")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<IActionResult> GetCategories(CancellationToken ct)
     {
         var result = await _getCategories.HandleAsync(new GetCategoriesQuery(), ct);
@@ -331,6 +363,56 @@ public class TutorialsController : ControllerBase
         var actorRole = User.IsInRole("Admin") ? UserRoleType.Admin : UserRoleType.Manager;
         var result = await _adminUpdateTutorial.HandleAsync(
             new AdminUpdateTutorialCommand(id, actorId, actorRole, request), ct);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// PUT /api/admin/tutorials/{tutorialId}/official — FT-32: mark/unmark a tutorial as official curated content.
+    /// Route uses "~/" to publish under /api/admin instead of this controller's /api/tutorials prefix, so it can
+    /// carry its own [Authorize(Roles = "Admin,Manager")] without inheriting AdminController's Admin-only class
+    /// restriction (which would otherwise AND together and lock Manager out).
+    /// </summary>
+    [HttpPut("~/api/admin/tutorials/{tutorialId:guid}/official")]
+    [Authorize(Roles = "Admin,Manager")]
+    public async Task<IActionResult> SetOfficialTutorial(
+        Guid tutorialId, [FromBody] SetOfficialTutorialRequest request, CancellationToken ct)
+    {
+        var actorId = GetCurrentUserId()!.Value;
+        await _setOfficialTutorial.HandleAsync(
+            new SetOfficialTutorialCommand(actorId, tutorialId, request.IsOfficial), ct);
+        return Ok(new MessageResponse("Tutorial official status updated."));
+    }
+
+    // ── Variants (FT-11) ─────────────────────────────────────────────────────
+
+    /// <summary>POST /api/tutorials/{parentId}/variants — Author links another of their own tutorials as a variant.</summary>
+    [HttpPost("{parentId:guid}/variants")]
+    [Authorize]
+    public async Task<IActionResult> AddVariant(
+        Guid parentId, [FromBody] AddVariantRequest request, CancellationToken ct)
+    {
+        var requesterId = GetCurrentUserId()!.Value;
+        await _addVariant.HandleAsync(
+            new AddVariantCommand(requesterId, parentId, request.VariantTutorialId, request.DifficultyDelta), ct);
+        return Ok(new MessageResponse("Variant linked."));
+    }
+
+    /// <summary>DELETE /api/tutorials/{parentId}/variants/{variantId} — Author unlinks a variant.</summary>
+    [HttpDelete("{parentId:guid}/variants/{variantId:guid}")]
+    [Authorize]
+    public async Task<IActionResult> RemoveVariant(Guid parentId, Guid variantId, CancellationToken ct)
+    {
+        var requesterId = GetCurrentUserId()!.Value;
+        await _removeVariant.HandleAsync(new RemoveVariantCommand(requesterId, parentId, variantId), ct);
+        return Ok(new MessageResponse("Variant unlinked."));
+    }
+
+    /// <summary>GET /api/tutorials/{parentId}/variants — List variants linked to a tutorial.</summary>
+    [HttpGet("{parentId:guid}/variants")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetVariants(Guid parentId, CancellationToken ct)
+    {
+        var result = await _getVariants.HandleAsync(new GetVariantsQuery(parentId), ct);
         return Ok(result);
     }
 

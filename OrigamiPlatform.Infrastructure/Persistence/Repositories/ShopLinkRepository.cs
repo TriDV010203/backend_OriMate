@@ -16,6 +16,9 @@ public class ShopLinkRepository : IShopLinkRepository
     public Task<List<ShopLink>> GetActiveAsync(CancellationToken ct = default)
         => _db.ShopLinks.Where(s => s.IsActive).OrderByDescending(s => s.CreatedAt).ToListAsync(ct);
 
+    public Task<List<ShopLink>> GetAllAsync(CancellationToken ct = default)
+        => _db.ShopLinks.OrderByDescending(s => s.CreatedAt).ToListAsync(ct);
+
     public async Task AddAsync(ShopLink link, CancellationToken ct = default)
     {
         _db.ShopLinks.Add(link);

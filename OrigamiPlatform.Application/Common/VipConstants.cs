@@ -8,4 +8,7 @@ public static class VipConstants
 
     /// <summary>Platform commission taken from each VIP subscription payment.</summary>
     public const decimal PlatformCommissionRate = 0.10m;
+
+    /// <summary>BR-VIP-06: minimum number of Published tutorials a creator must have before enabling VIP selling.</summary>
+    public const int MinPublishedTutorialsToSell = 5;
 }

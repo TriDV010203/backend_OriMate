@@ -49,6 +49,6 @@ public interface ITutorialRepository
         int page,
         int pageSize,
         CancellationToken ct = default);
-
     Task<List<Tutorial>> GetAllPublishedWithCategoryAsync(CancellationToken ct = default);
+
 }

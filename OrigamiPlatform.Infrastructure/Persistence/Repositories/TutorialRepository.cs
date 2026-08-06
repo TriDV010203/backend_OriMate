@@ -114,6 +114,13 @@ public class TutorialRepository : ITutorialRepository
             (int)Math.Ceiling(totalCount / (double)pageSize));
     }
 
+    public Task<int> CountPublishedByAuthorAsync(Guid authorId, CancellationToken ct = default)
+        => _db.Tutorials
+            .Where(t => t.AuthorId == authorId
+                     && t.Status == TutorialStatus.Published
+                     && !t.IsDeleted)
+            .CountAsync(ct);
+
     public async Task AddAsync(Tutorial tutorial, CancellationToken ct = default)
     {
         _db.Tutorials.Add(tutorial);
@@ -280,5 +287,6 @@ public class TutorialRepository : ITutorialRepository
             .Include(t => t.Category)
             .Where(t => t.Status == TutorialStatus.Published)
             .ToListAsync(ct);
+
     }
 }

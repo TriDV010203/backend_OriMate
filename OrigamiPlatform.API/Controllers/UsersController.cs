@@ -84,4 +84,26 @@ public class UsersController : ControllerBase
 
         return Ok(new { message = "Cập nhật Profile thành công!" });
     }
+
+    /// <summary>GET /api/users/me/onboarding-status — FT-29: whether the current user has completed first-run onboarding.</summary>
+    [HttpGet("me/onboarding-status")]
+    [Authorize]
+    public async Task<IActionResult> GetOnboardingStatus(
+        [FromServices] GetOnboardingStatusHandler handler,
+        CancellationToken ct)
+    {
+        var result = await handler.HandleAsync(new GetOnboardingStatusQuery(GetCurrentUserId()!.Value), ct);
+        return Ok(result);
+    }
+
+    /// <summary>POST /api/users/me/complete-onboarding — FT-29: marks first-run onboarding as completed.</summary>
+    [HttpPost("me/complete-onboarding")]
+    [Authorize]
+    public async Task<IActionResult> CompleteOnboarding(
+        [FromServices] CompleteOnboardingHandler handler,
+        CancellationToken ct)
+    {
+        await handler.HandleAsync(new CompleteOnboardingCommand(GetCurrentUserId()!.Value), ct);
+        return Ok(new { message = "Onboarding completed." });
+    }
 }

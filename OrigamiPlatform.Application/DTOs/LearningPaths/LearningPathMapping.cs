@@ -7,6 +7,8 @@ public static class LearningPathMapping
     public static LearningPathDto ToDto(this LearningPath learningPath)
         => new(
             learningPath.Id,
+            learningPath.LearningPathModeId,
+            learningPath.LearningPathMode.Name,
             learningPath.Title,
             learningPath.Description,
             learningPath.CoverImageUrl,
@@ -30,6 +32,8 @@ public static class LearningPathMapping
     public static LearningPathListItemDto ToListItemDto(this LearningPath learningPath)
         => new(
             learningPath.Id,
+            learningPath.LearningPathModeId,
+            learningPath.LearningPathMode.Name,
             learningPath.Title,
             learningPath.Description,
             learningPath.CoverImageUrl,

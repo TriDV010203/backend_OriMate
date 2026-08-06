@@ -6,6 +6,7 @@ public class LearningPath
 {
     public Guid Id { get; set; }
     public Guid CreatedByUserId { get; set; }
+    public Guid LearningPathModeId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string? CoverImageUrl { get; set; }
@@ -15,5 +16,6 @@ public class LearningPath
     public DateTime? UpdatedAt { get; set; }
 
     public User CreatedByUser { get; set; } = null!;
+    public LearningPathMode LearningPathMode { get; set; } = null!;
     public ICollection<LearningPathItem> Items { get; set; } = new List<LearningPathItem>();
 }

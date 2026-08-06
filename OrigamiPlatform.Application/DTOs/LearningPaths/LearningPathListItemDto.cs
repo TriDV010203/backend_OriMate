@@ -2,6 +2,8 @@ namespace OrigamiPlatform.Application.DTOs.LearningPaths;
 
 public record LearningPathListItemDto(
     Guid Id,
+    Guid LearningPathModeId,
+    string LearningPathModeName,
     string Title,
     string Description,
     string? CoverImageUrl,

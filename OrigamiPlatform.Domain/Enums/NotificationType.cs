@@ -40,5 +40,10 @@ public enum NotificationType
     DailyChallengeResult,
 
     // FT-35 Badge System
-    BadgeEarned
+    BadgeEarned,
+
+    // Learning Path Mode unlock test review
+    NewModeUnlockSubmission,
+    ModeUnlockApproved,
+    ModeUnlockRejected
 }

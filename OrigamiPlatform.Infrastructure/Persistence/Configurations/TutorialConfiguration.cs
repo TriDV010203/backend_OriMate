@@ -17,6 +17,11 @@ public class TutorialConfiguration : IEntityTypeConfiguration<Tutorial>
         builder.HasIndex(t => t.Slug).IsUnique();
 
         builder.Property(t => t.CoverImageUrl).HasMaxLength(512);
+        builder.Property(t => t.Model3DUrl).HasMaxLength(512);
+        builder.Property(t => t.Model3DPosterUrl).HasMaxLength(512);
+        builder.Property(t => t.MetaTitle).HasMaxLength(160);
+        builder.Property(t => t.MetaDescription).HasMaxLength(320);
+        builder.Property(t => t.Tags).HasMaxLength(300);
         builder.Property(t => t.Difficulty).HasConversion<string>().HasMaxLength(50).IsRequired();
         builder.Property(t => t.Type).HasConversion<string>().HasMaxLength(10);
         builder.Property(t => t.Status).HasConversion<string>().HasMaxLength(30);

@@ -11,11 +11,13 @@ public class UpdateLearningPathHandler
 {
     private readonly ILearningPathRepository _learningPathRepo;
     private readonly ITutorialRepository _tutorialRepo;
+    private readonly ILearningPathModeRepository _modeRepo;
     private readonly IBlockedWordService _blockedWords;
 
     public UpdateLearningPathHandler(
-        ILearningPathRepository learningPathRepo, ITutorialRepository tutorialRepo, IBlockedWordService blockedWords)
-        => (_learningPathRepo, _tutorialRepo, _blockedWords) = (learningPathRepo, tutorialRepo, blockedWords);
+        ILearningPathRepository learningPathRepo, ITutorialRepository tutorialRepo,
+        ILearningPathModeRepository modeRepo, IBlockedWordService blockedWords)
+        => (_learningPathRepo, _tutorialRepo, _modeRepo, _blockedWords) = (learningPathRepo, tutorialRepo, modeRepo, blockedWords);
 
     public async Task<LearningPathDto> HandleAsync(UpdateLearningPathCommand command, CancellationToken ct = default)
     {
@@ -34,11 +36,17 @@ public class UpdateLearningPathHandler
         if (await _blockedWords.ContainsBlockedWordAsync(request.Description, ct))
             throw new DomainException("Description contains a blocked word. BR-23.");
 
+        var mode = await _modeRepo.GetByIdAsync(request.LearningPathModeId, ct)
+            ?? throw new NotFoundException($"Learning path mode {request.LearningPathModeId} not found.");
+        if (!mode.IsActive)
+            throw new DomainException("This mode is not active.");
+
         var items = await LearningPathItemValidator.BuildItemsAsync(_tutorialRepo, request.TutorialIds, ct);
 
         learningPath.Title = request.Title;
         learningPath.Description = request.Description;
         learningPath.CoverImageUrl = request.CoverImageUrl;
+        learningPath.LearningPathModeId = mode.Id;
         learningPath.UpdatedAt = DateTime.UtcNow;
 
         await _learningPathRepo.UpdateAsync(learningPath, ct);

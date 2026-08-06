@@ -11,6 +11,7 @@ using OrigamiPlatform.Application.Commands.Follows;
 using OrigamiPlatform.Application.Commands.Gamification;
 using OrigamiPlatform.Application.Commands.Journals;
 using OrigamiPlatform.Application.Commands.LearningPaths;
+using OrigamiPlatform.Application.Commands.LearningPathModes;
 using OrigamiPlatform.Application.Commands.Likes;
 using OrigamiPlatform.Application.Commands.Moderation;
 using OrigamiPlatform.Application.Commands.Notifications;
@@ -33,6 +34,7 @@ using OrigamiPlatform.Application.Queries.DailyChallenge;
 using OrigamiPlatform.Application.Queries.Gamification;
 using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.LearningPaths;
+using OrigamiPlatform.Application.Queries.LearningPathModes;
 using OrigamiPlatform.Application.Queries.Notifications;
 using OrigamiPlatform.Application.Queries.Reports;
 using OrigamiPlatform.Application.Queries.Shop;
@@ -84,11 +86,17 @@ public static class DependencyInjection
         services.AddScoped<IHatGapTransactionRepository, HatGapTransactionRepository>();
         services.AddScoped<ILearningPathRepository, LearningPathRepository>();
         services.AddScoped<ILearningPathCompletionRepository, LearningPathCompletionRepository>();
+        services.AddScoped<ILearningPathModeRepository, LearningPathModeRepository>();
+        services.AddScoped<ILearningPathModeUnlockTestRepository, LearningPathModeUnlockTestRepository>();
+        services.AddScoped<IModeUnlockSubmissionRepository, ModeUnlockSubmissionRepository>();
         services.AddScoped<IDailyChallengeRepository, DailyChallengeRepository>();
         services.AddScoped<IDailyChallengeSubmissionRepository, DailyChallengeSubmissionRepository>();
         services.AddScoped<IChallengeStreakRepository, ChallengeStreakRepository>();
         services.AddScoped<IBadgeRepository, BadgeRepository>();
         services.AddScoped<IUserBadgeRepository, UserBadgeRepository>();
+        services.AddScoped<ITutorialVariantRepository, TutorialVariantRepository>();
+        services.AddScoped<IPaperPatternRepository, PaperPatternRepository>();
+        services.AddScoped<IUserPaperPatternRepository, UserPaperPatternRepository>();
 
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
@@ -113,6 +121,7 @@ public static class DependencyInjection
 
         // Handlers — Uploads
         services.AddScoped<UploadImageHandler>();
+        services.AddScoped<UploadModel3DHandler>();
 
         // Handlers — Tutorials (public)
         services.AddScoped<GetTutorialsHandler>();
@@ -141,11 +150,21 @@ public static class DependencyInjection
         services.AddScoped<GetAdminTutorialsHandler>();
         services.AddScoped<GetTutorialForAdminHandler>();
         services.AddScoped<AdminUpdateTutorialHandler>();
+        services.AddScoped<SetOfficialTutorialHandler>();
+
+        // Handlers — Tutorials AI Recommendation (FT-31)
+        services.AddScoped<GetRecommendedTutorialsHandler>();
+
+        // Handlers — Tutorial Variants (FT-11)
+        services.AddScoped<AddVariantHandler>();
+        services.AddScoped<RemoveVariantHandler>();
+        services.AddScoped<GetVariantsHandler>();
 
         // Handlers — AdminConfiguration (FT-03)
         services.AddScoped<GetCategoriesHandler>();
         services.AddScoped<CreateCategoryHandler>();
         services.AddScoped<UpdateCategoryHandler>();
+        services.AddScoped<DeleteCategoryHandler>();
         services.AddScoped<GetBlockedWordsHandler>();
         services.AddScoped<CreateBlockedWordHandler>();
         services.AddScoped<RemoveBlockedWordHandler>();
@@ -189,6 +208,10 @@ public static class DependencyInjection
         services.AddScoped<GetFollowersHandler>();
         services.AddScoped<GetFollowingHandler>();
 
+        // Handlers — Onboarding (FT-29)
+        services.AddScoped<CompleteOnboardingHandler>();
+        services.AddScoped<GetOnboardingStatusHandler>();
+
         // Handlers — Tutorial step progress (per user)
         services.AddScoped<CompleteTutorialStepHandler>();
         services.AddScoped<UncompleteTutorialStepHandler>();
@@ -220,8 +243,11 @@ public static class DependencyInjection
 
         // Handlers — Shop (FT-18)
         services.AddScoped<GetShopLinksHandler>();
+        services.AddScoped<GetAdminShopLinksHandler>();
         services.AddScoped<CreateShopLinkHandler>();
         services.AddScoped<UpdateShopLinkHandler>();
+        services.AddScoped<GetPaperPatternsHandler>();
+        services.AddScoped<PurchasePaperPatternHandler>();
 
         // Handlers — Learning Path (FT-33)
         services.AddScoped<GetLearningPathsHandler>();
@@ -234,11 +260,23 @@ public static class DependencyInjection
         services.AddScoped<PublishLearningPathHandler>();
         services.AddScoped<ArchiveLearningPathHandler>();
 
+        // Handlers — Learning Path Modes (tiered roadmap + unlock test)
+        services.AddScoped<GetLearningPathModesHandler>();
+        services.AddScoped<GetAdminLearningPathModesHandler>();
+        services.AddScoped<GetModeUnlockSubmissionsHandler>();
+        services.AddScoped<CreateLearningPathModeHandler>();
+        services.AddScoped<UpdateLearningPathModeHandler>();
+        services.AddScoped<UpsertModeUnlockTestHandler>();
+        services.AddScoped<SubmitModeUnlockTestHandler>();
+        services.AddScoped<ApproveModeUnlockSubmissionHandler>();
+        services.AddScoped<RejectModeUnlockSubmissionHandler>();
+
         // Handlers — Clan (FT-22)
         services.AddScoped<CreateClanHandler>();
         services.AddScoped<InviteMemberHandler>();
         services.AddScoped<AcceptInviteHandler>();
         services.AddScoped<LeaveClanHandler>();
+        services.AddScoped<TransferOwnershipHandler>();
         services.AddScoped<GetMyClanHandler>();
         services.AddScoped<GetPendingInvitesHandler>();
 
@@ -256,6 +294,7 @@ public static class DependencyInjection
 
         // Background jobs
         services.AddHostedService<DailyChallengeSchedulerService>();
+        services.AddHostedService<ReengagementJob>();
 
         services.AddScoped<IImageLabelingService, LocalOnnxImageLabelingService>();
 

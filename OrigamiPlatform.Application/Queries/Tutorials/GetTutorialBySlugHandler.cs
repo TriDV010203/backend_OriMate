@@ -86,7 +86,12 @@ public class GetTutorialBySlugHandler
             LikeCount: likeCount,
             WishlistCount: wishlistCount,
             IsLikedByCurrentUser: isLiked,
-            IsWishlistedByCurrentUser: isWishlisted
+            IsWishlistedByCurrentUser: isWishlisted,
+            MetaTitle: tutorial.MetaTitle,
+            MetaDescription: tutorial.MetaDescription,
+            Tags: tutorial.Tags,
+            Model3DUrl: tutorial.Model3DUrl,
+            Model3DPosterUrl: tutorial.Model3DPosterUrl
         );
     }
 }

@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using OrigamiPlatform.Application.Common;
 using OrigamiPlatform.Application.Features.Tutorials.DTOs;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Constants;
@@ -35,6 +36,8 @@ public class AdminCreateTutorialHandler
         if (string.IsNullOrWhiteSpace(request.CoverImageUrl))
             throw new DomainException("A cover image is required to publish directly.");
 
+        Tutorial3DModelValidator.Validate(request.Model3DUrl, request.Model3DPosterUrl);
+
         var steps = request.Steps ?? new List<CreateTutorialStepRequest>();
         if (steps.Count < 3 || steps.Count > 30)
             throw new DomainException($"Need 3 to 30 steps to publish directly (got {steps.Count}).");
@@ -65,6 +68,8 @@ public class AdminCreateTutorialHandler
             Description = request.Description,
             Slug = slug,
             CoverImageUrl = request.CoverImageUrl,
+            Model3DUrl = request.Model3DUrl,
+            Model3DPosterUrl = request.Model3DPosterUrl,
             Type = TutorialType.Free,
             Difficulty = tutorialDifficulty,
             Status = TutorialStatus.Published,
@@ -138,5 +143,7 @@ public class AdminCreateTutorialHandler
         tutorial.CategoryId,
         tutorial.Status.ToString(),
         tutorial.CreatedAt,
-        tutorial.UpdatedAt);
+        tutorial.UpdatedAt,
+        tutorial.Model3DUrl,
+        tutorial.Model3DPosterUrl);
 }

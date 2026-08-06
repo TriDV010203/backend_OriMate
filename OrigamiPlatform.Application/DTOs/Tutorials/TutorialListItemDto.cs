@@ -18,5 +18,8 @@ public record TutorialListItemDto(
     int WishlistCount = 0,
     int CommentCount = 0,
     bool IsLikedByCurrentUser = false,
-    bool IsWishlistedByCurrentUser = false
+    bool IsWishlistedByCurrentUser = false,
+    string? MetaTitle = null,
+    string? MetaDescription = null,
+    string? Tags = null
 );

@@ -18,6 +18,7 @@ public class ClanController : ControllerBase
     private readonly InviteMemberHandler _inviteMember;
     private readonly AcceptInviteHandler _acceptInvite;
     private readonly LeaveClanHandler _leaveClan;
+    private readonly TransferOwnershipHandler _transferOwnership;
     private readonly GetMyClanHandler _getMyClan;
     private readonly GetPendingInvitesHandler _getPendingInvites;
 
@@ -26,10 +27,11 @@ public class ClanController : ControllerBase
         InviteMemberHandler inviteMember,
         AcceptInviteHandler acceptInvite,
         LeaveClanHandler leaveClan,
+        TransferOwnershipHandler transferOwnership,
         GetMyClanHandler getMyClan,
         GetPendingInvitesHandler getPendingInvites)
-        => (_createClan, _inviteMember, _acceptInvite, _leaveClan, _getMyClan, _getPendingInvites)
-            = (createClan, inviteMember, acceptInvite, leaveClan, getMyClan, getPendingInvites);
+        => (_createClan, _inviteMember, _acceptInvite, _leaveClan, _transferOwnership, _getMyClan, _getPendingInvites)
+            = (createClan, inviteMember, acceptInvite, leaveClan, transferOwnership, getMyClan, getPendingInvites);
 
     [HttpPost]
     public async Task<IActionResult> Create(CreateClanRequest request, CancellationToken ct)
@@ -69,6 +71,16 @@ public class ClanController : ControllerBase
             ct);
 
         return NoContent();
+    }
+
+    [HttpPost("{clanId:guid}/transfer-ownership")]
+    public async Task<IActionResult> TransferOwnership(Guid clanId, TransferOwnershipRequest request, CancellationToken ct)
+    {
+        var result = await _transferOwnership.HandleAsync(
+            new TransferOwnershipCommand(GetCurrentUserId(), clanId, request.NewOwnerId),
+            ct);
+
+        return Ok(result);
     }
 
     [HttpGet("me")]
