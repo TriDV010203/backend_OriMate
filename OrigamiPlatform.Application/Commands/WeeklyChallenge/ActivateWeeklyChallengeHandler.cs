@@ -4,34 +4,30 @@ using OrigamiPlatform.Domain.Constants;
 using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
 
-namespace OrigamiPlatform.Application.Commands.DailyChallenge;
+namespace OrigamiPlatform.Application.Commands.WeeklyChallenge;
 
-// FT-34: idempotent — safe to call repeatedly for the same day. If Admin/Manager already
-// scheduled today's challenge, promotes it to Active; otherwise auto-picks a tutorial as a
-// safety net so a day is never left without a challenge.
-// Chủ Nhật không có Thử thách ngày — ngày đó dành cho Thử thách tuần (xem ActivateWeeklyChallengeHandler).
-public class ActivateDailyChallengeHandler
+// Idempotent — safe to call repeatedly. Chỉ mở vào Chủ Nhật (GMT+7); mọi ngày khác no-op ngay.
+// Nếu Admin/Manager đã đặt lịch cho Chủ Nhật này, promote sang Active; nếu chưa, tự chọn 1
+// tutorial Advanced làm safety net, mirror ActivateDailyChallengeHandler.
+public class ActivateWeeklyChallengeHandler
 {
-    // Random tự động chỉ chọn Dễ/Trung bình (không bao giờ ra Khó) — tỉ lệ chuẩn hoá từ 50:35 gốc.
-    private const double BeginnerWeight = 50.0 / 85.0;
-
-    private readonly IDailyChallengeRepository _challenges;
+    private readonly IWeeklyChallengeRepository _challenges;
     private readonly HatGapAwardService _hatGap;
     private readonly BadgeAwardService _badges;
     private readonly INotificationService _notifications;
 
-    public ActivateDailyChallengeHandler(
-        IDailyChallengeRepository challenges,
+    public ActivateWeeklyChallengeHandler(
+        IWeeklyChallengeRepository challenges,
         HatGapAwardService hatGap,
         BadgeAwardService badges,
         INotificationService notifications)
         => (_challenges, _hatGap, _badges, _notifications) = (challenges, hatGap, badges, notifications);
 
-    public async Task HandleAsync(ActivateDailyChallengeCommand command, CancellationToken ct = default)
+    public async Task HandleAsync(ActivateWeeklyChallengeCommand command, CancellationToken ct = default)
     {
         var today = GetTodayGmt7();
-        if (today.DayOfWeek == DayOfWeek.Sunday)
-            return; // Chủ Nhật dành riêng cho Thử thách tuần
+        if (today.DayOfWeek != DayOfWeek.Sunday)
+            return; // Thử thách tuần chỉ có thể mở vào Chủ Nhật
 
         var existing = await _challenges.GetByDateAsync(today, ct);
 
@@ -52,7 +48,7 @@ public class ActivateDailyChallengeHandler
         if (tutorial is null)
             return; // no eligible Published tutorial exists at all yet — nothing to do; caller logs this
 
-        var created = new OrigamiPlatform.Domain.Entities.DailyChallenge
+        var created = new OrigamiPlatform.Domain.Entities.WeeklyChallenge
         {
             Id = Guid.NewGuid(),
             ChallengeDate = today,
@@ -72,14 +68,14 @@ public class ActivateDailyChallengeHandler
         try
         {
             await _hatGap.AwardAsync(
-                tutorial.AuthorId, HatGapEconomy.DailyChallengeAuthorSelectedReward, HatGapTransactionType.Earn,
-                "DailyChallengeAuthorSelected", ct);
+                tutorial.AuthorId, HatGapEconomy.WeeklyChallengeAuthorSelectedReward, HatGapTransactionType.Earn,
+                "WeeklyChallengeAuthorSelected", ct);
 
             await _notifications.NotifyUserAsync(
                 userId: tutorial.AuthorId,
                 type: NotificationType.TutorialSelectedAsChallenge,
-                message: $"Hướng dẫn \"{tutorial.Title}\" của bạn đã trở thành Thử thách ngày hôm nay! +{HatGapEconomy.DailyChallengeAuthorSelectedReward} Hạt Gấp 🎉",
-                entityType: nameof(OrigamiPlatform.Domain.Entities.DailyChallenge),
+                message: $"Hướng dẫn \"{tutorial.Title}\" của bạn đã trở thành Thử thách tuần tuần này! +{HatGapEconomy.WeeklyChallengeAuthorSelectedReward} Hạt Gấp 🎉",
+                entityType: nameof(OrigamiPlatform.Domain.Entities.WeeklyChallenge),
                 entityId: challengeId,
                 ct: ct);
 
@@ -96,25 +92,18 @@ public class ActivateDailyChallengeHandler
     }
 
     // BR-34 fallback chain: relax difficulty filter, then relax the 30-day "recently used"
-    // exclusion, so a day is never left without a challenge as long as any Published tutorial exists.
+    // exclusion, so a Sunday is never left without a challenge as long as any Published tutorial exists.
     private async Task<Tutorial?> PickTutorialAsync(DateOnly today, CancellationToken ct)
     {
         var excludeIds = await _challenges.GetRecentlyUsedTutorialIdsAsync(today.AddDays(-30), ct);
-        var difficulty = PickWeightedDifficulty();
 
-        var candidates = await _challenges.GetEligibleCandidatesAsync(excludeIds, difficulty, ct);
+        var candidates = await _challenges.GetEligibleCandidatesAsync(excludeIds, TutorialDifficulty.Advanced, ct);
         if (candidates.Count == 0)
             candidates = await _challenges.GetEligibleCandidatesAsync(excludeIds, null, ct);
         if (candidates.Count == 0)
             candidates = await _challenges.GetEligibleCandidatesAsync(new HashSet<Guid>(), null, ct);
 
         return candidates.Count == 0 ? null : PickWeightedRandom(candidates);
-    }
-
-    private static TutorialDifficulty PickWeightedDifficulty()
-    {
-        var roll = Random.Shared.NextDouble();
-        return roll < BeginnerWeight ? TutorialDifficulty.Beginner : TutorialDifficulty.Intermediate;
     }
 
     // Weighted random by (1 + AchievementCount) — favors proven/popular tutorials without

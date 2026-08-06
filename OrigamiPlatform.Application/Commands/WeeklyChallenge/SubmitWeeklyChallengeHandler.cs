@@ -1,37 +1,38 @@
 using OrigamiPlatform.Application.Common;
-using OrigamiPlatform.Application.DTOs.DailyChallenge;
+using OrigamiPlatform.Application.DTOs.WeeklyChallenge;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Constants;
 using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
 using OrigamiPlatform.Domain.Exceptions;
 
-namespace OrigamiPlatform.Application.Commands.DailyChallenge;
+namespace OrigamiPlatform.Application.Commands.WeeklyChallenge;
 
-// FT-34: honor-system photo submission — deliberately NOT gated on TutorialStepProgress.
-// A user who forgot how to fold can jump to the tutorial and come back to submit later.
-public class SubmitDailyChallengeHandler
+// Honor-system photo submission, mirror SubmitDailyChallengeHandler. Streak dùng chung
+// ChallengeStreakService — nộp bài Thử thách tuần vào Chủ Nhật cũng nối tiếp cùng chuỗi với
+// Thử thách ngày.
+public class SubmitWeeklyChallengeHandler
 {
     private const int MaxPhotoUrlLength = 512;
     private const int MaxNoteLength = 500;
 
-    private readonly IDailyChallengeRepository _challenges;
-    private readonly IDailyChallengeSubmissionRepository _submissions;
+    private readonly IWeeklyChallengeRepository _challenges;
+    private readonly IWeeklyChallengeSubmissionRepository _submissions;
     private readonly ChallengeStreakService _challengeStreak;
     private readonly IBlockedWordService _blockedWordService;
     private readonly HatGapAwardService _hatGap;
 
-    public SubmitDailyChallengeHandler(
-        IDailyChallengeRepository challenges,
-        IDailyChallengeSubmissionRepository submissions,
+    public SubmitWeeklyChallengeHandler(
+        IWeeklyChallengeRepository challenges,
+        IWeeklyChallengeSubmissionRepository submissions,
         ChallengeStreakService challengeStreak,
         IBlockedWordService blockedWordService,
         HatGapAwardService hatGap)
         => (_challenges, _submissions, _challengeStreak, _blockedWordService, _hatGap)
             = (challenges, submissions, challengeStreak, blockedWordService, hatGap);
 
-    public async Task<DailyChallengeSubmissionDto> HandleAsync(
-        SubmitDailyChallengeCommand command, CancellationToken ct = default)
+    public async Task<WeeklyChallengeSubmissionDto> HandleAsync(
+        SubmitWeeklyChallengeCommand command, CancellationToken ct = default)
     {
         Validate(command.Request.PhotoUrl, command.Request.Note);
 
@@ -41,18 +42,18 @@ public class SubmitDailyChallengeHandler
 
         var today = GetTodayGmt7();
         var challenge = await _challenges.GetByDateAsync(today, ct)
-            ?? throw new NotFoundException("Hôm nay chưa có Thử thách ngày.");
+            ?? throw new NotFoundException("Hiện chưa có Thử thách tuần — chỉ mở vào Chủ Nhật.");
 
         if (challenge.Status != DailyChallengeStatus.Active)
-            throw new DomainException("Thử thách hôm nay chưa mở hoặc đã đóng.");
+            throw new DomainException("Thử thách tuần chưa mở hoặc đã đóng.");
 
         if (await _submissions.ExistsAsync(challenge.Id, command.UserId, ct))
-            throw new DomainException("Bạn đã nộp bài cho thử thách hôm nay rồi.");
+            throw new DomainException("Bạn đã nộp bài cho thử thách tuần này rồi.");
 
-        var submission = new DailyChallengeSubmission
+        var submission = new WeeklyChallengeSubmission
         {
             Id = Guid.NewGuid(),
-            DailyChallengeId = challenge.Id,
+            WeeklyChallengeId = challenge.Id,
             UserId = command.UserId,
             PhotoUrl = command.Request.PhotoUrl,
             Note = command.Request.Note,
@@ -64,7 +65,7 @@ public class SubmitDailyChallengeHandler
         await _challengeStreak.UpdateAsync(command.UserId, ct);
         await AwardParticipationAsync(command.UserId, ct);
 
-        return new DailyChallengeSubmissionDto(
+        return new WeeklyChallengeSubmissionDto(
             submission.Id, command.UserId, null, null,
             submission.PhotoUrl, submission.Note,
             LikeCount: 0, IsLikedByCurrentUser: false, FinalRank: null,
@@ -76,8 +77,8 @@ public class SubmitDailyChallengeHandler
         try
         {
             await _hatGap.AwardAsync(
-                userId, HatGapEconomy.DailyChallengeParticipateReward, HatGapTransactionType.Earn,
-                "DailyChallengeParticipate", ct);
+                userId, HatGapEconomy.WeeklyChallengeParticipateReward, HatGapTransactionType.Earn,
+                "WeeklyChallengeParticipate", ct);
         }
         catch
         {

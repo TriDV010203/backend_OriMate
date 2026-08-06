@@ -23,6 +23,7 @@ using OrigamiPlatform.Application.Commands.Tutorials;
 using OrigamiPlatform.Application.Commands.Uploads;
 using OrigamiPlatform.Application.Commands.Users;
 using OrigamiPlatform.Application.Commands.Webhooks;
+using OrigamiPlatform.Application.Commands.WeeklyChallenge;
 using OrigamiPlatform.Application.Commands.Wishlists;
 using OrigamiPlatform.Application.Common;
 using OrigamiPlatform.Application.Interfaces;
@@ -44,6 +45,7 @@ using OrigamiPlatform.Application.Queries.TutorialProgress;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Application.Queries.Users;
 using OrigamiPlatform.Application.Queries.VisualSearch;
+using OrigamiPlatform.Application.Queries.WeeklyChallenge;
 using OrigamiPlatform.Application.Queries.Wishlists;
 using OrigamiPlatform.Infrastructure.BackgroundJobs;
 using OrigamiPlatform.Infrastructure.Options;
@@ -95,6 +97,8 @@ public static class DependencyInjection
         services.AddScoped<IDailyChallengeRepository, DailyChallengeRepository>();
         services.AddScoped<IDailyChallengeSubmissionRepository, DailyChallengeSubmissionRepository>();
         services.AddScoped<IChallengeStreakRepository, ChallengeStreakRepository>();
+        services.AddScoped<IWeeklyChallengeRepository, WeeklyChallengeRepository>();
+        services.AddScoped<IWeeklyChallengeSubmissionRepository, WeeklyChallengeSubmissionRepository>();
         services.AddScoped<IBadgeRepository, BadgeRepository>();
         services.AddScoped<IUserBadgeRepository, UserBadgeRepository>();
         services.AddScoped<ITutorialVariantRepository, TutorialVariantRepository>();
@@ -110,6 +114,7 @@ public static class DependencyInjection
         services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
         services.AddScoped<HatGapAwardService>();
         services.AddScoped<BadgeAwardService>();
+        services.AddScoped<ChallengeStreakService>();
         services.AddScoped<IBankAccountInfoProvider, BankAccountInfoProvider>();
         services.Configure<BankAccountOptions>(configuration.GetSection("BankAccount"));
 
@@ -300,6 +305,16 @@ public static class DependencyInjection
         services.AddScoped<GetChallengeResultHandler>();
         services.AddScoped<GetChallengeSuggestionsHandler>();
         services.AddScoped<GetAdminChallengeCalendarHandler>();
+
+        // Handlers — Weekly Challenge (mirror Daily Challenge, chỉ mở Chủ Nhật)
+        services.AddScoped<AdminScheduleWeeklyChallengeHandler>();
+        services.AddScoped<SubmitWeeklyChallengeHandler>();
+        services.AddScoped<ActivateWeeklyChallengeHandler>();
+        services.AddScoped<CloseWeeklyChallengeResultHandler>();
+        services.AddScoped<GetCurrentWeeklyChallengeHandler>();
+        services.AddScoped<GetWeeklyChallengeSubmissionsHandler>();
+        services.AddScoped<GetWeeklyChallengeSuggestionsHandler>();
+        services.AddScoped<GetAdminWeeklyChallengeCalendarHandler>();
 
         // Background jobs
         services.AddHostedService<DailyChallengeSchedulerService>();

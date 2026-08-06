@@ -81,6 +81,10 @@ public class AppDbContext : DbContext
     public DbSet<DailyChallengeSubmission> DailyChallengeSubmissions => Set<DailyChallengeSubmission>();
     public DbSet<ChallengeStreakLog> ChallengeStreakLogs => Set<ChallengeStreakLog>();
 
+    // Weekly Challenge — mirror của Daily Challenge, chỉ mở Chủ Nhật, độ khó Advanced
+    public DbSet<WeeklyChallenge> WeeklyChallenges => Set<WeeklyChallenge>();
+    public DbSet<WeeklyChallengeSubmission> WeeklyChallengeSubmissions => Set<WeeklyChallengeSubmission>();
+
     // Badge System (FT-35)
     public DbSet<Badge> Badges => Set<Badge>();
     public DbSet<UserBadge> UserBadges => Set<UserBadge>();

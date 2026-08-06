@@ -2,13 +2,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OrigamiPlatform.Application.Commands.DailyChallenge;
+using WeeklyChallengeCommands = OrigamiPlatform.Application.Commands.WeeklyChallenge;
 
 namespace OrigamiPlatform.Infrastructure.BackgroundJobs;
 
 // FT-34: the only cron-like job in the solution. Runs once a day at 00:00 GMT+7 — closes
-// yesterday's challenge (ranks submissions, awards Top 3) then activates today's (promotes a
-// Scheduled row, or auto-picks a tutorial as a safety net). Each step is isolated in its own
-// try/catch so one failing never blocks the other or crashes the host.
+// yesterday's Daily Challenge (ranks submissions, awards Top 3) then activates today's (promotes
+// a Scheduled row, or auto-picks a tutorial as a safety net), then does the same pair of steps
+// for the Weekly Challenge (which itself only ever activates when today is Sunday). Each step is
+// isolated in its own try/catch so one failing never blocks the others or crashes the host.
 public class DailyChallengeSchedulerService : BackgroundService
 {
     private static readonly TimeSpan RunAtGmt7 = TimeSpan.Zero; // 00:00
@@ -61,6 +63,26 @@ public class DailyChallengeSchedulerService : BackgroundService
         catch (Exception ex)
         {
             _logger.LogError(ex, "DailyChallengeSchedulerService: failed to activate challenge for {Date}", today);
+        }
+
+        try
+        {
+            var weeklyCloseHandler = scope.ServiceProvider.GetRequiredService<WeeklyChallengeCommands.CloseWeeklyChallengeResultHandler>();
+            await weeklyCloseHandler.HandleAsync(new WeeklyChallengeCommands.CloseWeeklyChallengeResultCommand(today.AddDays(-1)), ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "DailyChallengeSchedulerService: failed to close weekly challenge for {Date}", today.AddDays(-1));
+        }
+
+        try
+        {
+            var weeklyActivateHandler = scope.ServiceProvider.GetRequiredService<WeeklyChallengeCommands.ActivateWeeklyChallengeHandler>();
+            await weeklyActivateHandler.HandleAsync(new WeeklyChallengeCommands.ActivateWeeklyChallengeCommand(), ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "DailyChallengeSchedulerService: failed to activate weekly challenge for {Date}", today);
         }
     }
 

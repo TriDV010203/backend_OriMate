@@ -65,6 +65,18 @@ public static class HatGapEconomy
         [3] = 5
     };
 
+    // Thử thách tuần: chỉ mở Chủ Nhật, độ khó Khó — thưởng cao hơn Thử thách ngày tương ứng.
+    public const int WeeklyChallengeParticipateReward = 2;
+
+    public const int WeeklyChallengeAuthorSelectedReward = 5;
+
+    public static readonly IReadOnlyDictionary<int, int> WeeklyChallengeRankReward = new Dictionary<int, int>
+    {
+        [1] = 20,
+        [2] = 15,
+        [3] = 10
+    };
+
     // Level curve: cumulative lifetime Hạt earned needed to reach level N grows by this step each level
     // (Level N total = N × (N + 1) / 2 × LevelHatGapStep — Level 1: 10, Level 2: 30, Level 3: 60, Level 4: 100, ...).
     public const int LevelHatGapStep = 10;
