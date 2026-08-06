@@ -22,8 +22,7 @@ public interface ITutorialRepository
 
     // FT-04 authoring & review
     Task<Tutorial?> GetByIdWithStepsAsync(Guid id, CancellationToken ct = default);
-    Task<PagedResult<Tutorial>> GetByAuthorAsync(Guid authorId, int page, int pageSize, CancellationToken ct = default);
-    Task<int> CountPublishedByAuthorAsync(Guid authorId, CancellationToken ct = default);
+    Task<PagedResult<Tutorial>> GetByAuthorAsync(Guid authorId, int page, int pageSize, CancellationToken ct = default);    
     Task AddAsync(Tutorial tutorial, CancellationToken ct = default);
     Task UpdateAsync(Tutorial tutorial, CancellationToken ct = default);
     Task AddReviewHistoryAsync(TutorialReviewHistory history, CancellationToken ct = default);
@@ -50,13 +49,6 @@ public interface ITutorialRepository
         int page,
         int pageSize,
         CancellationToken ct = default);
+    Task<List<Tutorial>> GetAllPublishedWithCategoryAsync(CancellationToken ct = default);
 
-    // FT-31 AI Recommendation (rule-based)
-    Task<PagedResult<Tutorial>> GetRecommendedAsync(
-        IEnumerable<int> categoryIds,
-        TutorialDifficulty[] difficulties,
-        IEnumerable<Guid> excludeTutorialIds,
-        int page,
-        int pageSize,
-        CancellationToken ct = default);
 }

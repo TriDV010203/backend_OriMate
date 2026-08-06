@@ -281,51 +281,12 @@ public class TutorialRepository : ITutorialRepository
             (int)Math.Ceiling(totalCount / (double)pageSize));
     }
 
-    // ── FT-31 AI Recommendation (rule-based) ─────────────────────────────────
-
-    public async Task<PagedResult<Tutorial>> GetRecommendedAsync(
-        IEnumerable<int> categoryIds,
-        TutorialDifficulty[] difficulties,
-        IEnumerable<Guid> excludeTutorialIds,
-        int page,
-        int pageSize,
-        CancellationToken ct = default)
+    public async Task<List<Tutorial>> GetAllPublishedWithCategoryAsync(CancellationToken ct = default)
     {
-        var categoryIdList = categoryIds.ToList();
-        var excludeIdSet = excludeTutorialIds.ToHashSet();
-
-        var query = _db.Tutorials
-            .Where(t => t.Status == TutorialStatus.Published && !t.IsDeleted)
+        return await _db.Tutorials
             .Include(t => t.Category)
-            .Include(t => t.Author).ThenInclude(a => a.Profile)
-            .Include(t => t.Steps)
-            .AsQueryable();
-
-        if (categoryIdList.Count > 0)
-            query = query.Where(t => categoryIdList.Contains(t.CategoryId));
-
-        if (difficulties.Length > 0)
-            query = query.Where(t => difficulties.Contains(t.Difficulty));
-
-        if (excludeIdSet.Count > 0)
-            query = query.Where(t => !excludeIdSet.Contains(t.Id));
-
-        var totalCount = await query.CountAsync(ct);
-
-        var items = await query
-            .OrderByDescending(t => _db.Likes.Count(l =>
-                l.TargetType == TargetType.Tutorial && l.TargetId == t.Id))
-            .ThenByDescending(t => t.PublishedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .AsSplitQuery()
+            .Where(t => t.Status == TutorialStatus.Published)
             .ToListAsync(ct);
 
-        return new PagedResult<Tutorial>(
-            items,
-            totalCount,
-            page,
-            pageSize,
-            (int)Math.Ceiling(totalCount / (double)pageSize));
     }
 }

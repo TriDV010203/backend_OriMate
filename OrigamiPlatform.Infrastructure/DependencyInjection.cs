@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OrigamiPlatform.Application.Commands.Achievements;
 using OrigamiPlatform.Application.Commands.AdminConfiguration;
@@ -16,8 +17,9 @@ using OrigamiPlatform.Application.Commands.Moderation;
 using OrigamiPlatform.Application.Commands.Notifications;
 using OrigamiPlatform.Application.Commands.Reports;
 using OrigamiPlatform.Application.Commands.Shop;
-using OrigamiPlatform.Application.Commands.Tutorials;
+using OrigamiPlatform.Application.Commands.Subscriptions;
 using OrigamiPlatform.Application.Commands.TutorialProgress;
+using OrigamiPlatform.Application.Commands.Tutorials;
 using OrigamiPlatform.Application.Commands.Uploads;
 using OrigamiPlatform.Application.Commands.Users;
 using OrigamiPlatform.Application.Commands.Wishlists;
@@ -40,8 +42,8 @@ using OrigamiPlatform.Application.Queries.Subscriptions;
 using OrigamiPlatform.Application.Queries.TutorialProgress;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Application.Queries.Users;
+using OrigamiPlatform.Application.Queries.VisualSearch;
 using OrigamiPlatform.Application.Queries.Wishlists;
-using OrigamiPlatform.Application.Commands.Subscriptions;
 using OrigamiPlatform.Infrastructure.BackgroundJobs;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
 using OrigamiPlatform.Infrastructure.Services;
@@ -50,7 +52,7 @@ namespace OrigamiPlatform.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
@@ -293,6 +295,10 @@ public static class DependencyInjection
         // Background jobs
         services.AddHostedService<DailyChallengeSchedulerService>();
         services.AddHostedService<ReengagementJob>();
+
+        services.AddScoped<IImageLabelingService, LocalOnnxImageLabelingService>();
+
+        services.AddScoped<SearchByObjectHandler>();
 
         return services;
     }
