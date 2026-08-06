@@ -17,34 +17,31 @@ public class SubscriptionController : ControllerBase
 {
     private readonly ConfigureVipTierHandler _configureVipTier;
     private readonly SubscribeHandler _subscribe;
-    private readonly ConfirmPaymentHandler _confirmPayment;
-    private readonly RejectPaymentHandler _rejectPayment;
     private readonly GetMySubscriptionsHandler _getMySubscriptions;
     private readonly GetCreatorRevenueHandler _getCreatorRevenue;
     private readonly GetAllTransactionsHandler _getAllTransactions;
     private readonly GetPlatformRevenueHandler _getPlatformRevenue;
     private readonly GetMyVipTierHandler _getMyVipTier;
+    private readonly GetTransactionByIdHandler _getTransactionById;
 
     public SubscriptionController(
         ConfigureVipTierHandler configureVipTier,
         SubscribeHandler subscribe,
-        ConfirmPaymentHandler confirmPayment,
-        RejectPaymentHandler rejectPayment,
         GetMySubscriptionsHandler getMySubscriptions,
         GetCreatorRevenueHandler getCreatorRevenue,
         GetAllTransactionsHandler getAllTransactions,
         GetPlatformRevenueHandler getPlatformRevenue,
-        GetMyVipTierHandler getMyVipTier)
+        GetMyVipTierHandler getMyVipTier,
+        GetTransactionByIdHandler getTransactionById)
     {
         _configureVipTier = configureVipTier;
         _subscribe = subscribe;
-        _confirmPayment = confirmPayment;
-        _rejectPayment = rejectPayment;
         _getMySubscriptions = getMySubscriptions;
         _getCreatorRevenue = getCreatorRevenue;
         _getAllTransactions = getAllTransactions;
         _getPlatformRevenue = getPlatformRevenue;
         _getMyVipTier = getMyVipTier;
+        _getTransactionById = getTransactionById;
     }
 
     [HttpGet("vip-tier")]
@@ -68,32 +65,18 @@ public class SubscriptionController : ControllerBase
     public async Task<IActionResult> Subscribe(SubscribeRequest request, CancellationToken ct)
     {
         var result = await _subscribe.HandleAsync(
-            new SubscribeCommand(GetCurrentUserId(), request.CreatorId, request.ReferenceCode),
+            new SubscribeCommand(GetCurrentUserId(), request.CreatorId),
             ct);
 
         return Ok(result);
     }
 
-    [HttpPost("transactions/{transactionId:guid}/confirm")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> ConfirmPayment(Guid transactionId, CancellationToken ct)
+    /// <summary>GET /api/subscriptions/transactions/{id} — buyer polls their own Transaction status while waiting for the SePay webhook to auto-confirm it.</summary>
+    [HttpGet("transactions/{transactionId:guid}")]
+    public async Task<IActionResult> GetTransaction(Guid transactionId, CancellationToken ct)
     {
-        var result = await _confirmPayment.HandleAsync(
-            new ConfirmPaymentCommand(GetCurrentUserId(), transactionId),
-            ct);
-
-        return Ok(result);
-    }
-
-    [HttpPost("transactions/{transactionId:guid}/reject")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> RejectPayment(
-        Guid transactionId,
-        RejectPaymentRequest request,
-        CancellationToken ct)
-    {
-        var result = await _rejectPayment.HandleAsync(
-            new RejectPaymentCommand(GetCurrentUserId(), transactionId, request.AdminNote),
+        var result = await _getTransactionById.HandleAsync(
+            new GetTransactionByIdQuery(transactionId, GetCurrentUserId()),
             ct);
 
         return Ok(result);

@@ -11,4 +11,7 @@ public static class VipConstants
 
     /// <summary>BR-VIP-06: minimum number of Published tutorials a creator must have before enabling VIP selling.</summary>
     public const int MinPublishedTutorialsToSell = 5;
+
+    /// <summary>Prefix for system-generated Transaction.PaymentCode, matched against SePay webhook content.</summary>
+    public const string PaymentCodePrefix = "OMVIP";
 }

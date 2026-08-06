@@ -1,7 +1,8 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using OrigamiPlatform.Application.DTOs.Subscriptions;
 using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
 using Xunit;
@@ -12,11 +13,8 @@ public class VipSubscriptionTests : IntegrationTestBase
 {
     public VipSubscriptionTests(CustomWebApplicationFactory factory) : base(factory) { }
 
-    // [Happy Path & Transaction Boundary] (FT-16) - Đăng ký VIP và Admin xác nhận thủ công tạo VipSubscription
-    [Fact]
-    public async Task SubscribeAndConfirmPayment_CreatesActiveVipSubscription()
+    private async Task<(Guid CreatorId, Guid SubscriberId, SubscribeResultDto Subscription)> SubscribeAsync()
     {
-        // 1. Arrange: Tạo một User thông thường đóng vai trò Creator, sau đó cấu hình VipSettings cho user đó
         var creatorUserId = await AuthenticateAsAsync("User"); // Creator thực chất là User bình thường
         var vipSettings = new CreatorVipSettings
         {
@@ -28,40 +26,136 @@ public class VipSubscriptionTests : IntegrationTestBase
         _dbContext.CreatorVipSettings.Add(vipSettings);
         await _dbContext.SaveChangesAsync();
 
-        // 2. Act 1: Một User khác (Subscriber) gửi yêu cầu đăng ký VIP
         var subscriberId = await AuthenticateAsAsync("User");
-        var subscribeRequest = new
-        {
-            CreatorId = creatorUserId,
-            ReferenceCode = "REF-123456"
-        };
-
-        var subResponse = await _client.PostAsJsonAsync("/api/subscriptions", subscribeRequest);
+        var subResponse = await _client.PostAsJsonAsync("/api/subscriptions", new { CreatorId = creatorUserId });
         subResponse.EnsureSuccessStatusCode();
 
-        // Assert 1: Giao dịch phải được tạo ở trạng thái PendingConfirmation
-        _dbContext.ChangeTracker.Clear();
-        var transaction = await _dbContext.Transactions
-            .FirstOrDefaultAsync(t => t.UserId == subscriberId && t.CreatorId == creatorUserId);
+        var result = await subResponse.Content.ReadFromJsonAsync<SubscribeResultDto>();
+        result.Should().NotBeNull();
 
-        transaction.Should().NotBeNull("Giao dịch phải được tạo ra sau khi Subscribe");
+        return (creatorUserId, subscriberId, result!);
+    }
+
+    private HttpRequestMessage BuildWebhookRequest(
+        long sePayTransactionId,
+        string content,
+        decimal transferAmount,
+        string? apiKey = null)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/webhooks/sepay")
+        {
+            Content = JsonContent.Create(new
+            {
+                id = sePayTransactionId,
+                gateway = "TestBank",
+                transactionDate = "2026-08-06 10:00:00",
+                accountNumber = "0123456789",
+                code = (string?)null,
+                content,
+                transferType = "in",
+                transferAmount,
+                referenceCode = $"FT{sePayTransactionId}"
+            })
+        };
+        request.Headers.TryAddWithoutValidation("Authorization", $"Apikey {apiKey ?? CustomWebApplicationFactory.SePayTestApiKey}");
+        return request;
+    }
+
+    // [Happy Path & Transaction Boundary] (FT-16) - Đăng ký VIP, SePay webhook tự động xác nhận và tạo VipSubscription
+    [Fact]
+    public async Task Subscribe_ThenSePayWebhookMatches_AutoConfirmsAndCreatesActiveVipSubscription()
+    {
+        var (_, _, subscribeResult) = await SubscribeAsync();
+        var transactionId = subscribeResult.Transaction.Id;
+        var paymentCode = subscribeResult.PaymentInstruction.PaymentCode;
+
+        _dbContext.ChangeTracker.Clear();
+        var transaction = await _dbContext.Transactions.FindAsync(transactionId);
         transaction!.Status.Should().Be(TransactionStatus.PendingConfirmation);
 
-        // 3. Act 2: Admin xác nhận giao dịch
-        await AuthenticateAsAsync("Admin");
-        var confirmRequest = new { AdminNote = "Đã nhận được tiền chuyển khoản" };
+        using var webhookRequest = BuildWebhookRequest(
+            sePayTransactionId: 100001,
+            content: $"CHUYEN TIEN {paymentCode}",
+            transferAmount: subscribeResult.Transaction.Amount);
 
-        var confirmResponse = await _client.PostAsJsonAsync($"/api/subscriptions/transactions/{transaction.Id}/confirm", confirmRequest);
-        confirmResponse.EnsureSuccessStatusCode();
+        var webhookResponse = await _client.SendAsync(webhookRequest);
+        webhookResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // 4. Assert 2: Giao dịch chuyển sang Confirmed, sinh ra thẻ VIP Active
         _dbContext.ChangeTracker.Clear();
-        var updatedTx = await _dbContext.Transactions.FindAsync(transaction.Id);
+        var updatedTx = await _dbContext.Transactions.FindAsync(transactionId);
         updatedTx!.Status.Should().Be(TransactionStatus.Confirmed);
 
-        var vipSub = await _dbContext.VipSubscriptions.FirstOrDefaultAsync(v => v.TransactionId == transaction.Id);
-        vipSub.Should().NotBeNull("Phải sinh ra gói VIP sau khi Admin xác nhận thanh toán");
+        var vipSub = await _dbContext.VipSubscriptions.FirstOrDefaultAsync(v => v.TransactionId == transactionId);
+        vipSub.Should().NotBeNull("Phải sinh ra gói VIP sau khi webhook SePay khớp giao dịch");
         vipSub!.Status.Should().Be(SubscriptionStatus.Active);
+    }
+
+    // [Security] Webhook sai Authorization header phải bị từ chối và KHÔNG xử lý payload.
+    [Fact]
+    public async Task SePayWebhook_WithInvalidApiKey_ReturnsUnauthorizedAndDoesNotConfirm()
+    {
+        var (_, _, subscribeResult) = await SubscribeAsync();
+        var transactionId = subscribeResult.Transaction.Id;
+        var paymentCode = subscribeResult.PaymentInstruction.PaymentCode;
+
+        using var webhookRequest = BuildWebhookRequest(
+            sePayTransactionId: 100002,
+            content: $"CHUYEN TIEN {paymentCode}",
+            transferAmount: subscribeResult.Transaction.Amount,
+            apiKey: "wrong-key");
+
+        var webhookResponse = await _client.SendAsync(webhookRequest);
+        webhookResponse.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+
+        _dbContext.ChangeTracker.Clear();
+        var transaction = await _dbContext.Transactions.FindAsync(transactionId);
+        transaction!.Status.Should().Be(TransactionStatus.PendingConfirmation);
+    }
+
+    // [Idempotency] Webhook gửi trùng SePayTransactionId (retry) không được tạo 2 VipSubscription.
+    [Fact]
+    public async Task SePayWebhook_SameSePayTransactionIdTwice_IsIdempotent()
+    {
+        var (_, _, subscribeResult) = await SubscribeAsync();
+        var transactionId = subscribeResult.Transaction.Id;
+        var paymentCode = subscribeResult.PaymentInstruction.PaymentCode;
+
+        for (var i = 0; i < 2; i++)
+        {
+            using var webhookRequest = BuildWebhookRequest(
+                sePayTransactionId: 100003,
+                content: $"CHUYEN TIEN {paymentCode}",
+                transferAmount: subscribeResult.Transaction.Amount);
+
+            var webhookResponse = await _client.SendAsync(webhookRequest);
+            webhookResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        _dbContext.ChangeTracker.Clear();
+        var subscriptionCount = await _dbContext.VipSubscriptions
+            .CountAsync(v => v.TransactionId == transactionId);
+        subscriptionCount.Should().Be(1, "Webhook trùng SePayTransactionId phải bị bỏ qua, không tạo thêm VipSubscription");
+    }
+
+    // [Error Path] Số tiền chuyển khoản không khớp Amount của Transaction -> giữ nguyên PendingConfirmation.
+    [Fact]
+    public async Task SePayWebhook_AmountMismatch_LeavesTransactionPending()
+    {
+        var (_, _, subscribeResult) = await SubscribeAsync();
+        var transactionId = subscribeResult.Transaction.Id;
+        var paymentCode = subscribeResult.PaymentInstruction.PaymentCode;
+
+        using var webhookRequest = BuildWebhookRequest(
+            sePayTransactionId: 100004,
+            content: $"CHUYEN TIEN {paymentCode}",
+            transferAmount: subscribeResult.Transaction.Amount + 1000);
+
+        var webhookResponse = await _client.SendAsync(webhookRequest);
+        webhookResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        _dbContext.ChangeTracker.Clear();
+        var transaction = await _dbContext.Transactions.FindAsync(transactionId);
+        transaction!.Status.Should().Be(TransactionStatus.PendingConfirmation);
     }
 
     // [Error Path / Boundary] (FT-16) - Cố đăng ký Creator không mở gói VIP (thiếu CreatorVipSettings)
@@ -71,13 +165,7 @@ public class VipSubscriptionTests : IntegrationTestBase
         var creatorUserId = await AuthenticateAsAsync("User");
 
         await AuthenticateAsAsync("User");
-        var request = new
-        {
-            CreatorId = creatorUserId,
-            ReferenceCode = "REF-FAIL"
-        };
-
-        var response = await _client.PostAsJsonAsync("/api/subscriptions", request);
+        var response = await _client.PostAsJsonAsync("/api/subscriptions", new { CreatorId = creatorUserId });
 
         // Ghi nhận thực tế code BE đang trả về 404 khi thiếu CreatorVipSettings
         response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.NotFound);

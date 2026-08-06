@@ -43,6 +43,7 @@ public class AppDbContext : DbContext
     public DbSet<VipSubscription> VipSubscriptions => Set<VipSubscription>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<CreatorVipSettings> CreatorVipSettings => Set<CreatorVipSettings>();
+    public DbSet<SePayWebhookLog> SePayWebhookLogs => Set<SePayWebhookLog>();
 
     // System
     public DbSet<EmailLog> EmailLogs => Set<EmailLog>();

@@ -22,6 +22,7 @@ using OrigamiPlatform.Application.Commands.TutorialProgress;
 using OrigamiPlatform.Application.Commands.Tutorials;
 using OrigamiPlatform.Application.Commands.Uploads;
 using OrigamiPlatform.Application.Commands.Users;
+using OrigamiPlatform.Application.Commands.Webhooks;
 using OrigamiPlatform.Application.Commands.Wishlists;
 using OrigamiPlatform.Application.Common;
 using OrigamiPlatform.Application.Interfaces;
@@ -45,6 +46,7 @@ using OrigamiPlatform.Application.Queries.Users;
 using OrigamiPlatform.Application.Queries.VisualSearch;
 using OrigamiPlatform.Application.Queries.Wishlists;
 using OrigamiPlatform.Infrastructure.BackgroundJobs;
+using OrigamiPlatform.Infrastructure.Options;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
 using OrigamiPlatform.Infrastructure.Services;
 
@@ -60,6 +62,7 @@ public static class DependencyInjection
         services.AddScoped<IVipSubscriptionRepository, VipSubscriptionRepository>();
         services.AddScoped<ICreatorVipSettingsRepository, CreatorVipSettingsRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
+        services.AddScoped<ISePayWebhookLogRepository, SePayWebhookLogRepository>();
         services.AddScoped<IAchievementRepository, AchievementRepository>();
         services.AddScoped<IJournalRepository, JournalRepository>();
 
@@ -107,6 +110,8 @@ public static class DependencyInjection
         services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
         services.AddScoped<HatGapAwardService>();
         services.AddScoped<BadgeAwardService>();
+        services.AddScoped<IBankAccountInfoProvider, BankAccountInfoProvider>();
+        services.Configure<BankAccountOptions>(configuration.GetSection("BankAccount"));
 
         // Handlers — Auth
         services.AddScoped<RegisterUserHandler>();
@@ -235,13 +240,15 @@ public static class DependencyInjection
         // Handlers — VIP Subscription (FT-16, FT-17)
         services.AddScoped<ConfigureVipTierHandler>();
         services.AddScoped<SubscribeHandler>();
-        services.AddScoped<ConfirmPaymentHandler>();
-        services.AddScoped<RejectPaymentHandler>();
         services.AddScoped<GetMySubscriptionsHandler>();
         services.AddScoped<GetCreatorRevenueHandler>();
         services.AddScoped<GetAllTransactionsHandler>();
         services.AddScoped<GetPlatformRevenueHandler>();
         services.AddScoped<GetMyVipTierHandler>();
+        services.AddScoped<GetTransactionByIdHandler>();
+
+        // Handlers — SePay webhook (BR-PAYMENT-01 Giai đoạn 2, replaces manual Confirm/Reject)
+        services.AddScoped<ProcessSePayWebhookHandler>();
 
         // Handlers — Shop (FT-18)
         services.AddScoped<GetShopLinksHandler>();

@@ -14,6 +14,9 @@ public class TransactionRepository : ITransactionRepository
     public Task<Transaction?> GetByIdAsync(Guid id, CancellationToken ct = default)
         => _db.Transactions.FirstOrDefaultAsync(t => t.Id == id, ct);
 
+    public Task<Transaction?> GetByPaymentCodeAsync(string paymentCode, CancellationToken ct = default)
+        => _db.Transactions.FirstOrDefaultAsync(t => t.PaymentCode == paymentCode, ct);
+
     public async Task AddAsync(Transaction transaction, CancellationToken ct = default)
     {
         _db.Transactions.Add(transaction);
