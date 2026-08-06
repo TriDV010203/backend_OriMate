@@ -77,13 +77,9 @@ public class VipGatingTests : IntegrationTestBase
 
         var content = await response.Content.ReadAsStringAsync();
 
-        // Các bước từ 1 đến 3 phải hiển thị nội dung bình thường (Free tier)
         Assert.Contains("Step 1 content", content);
         Assert.Contains("Step 3 content", content);
 
-        // ĐÃ SỬA: Thay vì dùng DoesNotContain toàn cục với chuỗi thô, hãy kiểm tra xem nội dung nhạy cảm 
-        // của step 4 và 5 đã bị server-side omits (bỏ trống/null) theo đúng BR-VIP-01 hay chưa.
-        // Ví dụ: kiểm tra description của step 4 bị rỗng hoặc null trong đối tượng JSON trả về:
         content.Should().NotContain("\"description\":\"Step 4 content\"");
         content.Should().NotContain("\"description\":\"Step 5 content\"");
     }
