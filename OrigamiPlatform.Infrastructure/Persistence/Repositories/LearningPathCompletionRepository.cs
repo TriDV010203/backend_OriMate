@@ -19,4 +19,10 @@ public class LearningPathCompletionRepository : ILearningPathCompletionRepositor
         _db.LearningPathCompletions.Add(completion);
         await _db.SaveChangesAsync(ct);
     }
+
+    public Task<bool> HasCompletedAnyInModeAsync(Guid userId, Guid learningPathModeId, CancellationToken ct = default)
+        => _db.LearningPathCompletions
+            .Where(c => c.UserId == userId)
+            .Join(_db.LearningPaths, c => c.LearningPathId, lp => lp.Id, (c, lp) => lp)
+            .AnyAsync(lp => lp.LearningPathModeId == learningPathModeId, ct);
 }

@@ -8,7 +8,7 @@ public interface ILearningPathRepository
 {
     // Public browsing — Published only
     Task<PagedResult<LearningPath>> GetPublishedAsync(
-        string? search, int page, int pageSize, CancellationToken ct = default);
+        string? search, Guid? modeId, int page, int pageSize, CancellationToken ct = default);
 
     Task<LearningPath?> GetPublishedByIdAsync(Guid id, CancellationToken ct = default);
 
@@ -17,7 +17,7 @@ public interface ILearningPathRepository
 
     // Admin management — any status
     Task<PagedResult<LearningPath>> GetAllForAdminAsync(
-        string? search, LearningPathStatus? status, int page, int pageSize, CancellationToken ct = default);
+        string? search, LearningPathStatus? status, Guid? modeId, int page, int pageSize, CancellationToken ct = default);
 
     Task<LearningPath?> GetByIdForAdminAsync(Guid id, CancellationToken ct = default);
 

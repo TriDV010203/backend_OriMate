@@ -26,7 +26,7 @@ public class GetAdminLearningPathsHandler
             status = parsed;
         }
 
-        var result = await _learningPathRepo.GetAllForAdminAsync(query.Search, status, page, pageSize, ct);
+        var result = await _learningPathRepo.GetAllForAdminAsync(query.Search, status, query.ModeId, page, pageSize, ct);
 
         return new PagedResult<LearningPathListItemDto>(
             result.Items.Select(lp => lp.ToListItemDto()).ToList(),

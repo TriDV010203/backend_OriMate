@@ -56,6 +56,11 @@ public class AppDbContext : DbContext
     public DbSet<LearningPathItem> LearningPathItems => Set<LearningPathItem>();
     public DbSet<LearningPathCompletion> LearningPathCompletions => Set<LearningPathCompletion>();
 
+    // Learning Path Modes (tiered roadmap + unlock test)
+    public DbSet<LearningPathMode> LearningPathModes => Set<LearningPathMode>();
+    public DbSet<LearningPathModeUnlockTest> LearningPathModeUnlockTests => Set<LearningPathModeUnlockTest>();
+    public DbSet<ModeUnlockSubmission> ModeUnlockSubmissions => Set<ModeUnlockSubmission>();
+
     // Clan
     public DbSet<Clan> Clans => Set<Clan>();
     public DbSet<ClanMember> ClanMembers => Set<ClanMember>();
