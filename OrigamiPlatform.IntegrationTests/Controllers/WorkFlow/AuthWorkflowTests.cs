@@ -46,22 +46,14 @@ public class AuthWorkflowTests : IntegrationTestBase
     [Fact]
     public async Task CompleteOnboardingFlow_SkipVerification_ShouldFailToLogin()
     {
-        // =========================================================================
-        // KỊCH BẢN 2: ERROR PATH - NGƯỜI DÙNG NHẢY CÓC (SKIP VERIFY)
-        // =========================================================================
         var email = "flow_skip_verify@origami.com";
         var password = "StrongPassword123!";
 
-        // BƯỚC 1: Đăng ký tài khoản (Thành công, tạo DB Status = Unverified)
         var registerResponse = await _client.PostAsJsonAsync("/api/auth/register", new RegisterRequest(email, password, "Impatient User"));
         registerResponse.IsSuccessStatusCode.Should().BeTrue("Đăng ký thành công");
 
-        // BƯỚC 2: CỐ TÌNH BỎ QUA BƯỚC CLICK LINK XÁC THỰC EMAIL
-
-        // BƯỚC 3: Bay thẳng vào gọi API Đăng nhập
         var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", new LoginRequest(email, password));
 
-        // THEN: Luồng phải bị bẻ gãy ở đây
         loginResponse.IsSuccessStatusCode.Should().BeFalse("Hệ thống phải chặn đứng việc đăng nhập nếu người dùng cố tình lách luật bỏ qua bước xác thực");
         loginResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Forbidden, HttpStatusCode.BadRequest);
     }
@@ -69,14 +61,10 @@ public class AuthWorkflowTests : IntegrationTestBase
     [Fact]
     public async Task PasswordResetFlow_RequestReset_ThenLoginWithOldPassword_ShouldFail()
     {
-        // =========================================================================
-        // KỊCH BẢN 3: ERROR PATH LUỒNG PASSWORD - CỐ TÌNH DÙNG LẠI MẬT KHẨU CŨ
-        // =========================================================================
         var email = "flow_reset_trick@origami.com";
         var oldPassword = "OldPassword123!";
         var newPassword = "NewBrandPassword999!";
 
-        // Tiền điều kiện: Setup User đã Active
         var testUser = new OrigamiPlatform.Domain.Entities.User
         {
             Id = Guid.NewGuid(),
@@ -88,7 +76,6 @@ public class AuthWorkflowTests : IntegrationTestBase
         await _dbContext.Users.AddAsync(testUser);
         await _dbContext.SaveChangesAsync();
 
-        // BƯỚC 1: Gọi API cấp Token quên mật khẩu
         await _client.PostAsJsonAsync("/api/auth/forgot-password", new { Email = email });
         var userInDb = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
         var resetToken = userInDb!.PasswordResetToken;

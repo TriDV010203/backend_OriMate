@@ -68,4 +68,48 @@ public class AdminGeneralAndSecurityTests : IntegrationTestBase
         response.IsSuccessStatusCode.Should().BeFalse();
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden, "User bình thường gọi API admin phải trả về 403 Forbidden");
     }
+
+    [Fact]
+    public async Task CreateCategory_DuplicateName_ShouldReturnConflictOrBadRequest()
+    {
+        // GIVEN: Một Category đã tồn tại trong DB (Mô phỏng ràng buộc DC-05)
+        var adminToken = await AuthenticateAsAdminAsync();
+        var categoryName = "Origami Động vật";
+        await _dbContext.Categories.AddAsync(new Category { Name = categoryName, IsActive = true });
+        await _dbContext.SaveChangesAsync();
+
+        // WHEN: Cố tình tạo thêm một Category với tên y hệt
+        var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/api/admin/categories");
+        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        requestMessage.Content = JsonContent.Create(new { Name = categoryName, Description = "Trùng tên" });
+
+        var response = await _client.SendAsync(requestMessage);
+
+        // THEN
+        response.IsSuccessStatusCode.Should().BeFalse("Tên Category phải là duy nhất (DC-05)");
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.Conflict, HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task UpdateCategory_Deactivate_ShouldUpdateIsActiveFlag()
+    {
+        // GIVEN
+        var adminToken = await AuthenticateAsAdminAsync();
+        var category = new Category { Name = "To Be Deactivated", IsActive = true };
+        await _dbContext.Categories.AddAsync(category);
+        await _dbContext.SaveChangesAsync();
+
+        // WHEN: Admin gọi API update để hủy kích hoạt category
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"/api/admin/categories/{category.Id}");
+        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        requestMessage.Content = JsonContent.Create(new { Name = "Deactivated Category", Description = "Updated", IsActive = false });
+
+        var response = await _client.SendAsync(requestMessage);
+
+        // THEN
+        response.IsSuccessStatusCode.Should().BeTrue("Admin có quyền update và hủy kích hoạt Category");
+
+        var catInDb = await _dbContext.Categories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == category.Id);
+        catInDb!.IsActive.Should().BeFalse("Cờ IsActive phải được cập nhật thành false dưới DB");
+    }
 }

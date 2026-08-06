@@ -114,4 +114,16 @@ public class LoginControllerTests : IntegrationTestBase
 
         response.StatusCode.Should().BeOneOf(HttpStatusCode.Forbidden, HttpStatusCode.BadRequest);
     }
+
+    [Fact]
+    public async Task Login_NonExistentEmail_ReturnsUnauthorizedOrBadRequest()
+    {
+        var request = new LoginRequest("ghost_user@origami.com", "Password123!");
+
+        var response = await _client.PostAsJsonAsync("/api/auth/login", request);
+
+        response.IsSuccessStatusCode.Should().BeFalse("Email không tồn tại không được đăng nhập");
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.Unauthorized, HttpStatusCode.BadRequest);
+
+    }
 }

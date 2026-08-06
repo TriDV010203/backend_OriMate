@@ -20,7 +20,6 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
     [Fact]
     public async Task ForgotPassword_WithValidActiveEmail_ShouldSetResetToken()
     {
-        // GIVEN: User đang Active
         var email = "forgot_pass@origami.com";
         var testUser = new User
         {
@@ -33,10 +32,8 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
         await _dbContext.Users.AddAsync(testUser);
         await _dbContext.SaveChangesAsync();
 
-        // WHEN
         var response = await _client.PostAsJsonAsync("/api/auth/forgot-password", new { Email = email });
 
-        // THEN
         response.IsSuccessStatusCode.Should().BeTrue("API Forgot Password phải trả về 200 OK");
 
         var userInDb = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
@@ -47,23 +44,20 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
     [Fact]
     public async Task ForgotPassword_WithUnverifiedUser_ShouldReturnBadRequest()
     {
-        // GIVEN: User tồn tại nhưng chưa Verify
         var email = "unverified_forgot@origami.com";
         var testUser = new User
         {
             Id = Guid.NewGuid(),
             Email = email,
             PasswordHash = "SomeHash",
-            Status = OrigamiPlatform.Domain.Enums.AccountStatus.Unverified, // Chưa xác thực
+            Status = OrigamiPlatform.Domain.Enums.AccountStatus.Unverified, 
             CreatedAt = DateTime.UtcNow
         };
         await _dbContext.Users.AddAsync(testUser);
         await _dbContext.SaveChangesAsync();
 
-        // WHEN
         var response = await _client.PostAsJsonAsync("/api/auth/forgot-password", new { Email = email });
 
-        // THEN
         response.IsSuccessStatusCode.Should().BeFalse("Hệ thống không cho phép reset mật khẩu khi chưa xác thực email");
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -71,7 +65,6 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
     [Fact]
     public async Task ResetPassword_WithValidToken_ShouldUpdatePassword()
     {
-        // GIVEN
         var email = "reset_pass@origami.com";
         var resetToken = "VALID_RESET_TOKEN_999";
         var testUser = new User
@@ -81,14 +74,13 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("OldPassword123!"),
             Status = OrigamiPlatform.Domain.Enums.AccountStatus.Active,
             PasswordResetToken = resetToken,
-            TokenExpiry = DateTime.UtcNow.AddHours(1), // Còn hạn
+            TokenExpiry = DateTime.UtcNow.AddHours(1), 
             CreatedAt = DateTime.UtcNow
         };
         await _dbContext.Users.AddAsync(testUser);
         await _dbContext.SaveChangesAsync();
 
         var newPassword = "NewSecurePassword123!";
-        // Truyền đầy đủ Token, NewPassword và ConfirmPassword theo DTO chuẩn của Dev
         var requestPayload = new
         {
             Token = resetToken,
@@ -97,7 +89,6 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
         };
         var response = await _client.PostAsJsonAsync("/api/auth/reset-password", requestPayload);
 
-        // THEN
         response.IsSuccessStatusCode.Should().BeTrue("API Reset Password phải thành công khi Token hợp lệ");
 
         var userInDb = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
@@ -108,7 +99,6 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
     [Fact]
     public async Task ResetPassword_WithWeakPassword_ShouldReturnBadRequest()
     {
-        // GIVEN (Mô phỏng NAC-03: Mật khẩu yếu)
         var email = "nac03_test@origami.com";
         var resetToken = "VALID_TOKEN_NAC03";
         var oldHash = BCrypt.Net.BCrypt.HashPassword("StrongOldPass123!");
@@ -125,7 +115,6 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
         await _dbContext.Users.AddAsync(testUser);
         await _dbContext.SaveChangesAsync();
 
-        // Truyền đầy đủ ConfirmPassword cho mật khẩu yếu
         var requestPayload = new
         {
             Token = resetToken,
@@ -134,7 +123,6 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
         };
         var response = await _client.PostAsJsonAsync("/api/auth/reset-password", requestPayload);
 
-        // THEN
         response.IsSuccessStatusCode.Should().BeFalse("Hệ thống phải từ chối mật khẩu không đủ độ mạnh");
 
         var userInDb = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
@@ -144,7 +132,6 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
     [Fact]
     public async Task ChangePassword_WithValidCredentials_ShouldUpdatePassword()
     {
-        // GIVEN: Tạo User & Login để lấy Token
         var email = "change_pass@origami.com";
         var oldPassword = "OldPassword123!";
         var testUser = new User
@@ -163,14 +150,12 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
 
         var newPassword = "BrandNewPassword123!";
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/change-password");
-        // Bổ sung ConfirmPassword cho ChangePasswordRequest
+        
         httpRequest.Content = JsonContent.Create(new { CurrentPassword = oldPassword, NewPassword = newPassword, ConfirmPassword = newPassword });
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authData!.Token);
 
-        // WHEN
         var response = await _client.SendAsync(httpRequest);
 
-        // THEN
         response.IsSuccessStatusCode.Should().BeTrue("API Change Password phải trả về 200 OK");
 
         var userInDb = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
@@ -180,7 +165,6 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
     [Fact]
     public async Task ChangePassword_WithWrongOldPassword_ShouldReturnBadRequest()
     {
-        // GIVEN
         var email = "wrong_old_pass@origami.com";
         var realOldPassword = "CorrectPassword123!";
         var testUser = new User
@@ -201,17 +185,14 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
         httpRequest.Content = JsonContent.Create(new { CurrentPassword = "WrongOldPassword999!", NewPassword = "NewPassword123!", ConfirmPassword = "NewPassword123!" });
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authData!.Token);
 
-        // WHEN
         var response = await _client.SendAsync(httpRequest);
 
-        // THEN
         response.IsSuccessStatusCode.Should().BeFalse("Mật khẩu cũ bị sai thì không được đổi");
     }
 
     [Fact]
     public async Task ChangePassword_WithNewPasswordSameAsOld_ShouldReturnBadRequest()
     {
-        // GIVEN
         var email = "same_pass@origami.com";
         var password = "SamePassword123!";
         var testUser = new User
@@ -229,13 +210,11 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
         var authData = await loginResponse.Content.ReadFromJsonAsync<AuthResponse>();
 
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/change-password");
-        httpRequest.Content = JsonContent.Create(new { CurrentPassword = password, NewPassword = password }); // Mật khẩu mới trùng cũ
+        httpRequest.Content = JsonContent.Create(new { CurrentPassword = password, NewPassword = password });
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authData!.Token);
 
-        // WHEN
         var response = await _client.SendAsync(httpRequest);
 
-        // THEN
         response.IsSuccessStatusCode.Should().BeFalse("Hệ thống không được phép cho đổi mật khẩu mới trùng mật khẩu cũ");
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -243,7 +222,6 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
     [Fact]
     public async Task ChangePassword_ShouldRevokeAllExistingRefreshTokens()
     {
-        // GIVEN: Tạo User active, tiến hành đăng nhập để lấy cặp Token (Access & Refresh Token)
         var email = "revoke_tokens@origami.com";
         var oldPassword = "OldPassword123!";
         var testUser = new User
@@ -262,7 +240,6 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
         var authData = await loginResponse.Content.ReadFromJsonAsync<AuthResponse>();
         var oldRefreshToken = authData!.RefreshToken;
 
-        // WHEN: User thực hiện đổi mật khẩu mới thành công
         var newPassword = "BrandNewPassword123!";
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/change-password");
         httpRequest.Content = JsonContent.Create(new { CurrentPassword = oldPassword, NewPassword = newPassword, ConfirmPassword = newPassword });
@@ -271,17 +248,43 @@ public class PasswordAndSecurityControllerTests : IntegrationTestBase
         var changeResponse = await _client.SendAsync(httpRequest);
         changeResponse.IsSuccessStatusCode.Should().BeTrue("Đổi mật khẩu thành công");
 
-        // THEN: Cố tình dùng Refresh Token cũ để gọi API cấp lại Access Token mới
         var refreshRequest = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh-token");
         refreshRequest.Content = JsonContent.Create(new { RefreshToken = oldRefreshToken });
         var refreshResponse = await _client.SendAsync(refreshRequest);
 
-        // Phải bị từ chối do hệ thống đã revoke toàn bộ token cũ
         refreshResponse.IsSuccessStatusCode.Should().BeFalse("Refresh token cũ phải bị vô hiệu hóa hoàn toàn sau khi đổi mật khẩu (BR-AUTH-02)");
         refreshResponse.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Unauthorized);
 
-        // Kiểm tra chéo dưới cơ sở dữ liệu: RefreshTokenHash phải bị xóa sạch
         var userInDb = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email);
         userInDb!.RefreshTokenHash.Should().BeNullOrEmpty("Hệ thống phải thu hồi và xóa sạch Refresh Token trong DB");
+    }
+
+    [Fact]
+    public async Task ResetPassword_WithExpiredToken_ShouldReturnBadRequest()
+    {
+        var email = "expired_reset@origami.com";
+        var resetToken = "EXPIRED_RESET_TOKEN";
+        var testUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = email,
+            PasswordHash = "OldHash",
+            Status = AccountStatus.Active,
+            PasswordResetToken = resetToken,
+            TokenExpiry = DateTime.UtcNow.AddHours(-1), 
+            CreatedAt = DateTime.UtcNow.AddHours(-2)
+        };
+        await _dbContext.Users.AddAsync(testUser);
+        await _dbContext.SaveChangesAsync();
+
+        var requestPayload = new
+        {
+            Token = resetToken,
+            NewPassword = "NewSecurePassword123!",
+            ConfirmPassword = "NewSecurePassword123!"
+        };
+        var response = await _client.PostAsJsonAsync("/api/auth/reset-password", requestPayload);
+
+        response.IsSuccessStatusCode.Should().BeFalse("Hệ thống phải từ chối token reset đã quá hạn 1 giờ (BV-02)");
     }
 }

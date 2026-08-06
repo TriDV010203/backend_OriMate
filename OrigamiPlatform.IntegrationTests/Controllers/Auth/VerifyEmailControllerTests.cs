@@ -147,4 +147,52 @@ public class VerifyEmailControllerTests : IntegrationTestBase
         userInDb.VerificationToken.Should().NotBe(oldToken, "Token cũ trong DB phải được thay thế bằng token mới sinh");
         userInDb.VerificationToken.Should().NotBeNullOrEmpty();
     }
+
+    [Fact]
+    public async Task VerifyEmail_WithExpiredToken_ShouldReturnBadRequest()
+    {
+        // GIVEN: Token đã cấp cách đây 25 giờ (Quá hạn BV-01: 24h)
+        var email = "expired_verify@origami.com";
+        var token = "EXPIRED_TOKEN_123";
+        var testUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = email,
+            PasswordHash = "Hash",
+            Status = AccountStatus.Unverified,
+            VerificationToken = token,
+            CreatedAt = DateTime.UtcNow.AddHours(-25) // Quá hạn 24h
+        };
+        await _dbContext.Users.AddAsync(testUser);
+        await _dbContext.SaveChangesAsync();
+
+        // WHEN
+        var response = await _client.GetAsync($"/api/auth/verify-email?token={token}");
+
+        // THEN
+        response.IsSuccessStatusCode.Should().BeFalse("Token quá 24h phải bị từ chối (NAC-01)");
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task VerifyEmail_Idempotency_ReuseToken_ShouldReturnBadRequest()
+    {
+        var email = "reuse_verify@origami.com";
+        var token = "ALREADY_USED_TOKEN";
+        var testUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = email,
+            PasswordHash = "Hash",
+            Status = AccountStatus.Active, 
+            VerificationToken = null,   
+            CreatedAt = DateTime.UtcNow
+        };
+        await _dbContext.Users.AddAsync(testUser);
+        await _dbContext.SaveChangesAsync();
+
+        var response = await _client.GetAsync($"/api/auth/verify-email?token={token}");
+
+        response.IsSuccessStatusCode.Should().BeFalse("Hệ thống từ chối token đã sử dụng (NAC-02)");
+    }
 }

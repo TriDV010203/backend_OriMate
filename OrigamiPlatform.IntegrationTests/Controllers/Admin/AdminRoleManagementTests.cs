@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OrigamiPlatform.Application.DTOs.Auth;
 using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Xunit;
@@ -91,5 +92,55 @@ public class AdminRoleManagementTests : IntegrationTestBase
         response.IsSuccessStatusCode.Should().BeTrue();
         var userRoleInDb = await _dbContext.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == targetUser.Id && ur.Role == UserRoleType.Manager);
         userRoleInDb.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task AssignRole_UserAlreadyHasRole_ShouldReturnSuccessOrNotModified()
+    {
+        // GIVEN: User ĐÃ CÓ sẵn role Manager (Test tính Idempotency)
+        var adminToken = await AuthenticateAsAdminAsync();
+        var targetUser = new User { Id = Guid.NewGuid(), Email = "already_manager@origami.com", PasswordHash = "Hash", Status = AccountStatus.Active };
+        await _dbContext.Users.AddAsync(targetUser);
+        await _dbContext.UserRoles.AddAsync(new UserRole { UserId = targetUser.Id, Role = UserRoleType.Manager });
+        await _dbContext.SaveChangesAsync();
+
+        // WHEN: Admin tiếp tục gọi API gán role Manager cho user này
+        var requestUrl = $"/api/admin/users/{targetUser.Id}/assign-role";
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, requestUrl);
+        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        requestMessage.Content = JsonContent.Create(new { Role = UserRoleType.Manager.ToString() });
+
+        var response = await _client.SendAsync(requestMessage);
+
+        // THEN
+        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError, "Hệ thống không được crash do lỗi trùng lặp dữ liệu (Idempotency)");
+
+        var rolesCount = await _dbContext.UserRoles.CountAsync(ur => ur.UserId == targetUser.Id && ur.Role == UserRoleType.Manager);
+        rolesCount.Should().Be(1, "Dù gọi API bao nhiêu lần, hệ thống chỉ lưu đúng 1 record cho mỗi Role tương ứng của User");
+    }
+
+    [Fact]
+    public async Task AssignRole_ByAdmin_ShouldGenerateAuditLogEntry()
+    {
+        // GIVEN
+        var adminToken = await AuthenticateAsAdminAsync();
+        var targetUser = new User { Id = Guid.NewGuid(), Email = "audit_role_user@origami.com", PasswordHash = "Hash", Status = AccountStatus.Active };
+        await _dbContext.Users.AddAsync(targetUser);
+        await _dbContext.SaveChangesAsync();
+
+        // WHEN: Cấp quyền
+        var requestUrl = $"/api/admin/users/{targetUser.Id}/assign-role";
+        var requestMessage = new HttpRequestMessage(HttpMethod.Put, requestUrl);
+        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        requestMessage.Content = JsonContent.Create(new { Role = UserRoleType.ContributorReviewer.ToString() });
+
+        await _client.SendAsync(requestMessage);
+
+        // THEN: Kiểm tra sự tồn tại của Audit Log (BR-ADMIN-01)
+        var auditLogInDb = await _dbContext.AuditLogs
+            .OrderByDescending(a => a.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        auditLogInDb.Should().NotBeNull("Mọi thao tác gán quyền của Admin phải được ghi vết (BR-ADMIN-01)");
     }
 }
