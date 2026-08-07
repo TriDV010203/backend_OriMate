@@ -35,6 +35,9 @@ public class GetPendingReportsHandler
         foreach (var r in reports)
         {
             string? targetContent = null;
+            string? targetSlug = null;
+            TargetType? rootTargetType = null;
+            Guid? rootTargetId = null;
 
             if (r.TargetType == TargetType.CommunityPost)
             {
@@ -45,11 +48,37 @@ public class GetPendingReportsHandler
             {
                 var comment = await _comments.GetByIdAsync(r.TargetId);
                 targetContent = comment?.Content;
+
+                if (comment != null)
+                {
+                    // Comment có thể là reply của 1 comment khác — lần ngược lên nội dung gốc
+                    // (bài đăng/hướng dẫn/chủ đề hỏi) để FE biết mở trang nào và cuộn tới đâu.
+                    var currentType = comment.TargetType;
+                    var currentId = comment.TargetId;
+                    var depth = 0;
+                    while (currentType == TargetType.Comment && depth < 10)
+                    {
+                        var parentComment = await _comments.GetByIdAsync(currentId);
+                        if (parentComment == null) break;
+                        currentType = parentComment.TargetType;
+                        currentId = parentComment.TargetId;
+                        depth++;
+                    }
+                    rootTargetType = currentType;
+                    rootTargetId = currentId;
+
+                    if (currentType == TargetType.Tutorial)
+                    {
+                        var parentTutorial = await _tutorials.GetByIdWithStepsAsync(currentId);
+                        targetSlug = parentTutorial?.Slug;
+                    }
+                }
             }
             else if (r.TargetType == TargetType.Tutorial)
             {
                 var tutorial = await _tutorials.GetByIdWithStepsAsync(r.TargetId);
                 targetContent = tutorial?.Title;
+                targetSlug = tutorial?.Slug;
             }
 
             resultList.Add(new PendingReportDto(
@@ -59,7 +88,10 @@ public class GetPendingReportsHandler
                 TargetId: r.TargetId,
                 Reason: r.Reason,
                 CreatedAt: r.CreatedAt,
-                TargetContent: targetContent 
+                TargetContent: targetContent,
+                TargetSlug: targetSlug,
+                RootTargetType: rootTargetType,
+                RootTargetId: rootTargetId
             ));
         }
 

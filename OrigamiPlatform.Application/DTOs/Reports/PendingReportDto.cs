@@ -9,5 +9,10 @@ public record PendingReportDto(
     Guid TargetId,
     string Reason,
     DateTime CreatedAt,
-    string? TargetContent
+    string? TargetContent,
+    // Slug của Tutorial để FE dựng link xem chi tiết (TargetType=Tutorial, hoặc RootTargetType=Tutorial khi báo cáo là 1 Comment)
+    string? TargetSlug = null,
+    // Khi TargetType=Comment: loại nội dung gốc chứa comment này sau khi đã lần theo chuỗi reply (CommunityPost/Tutorial/StuckThread)
+    TargetType? RootTargetType = null,
+    Guid? RootTargetId = null
 );
