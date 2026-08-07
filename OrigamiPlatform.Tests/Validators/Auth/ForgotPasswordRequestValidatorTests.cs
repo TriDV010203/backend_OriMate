@@ -12,7 +12,7 @@ public class ForgotPasswordRequestValidatorTests
     [InlineData("   ")]
     public void Validate_EmailIsNullOrWhiteSpace_ThrowsDomainException(string? invalidEmail)
     {
-        var exception = Assert.Throws<DomainException>(() => 
+        var exception = Assert.Throws<DomainException>(() =>
             ForgotPasswordRequestValidator.Validate(invalidEmail!)
         );
         Assert.Equal("Email is required.", exception.Message);
@@ -23,7 +23,7 @@ public class ForgotPasswordRequestValidatorTests
     [InlineData("test@examplecom")] // missing .
     public void Validate_InvalidEmailFormat_ThrowsDomainException(string invalidEmail)
     {
-        var exception = Assert.Throws<DomainException>(() => 
+        var exception = Assert.Throws<DomainException>(() =>
             ForgotPasswordRequestValidator.Validate(invalidEmail)
         );
         Assert.Equal("A valid email address is required.", exception.Message);
@@ -32,7 +32,7 @@ public class ForgotPasswordRequestValidatorTests
     [Fact]
     public void Validate_ValidEmail_DoesNotThrowException()
     {
-        var exception = Record.Exception(() => 
+        var exception = Record.Exception(() =>
             ForgotPasswordRequestValidator.Validate("test@example.com")
         );
         Assert.Null(exception);

@@ -1,0 +1,98 @@
+using Moq;
+using Xunit;
+using OrigamiPlatform.Application.Commands.DailyChallenge;
+using OrigamiPlatform.Application.Common;
+using OrigamiPlatform.Application.Interfaces;
+using OrigamiPlatform.Domain.Entities;
+using OrigamiPlatform.Domain.Enums;
+
+namespace OrigamiPlatform.Tests.Commands.DailyChallenge;
+
+public class ActivateDailyChallengeHandlerTests
+{
+    private readonly Mock<IDailyChallengeRepository> _mockChallenges;
+    private readonly Mock<IHatGapTransactionRepository> _mockHatGapRepo;
+    private readonly Mock<IBadgeRepository> _mockBadgeRepo;
+    private readonly Mock<IUserBadgeRepository> _mockUserBadgeRepo;
+    private readonly Mock<INotificationService> _mockNotifications;
+    private readonly ActivateDailyChallengeHandler _handler;
+
+    public ActivateDailyChallengeHandlerTests()
+    {
+        _mockChallenges = new Mock<IDailyChallengeRepository>();
+        _mockHatGapRepo = new Mock<IHatGapTransactionRepository>();
+        _mockBadgeRepo = new Mock<IBadgeRepository>();
+        _mockUserBadgeRepo = new Mock<IUserBadgeRepository>();
+        _mockNotifications = new Mock<INotificationService>();
+
+        var hatGapService = new HatGapAwardService(_mockHatGapRepo.Object);
+        var badgeService = new BadgeAwardService(_mockBadgeRepo.Object, _mockUserBadgeRepo.Object, _mockNotifications.Object);
+
+        _handler = new ActivateDailyChallengeHandler(_mockChallenges.Object, hatGapService, badgeService, _mockNotifications.Object);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ExistingChallengeNotScheduled_NoOps()
+    {
+        var command = new ActivateDailyChallengeCommand();
+        var existing = new OrigamiPlatform.Domain.Entities.DailyChallenge { Status = DailyChallengeStatus.Active };
+
+        _mockChallenges.Setup(c => c.GetByDateAsync(It.IsAny<DateOnly>(), default)).ReturnsAsync(existing);
+
+        await _handler.HandleAsync(command);
+
+        _mockChallenges.Verify(c => c.UpdateAsync(It.IsAny<OrigamiPlatform.Domain.Entities.DailyChallenge>(), default), Times.Never);
+        _mockChallenges.Verify(c => c.AddAsync(It.IsAny<OrigamiPlatform.Domain.Entities.DailyChallenge>(), default), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ExistingChallengeScheduled_PromotesToActiveAndNotifies()
+    {
+        var command = new ActivateDailyChallengeCommand();
+        var tutorial = new Tutorial { Id = Guid.NewGuid(), AuthorId = Guid.NewGuid(), Title = "Test" };
+        var existing = new OrigamiPlatform.Domain.Entities.DailyChallenge { Id = Guid.NewGuid(), Status = DailyChallengeStatus.Scheduled, Tutorial = tutorial };
+
+        _mockChallenges.Setup(c => c.GetByDateAsync(It.IsAny<DateOnly>(), default)).ReturnsAsync(existing);
+
+        await _handler.HandleAsync(command);
+
+        Assert.Equal(DailyChallengeStatus.Active, existing.Status);
+        _mockChallenges.Verify(c => c.UpdateAsync(existing, default), Times.Once);
+        _mockHatGapRepo.Verify(r => r.AddAsync(It.IsAny<HatGapTransaction>(), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_NoExisting_NoTutorial_NoOps()
+    {
+        var command = new ActivateDailyChallengeCommand();
+        _mockChallenges.Setup(c => c.GetByDateAsync(It.IsAny<DateOnly>(), default)).ReturnsAsync((OrigamiPlatform.Domain.Entities.DailyChallenge?)null);
+        _mockChallenges.Setup(c => c.GetRecentlyUsedTutorialIdsAsync(It.IsAny<DateOnly>(), default)).ReturnsAsync(new HashSet<Guid>());
+        _mockChallenges.Setup(c => c.GetEligibleCandidatesAsync(It.IsAny<HashSet<Guid>>(), It.IsAny<TutorialDifficulty?>(), default))
+            .ReturnsAsync(new List<(Tutorial, int)>()); // Empty candidates
+
+        await _handler.HandleAsync(command);
+
+        _mockChallenges.Verify(c => c.AddAsync(It.IsAny<OrigamiPlatform.Domain.Entities.DailyChallenge>(), default), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_NoExisting_PicksTutorial_CreatesActiveAndNotifies()
+    {
+        var command = new ActivateDailyChallengeCommand();
+        var tutorial = new Tutorial { Id = Guid.NewGuid(), AuthorId = Guid.NewGuid(), Title = "Auto Pick" };
+        
+        _mockChallenges.Setup(c => c.GetByDateAsync(It.IsAny<DateOnly>(), default)).ReturnsAsync((OrigamiPlatform.Domain.Entities.DailyChallenge?)null);
+        _mockChallenges.Setup(c => c.GetRecentlyUsedTutorialIdsAsync(It.IsAny<DateOnly>(), default)).ReturnsAsync(new HashSet<Guid>());
+        _mockChallenges.Setup(c => c.GetEligibleCandidatesAsync(It.IsAny<HashSet<Guid>>(), It.IsAny<TutorialDifficulty?>(), default))
+            .ReturnsAsync(new List<(Tutorial, int)> { (tutorial, 0) });
+
+        await _handler.HandleAsync(command);
+
+        _mockChallenges.Verify(c => c.AddAsync(It.Is<OrigamiPlatform.Domain.Entities.DailyChallenge>(dc => 
+            dc.TutorialId == tutorial.Id && 
+            dc.Status == DailyChallengeStatus.Active && 
+            dc.IsAutoGenerated), default), Times.Once);
+        
+        _mockHatGapRepo.Verify(r => r.AddAsync(It.IsAny<HatGapTransaction>(), default), Times.Once);
+    }
+}
