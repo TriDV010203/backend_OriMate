@@ -143,4 +143,25 @@ public class CreatorProfileAndNotificationTests : IntegrationTestBase
             response2.EnsureSuccessStatusCode();
         }
     }
+
+    // [Security / Error Path] (NAC-03) - Không được đọc thông báo của người khác
+    // [Security / Error Path] (NAC-03) - Không được đọc thông báo của người khác
+    [Fact]
+    public async Task MarkNotificationAsRead_NotOwnedByUser_ReturnsForbiddenOrNotFound()
+    {
+        var ownerId = Guid.NewGuid();
+        var notificationId = Guid.NewGuid();
+
+        // ĐÃ SỬA: Đổi từ UserId thành RecipientId (Vui lòng check lại class Notification.cs của BE xem đúng tên này không)
+        _dbContext.Notifications.Add(new Notification { Id = notificationId, RecipientId = ownerId, Message = "Test", IsRead = false });
+        await _dbContext.SaveChangesAsync();
+
+        // Đăng nhập bằng một User KHÁC
+        await AuthenticateAsAsync("User");
+
+        var response = await _client.PutAsync($"/api/notifications/{notificationId}/read", null);
+
+        response.IsSuccessStatusCode.Should().BeFalse("Người dùng không được phép thao tác trên thông báo của người khác (NAC-03)");
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.Forbidden, HttpStatusCode.NotFound);
+    }
 }

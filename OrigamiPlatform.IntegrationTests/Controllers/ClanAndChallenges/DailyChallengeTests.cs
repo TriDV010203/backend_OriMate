@@ -219,4 +219,88 @@ public class DailyChallengeTests : IntegrationTestBase
         // 3. Assert
         response.EnsureSuccessStatusCode();
     }
+
+    [Fact]
+    public async Task SubmitDailyChallenge_ToClosedChallenge_ReturnsBadRequest() // [Error Path]
+    {
+        // 1. Arrange
+        var userId = await AuthenticateAsAsync("User");
+        var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7));
+
+        var (categoryId, authorId) = await SeedDefaultPrerequisitesAsync();
+        var tutorialId = Guid.NewGuid();
+        _dbContext.Tutorials.Add(new Tutorial { Id = tutorialId, Title = "Thử thách đóng", Slug = $"dong-{Guid.NewGuid()}", Status = TutorialStatus.Published, CategoryId = categoryId, AuthorId = authorId });
+
+        var challengeId = Guid.NewGuid();
+        _dbContext.DailyChallenges.Add(new DailyChallenge
+        {
+            Id = challengeId,
+            TutorialId = tutorialId,
+            Status = DailyChallengeStatus.Closed, // Cố tình set status là Closed
+            ChallengeDate = today
+        });
+        await _dbContext.SaveChangesAsync();
+        _dbContext.ChangeTracker.Clear();
+
+        var request = new { PhotoUrl = "https://fake-cloudinary.com/late.jpg", Note = "Cố nộp khi đã đóng" };
+
+        // 2. Act
+        var response = await _client.PostAsJsonAsync("/api/daily-challenge/today/submit", request);
+
+        // 3. Assert
+        response.IsSuccessStatusCode.Should().BeFalse("Không được phép nộp bài cho một thử thách đã Closed");
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task SubmitDailyChallenge_Concurrency_ShouldCreateOnlyOneSubmission() // [Concurrency / Transaction Boundary]
+    {
+        // 1. Arrange
+        var userId = await AuthenticateAsAsync("User");
+        var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7));
+
+        var (categoryId, authorId) = await SeedDefaultPrerequisitesAsync();
+        var tutorialId = Guid.NewGuid();
+        _dbContext.Tutorials.Add(new Tutorial { Id = tutorialId, Title = "Thử thách Concurrency", Slug = $"conc-{Guid.NewGuid()}", Status = TutorialStatus.Published, CategoryId = categoryId, AuthorId = authorId });
+
+        var challengeId = Guid.NewGuid();
+        _dbContext.DailyChallenges.Add(new DailyChallenge
+        {
+            Id = challengeId,
+            TutorialId = tutorialId,
+            Status = DailyChallengeStatus.Active,
+            ChallengeDate = today
+        });
+
+        _dbContext.Set<ChallengeStreakLog>().Add(new ChallengeStreakLog { UserId = userId, CurrentStreak = 0 });
+        await _dbContext.SaveChangesAsync();
+        _dbContext.ChangeTracker.Clear();
+
+        var request = new { PhotoUrl = "https://fake-cloudinary.com/hac-fast.jpg", Note = "Spam nút nộp bài" };
+
+        // 2. Act: Bắn 3 request ĐỒNG THỜI (Concurrency)
+        var tasks = new List<Task<HttpResponseMessage>>
+        {
+            _client.PostAsJsonAsync("/api/daily-challenge/today/submit", request),
+            _client.PostAsJsonAsync("/api/daily-challenge/today/submit", request),
+            _client.PostAsJsonAsync("/api/daily-challenge/today/submit", request)
+        };
+
+        var responses = await Task.WhenAll(tasks);
+
+        // 3. Assert
+        var successCount = responses.Count(r => r.IsSuccessStatusCode);
+        var failCount = responses.Count(r => r.StatusCode == HttpStatusCode.BadRequest || r.StatusCode == HttpStatusCode.Conflict);
+
+        // Chỉ duy nhất 1 request được phép thành công, các request còn lại phải bị chặn (BR-CHAL-02)
+        successCount.Should().Be(1, "Chỉ được phép có 1 request thành công khi bắn đồng thời");
+        failCount.Should().Be(2, "2 request spam đồng thời phải bị từ chối");
+
+        _dbContext.ChangeTracker.Clear();
+        var submissions = await _dbContext.DailyChallengeSubmissions
+            .Where(s => s.UserId == userId && s.DailyChallengeId == challengeId)
+            .ToListAsync();
+
+        submissions.Count.Should().Be(1, "Database chỉ được phép lưu 1 bản ghi Submission duy nhất cho user này trong ngày hôm nay");
+    }
 }
