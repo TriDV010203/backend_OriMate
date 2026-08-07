@@ -9,26 +9,20 @@ namespace OrigamiPlatform.Application.Commands.Subscriptions;
 
 public class SubscribeHandler
 {
-    private const int MaxReferenceCodeLength = 100;
-
     private readonly ICreatorVipSettingsRepository _settings;
     private readonly ITransactionRepository _transactions;
     private readonly IVipSubscriptionRepository _vipSubscriptions;
+    private readonly IBankAccountInfoProvider _bankAccount;
 
     public SubscribeHandler(
         ICreatorVipSettingsRepository settings,
         ITransactionRepository transactions,
-        IVipSubscriptionRepository vipSubscriptions)
-        => (_settings, _transactions, _vipSubscriptions) = (settings, transactions, vipSubscriptions);
+        IVipSubscriptionRepository vipSubscriptions,
+        IBankAccountInfoProvider bankAccount)
+        => (_settings, _transactions, _vipSubscriptions, _bankAccount) = (settings, transactions, vipSubscriptions, bankAccount);
 
-    public async Task<TransactionDto> HandleAsync(SubscribeCommand command, CancellationToken ct = default)
+    public async Task<SubscribeResultDto> HandleAsync(SubscribeCommand command, CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(command.ReferenceCode))
-            throw new DomainException("Reference code is required.");
-
-        if (command.ReferenceCode.Length > MaxReferenceCodeLength)
-            throw new DomainException($"Reference code must not exceed {MaxReferenceCodeLength} characters.");
-
         // BR-VIP-03: creator must have an active VIP tier before anyone can subscribe.
         var settings = await _settings.GetByCreatorIdAsync(command.CreatorId, ct)
             ?? throw new NotFoundException("This creator does not offer VIP subscriptions.");
@@ -56,12 +50,29 @@ public class SubscribeHandler
             PlatformFeeAmount = platformFee,
             CreatorNetAmount = creatorNet,
             Status = TransactionStatus.PendingConfirmation,
-            ReferenceCode = command.ReferenceCode,
             CreatedAt = DateTime.UtcNow
         };
+        // System-generated, matched against SePay webhook transfer content — derived from the
+        // Transaction's own PK so it is guaranteed unique without a collision-retry loop.
+        transaction.PaymentCode = $"{VipConstants.PaymentCodePrefix}{transaction.Id:N}".ToUpperInvariant();
 
         await _transactions.AddAsync(transaction, ct);
 
-        return transaction.ToDto();
+        var paymentInstruction = new PaymentInstructionDto(
+            _bankAccount.AccountNumber,
+            _bankAccount.BankName,
+            _bankAccount.BankBin,
+            _bankAccount.AccountHolderName,
+            transaction.PaymentCode,
+            transaction.Amount,
+            BuildQrCodeUrl(transaction));
+
+        return new SubscribeResultDto(transaction.ToDto(), paymentInstruction);
     }
+
+    private string BuildQrCodeUrl(Transaction transaction)
+        => $"https://qr.sepay.vn/img?acc={Uri.EscapeDataString(_bankAccount.AccountNumber)}" +
+           $"&bank={Uri.EscapeDataString(_bankAccount.BankBin)}" +
+           $"&amount={(long)transaction.Amount}" +
+           $"&des={Uri.EscapeDataString(transaction.PaymentCode)}";
 }

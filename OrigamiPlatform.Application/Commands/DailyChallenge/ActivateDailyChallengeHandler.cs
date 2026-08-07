@@ -9,11 +9,11 @@ namespace OrigamiPlatform.Application.Commands.DailyChallenge;
 // FT-34: idempotent — safe to call repeatedly for the same day. If Admin/Manager already
 // scheduled today's challenge, promotes it to Active; otherwise auto-picks a tutorial as a
 // safety net so a day is never left without a challenge.
+// Chủ Nhật không có Thử thách ngày — ngày đó dành cho Thử thách tuần (xem ActivateWeeklyChallengeHandler).
 public class ActivateDailyChallengeHandler
 {
-    // Ngày thường: 50% Beginner / 35% Intermediate / 15% Advanced.
-    private const double BeginnerWeight = 0.50;
-    private const double IntermediateWeight = 0.85; // cumulative
+    // Random tự động chỉ chọn Dễ/Trung bình (không bao giờ ra Khó) — tỉ lệ chuẩn hoá từ 50:35 gốc.
+    private const double BeginnerWeight = 50.0 / 85.0;
 
     private readonly IDailyChallengeRepository _challenges;
     private readonly HatGapAwardService _hatGap;
@@ -30,6 +30,9 @@ public class ActivateDailyChallengeHandler
     public async Task HandleAsync(ActivateDailyChallengeCommand command, CancellationToken ct = default)
     {
         var today = GetTodayGmt7();
+        if (today.DayOfWeek == DayOfWeek.Sunday)
+            return; // Chủ Nhật dành riêng cho Thử thách tuần
+
         var existing = await _challenges.GetByDateAsync(today, ct);
 
         if (existing is not null)
@@ -97,8 +100,7 @@ public class ActivateDailyChallengeHandler
     private async Task<Tutorial?> PickTutorialAsync(DateOnly today, CancellationToken ct)
     {
         var excludeIds = await _challenges.GetRecentlyUsedTutorialIdsAsync(today.AddDays(-30), ct);
-        var isFreeFoldDay = today.DayOfWeek == DayOfWeek.Sunday;
-        var difficulty = isFreeFoldDay ? TutorialDifficulty.Beginner : PickWeightedDifficulty();
+        var difficulty = PickWeightedDifficulty();
 
         var candidates = await _challenges.GetEligibleCandidatesAsync(excludeIds, difficulty, ct);
         if (candidates.Count == 0)
@@ -112,12 +114,7 @@ public class ActivateDailyChallengeHandler
     private static TutorialDifficulty PickWeightedDifficulty()
     {
         var roll = Random.Shared.NextDouble();
-        return roll switch
-        {
-            < BeginnerWeight => TutorialDifficulty.Beginner,
-            < IntermediateWeight => TutorialDifficulty.Intermediate,
-            _ => TutorialDifficulty.Advanced
-        };
+        return roll < BeginnerWeight ? TutorialDifficulty.Beginner : TutorialDifficulty.Intermediate;
     }
 
     // Weighted random by (1 + AchievementCount) — favors proven/popular tutorials without

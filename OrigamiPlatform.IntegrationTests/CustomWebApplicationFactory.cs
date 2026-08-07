@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -14,8 +15,22 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     private readonly string _databaseName = $"OrigamiPlatform_Test_{Guid.NewGuid()}";
 
+    public const string SePayTestApiKey = "test-sepay-webhook-key";
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.ConfigureAppConfiguration((_, configBuilder) =>
+        {
+            configBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["SePay:WebhookApiKey"] = SePayTestApiKey,
+                ["BankAccount:AccountNumber"] = "0123456789",
+                ["BankAccount:BankName"] = "TestBank",
+                ["BankAccount:BankBin"] = "970422",
+                ["BankAccount:AccountHolderName"] = "ORIMATE TEST"
+            });
+        });
+
         builder.ConfigureTestServices(services =>
         {
             services.RemoveAll(typeof(DbContextOptions<AppDbContext>));

@@ -43,6 +43,7 @@ public class AppDbContext : DbContext
     public DbSet<VipSubscription> VipSubscriptions => Set<VipSubscription>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<CreatorVipSettings> CreatorVipSettings => Set<CreatorVipSettings>();
+    public DbSet<SePayWebhookLog> SePayWebhookLogs => Set<SePayWebhookLog>();
 
     // System
     public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
@@ -79,6 +80,10 @@ public class AppDbContext : DbContext
     public DbSet<DailyChallenge> DailyChallenges => Set<DailyChallenge>();
     public DbSet<DailyChallengeSubmission> DailyChallengeSubmissions => Set<DailyChallengeSubmission>();
     public DbSet<ChallengeStreakLog> ChallengeStreakLogs => Set<ChallengeStreakLog>();
+
+    // Weekly Challenge — mirror của Daily Challenge, chỉ mở Chủ Nhật, độ khó Advanced
+    public DbSet<WeeklyChallenge> WeeklyChallenges => Set<WeeklyChallenge>();
+    public DbSet<WeeklyChallengeSubmission> WeeklyChallengeSubmissions => Set<WeeklyChallengeSubmission>();
 
     // Badge System (FT-35)
     public DbSet<Badge> Badges => Set<Badge>();

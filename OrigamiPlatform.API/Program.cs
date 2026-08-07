@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OrigamiPlatform.API.Middleware;
+using OrigamiPlatform.API.Options;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Infrastructure;
 using OrigamiPlatform.Infrastructure.Persistence;
@@ -15,6 +16,7 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.Configure<SePayOptions>(builder.Configuration.GetSection("SePay"));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>

@@ -16,8 +16,10 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
         builder.Property(t => t.CreatorNetAmount).HasColumnType("decimal(18,2)").IsRequired();
         builder.Property(t => t.TransactionType).HasConversion<string>().HasMaxLength(30);
         builder.Property(t => t.Status).HasConversion<string>().HasMaxLength(30);
-        builder.Property(t => t.ReferenceCode).HasMaxLength(100);
+        builder.Property(t => t.PaymentCode).HasMaxLength(50).IsRequired();
         builder.Property(t => t.AdminNote).HasMaxLength(300);
+
+        builder.HasIndex(t => t.PaymentCode).IsUnique();
 
         builder.HasOne(t => t.User)
                .WithMany()

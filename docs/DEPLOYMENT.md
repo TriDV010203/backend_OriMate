@@ -1,7 +1,7 @@
 # DEPLOYMENT.md — OriMate Backend trên Azure
 
-## Vì sao cần làm sớm (khi bắt đầu Giai đoạn 2 — SePay)
-FT-16 giai đoạn 1 (3 tuần đầu) dùng xác nhận thủ công, **không cần deploy thật** — xem `MVP_SCOPE.md`. File này chỉ cần dùng khi team chuyển sang Giai đoạn 2 (tích hợp SePay webhook thật), vì lúc đó cần 1 endpoint public HTTPS để SePay gọi vào. Không phải việc gấp của 3 tuần đầu, nhưng nên đọc trước để biết cần chuẩn bị gì khi tới lúc.
+## Vì sao cần làm sớm (khi deploy SePay webhook)
+Code webhook SePay (`POST /api/webhooks/sepay`) đã có sẵn trong `OrigamiPlatform.API`, nhưng SePay chỉ gọi được vào 1 endpoint public HTTPS — nên team vẫn cần dựng hạ tầng theo file này trước khi webhook chạy thật với giao dịch ngân hàng. Đọc file này khi chuẩn bị deploy, không phải việc gấp của giai đoạn code local.
 
 ## Điều kiện: Azure for Students
 - Đăng ký tại https://azure.microsoft.com/free/students — xác thực bằng email trường (`.edu.vn`). Không cần thẻ tín dụng.
@@ -48,8 +48,11 @@ Email__SmtpAppPassword = <app password thật>
 Cloudinary__CloudName = <thật>
 Cloudinary__ApiKey = <thật>
 Cloudinary__ApiSecret = <thật>
-SePay__ApiKey = <lấy từ SePay merchant dashboard sau khi đăng ký sandbox>
-SePay__WebhookSecret = <dùng để verify X-SePay-Signature>
+SePay__WebhookApiKey = <lấy từ SePay merchant dashboard, mục Webhook Authentication = "Api Key">
+BankAccount__AccountNumber = <số tài khoản ngân hàng đã liên kết với SePay>
+BankAccount__BankName = <tên ngân hàng, VD: MBBank>
+BankAccount__BankBin = <mã BIN ngân hàng, tra tại https://qr.sepay.vn/bank-list>
+BankAccount__AccountHolderName = <tên chủ tài khoản>
 ```
 Lưu ý dấu `__` (2 dấu gạch dưới) thay cho `:` khi đặt tên biến môi trường trên Azure — ASP.NET Core tự map `Email__SmtpHost` thành `Email:SmtpHost`.
 
@@ -68,7 +71,8 @@ Sau đó chạy seed data (xem `SEED_DATA.md`) — nhớ đổi password seed Ad
    ```
    https://orimate-api.azurewebsites.net/api/webhooks/sepay
    ```
-3. Lấy `Webhook Secret` để verify signature — điền vào App Settings `SePay__WebhookSecret` ở bước 2.
+3. Chọn Authentication method = **Api Key**, lấy key hiển thị trong dashboard — điền vào App Settings `SePay__WebhookApiKey` ở bước 2 (backend so khớp header `Authorization: Apikey <key>` trên mọi request webhook, sai key → 401, không xử lý payload).
+4. (Khuyến nghị) Bật tính năng "Mã thanh toán" trong dashboard, đặt prefix = `OMVIP` — SePay sẽ tự tách mã giao dịch (`Transaction.PaymentCode`) ra field `code` riêng, khớp chính xác hơn so với chỉ tìm trong nội dung chuyển khoản.
 
 ## 5. CI/CD — tự động deploy khi merge vào `main`
 

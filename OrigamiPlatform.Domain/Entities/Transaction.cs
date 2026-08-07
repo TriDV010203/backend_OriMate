@@ -11,7 +11,7 @@ public class Transaction
     public decimal PlatformFeeAmount { get; set; }
     public decimal CreatorNetAmount { get; set; }
     public TransactionStatus Status { get; set; }
-    public string? ReferenceCode { get; set; }
+    public string PaymentCode { get; set; } = null!;
     public Guid? ConfirmedBy { get; set; }
     public DateTime? ConfirmedAt { get; set; }
     public string? AdminNote { get; set; }

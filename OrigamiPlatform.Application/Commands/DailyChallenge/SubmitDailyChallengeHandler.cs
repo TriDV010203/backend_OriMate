@@ -17,20 +17,18 @@ public class SubmitDailyChallengeHandler
 
     private readonly IDailyChallengeRepository _challenges;
     private readonly IDailyChallengeSubmissionRepository _submissions;
-    private readonly IChallengeStreakRepository _challengeStreaks;
+    private readonly ChallengeStreakService _challengeStreak;
     private readonly IBlockedWordService _blockedWordService;
     private readonly HatGapAwardService _hatGap;
-    private readonly BadgeAwardService _badges;
 
     public SubmitDailyChallengeHandler(
         IDailyChallengeRepository challenges,
         IDailyChallengeSubmissionRepository submissions,
-        IChallengeStreakRepository challengeStreaks,
+        ChallengeStreakService challengeStreak,
         IBlockedWordService blockedWordService,
-        HatGapAwardService hatGap,
-        BadgeAwardService badges)
-        => (_challenges, _submissions, _challengeStreaks, _blockedWordService, _hatGap, _badges)
-            = (challenges, submissions, challengeStreaks, blockedWordService, hatGap, badges);
+        HatGapAwardService hatGap)
+        => (_challenges, _submissions, _challengeStreak, _blockedWordService, _hatGap)
+            = (challenges, submissions, challengeStreak, blockedWordService, hatGap);
 
     public async Task<DailyChallengeSubmissionDto> HandleAsync(
         SubmitDailyChallengeCommand command, CancellationToken ct = default)
@@ -63,7 +61,7 @@ public class SubmitDailyChallengeHandler
 
         await _submissions.AddAsync(submission, ct);
 
-        await UpdateChallengeStreakAsync(command.UserId, ct);
+        await _challengeStreak.UpdateAsync(command.UserId, ct);
         await AwardParticipationAsync(command.UserId, ct);
 
         return new DailyChallengeSubmissionDto(
@@ -71,50 +69,6 @@ public class SubmitDailyChallengeHandler
             submission.PhotoUrl, submission.Note,
             LikeCount: 0, IsLikedByCurrentUser: false, FinalRank: null,
             submission.CreatedAt);
-    }
-
-    // FT-34: streak dedicated to challenge participation, mirrors StreakLog's freeze rule but
-    // on ChallengeStreakLog — completely independent of the general tutorial-activity streak.
-    private async Task UpdateChallengeStreakAsync(Guid userId, CancellationToken ct)
-    {
-        try
-        {
-            var streak = await _challengeStreaks.GetByUserIdAsync(userId, ct);
-            var today = GetTodayGmt7();
-
-            if (streak.LastSubmissionDate == today)
-            {
-                // already counted today — nothing to change
-            }
-            else if (streak.LastSubmissionDate == today.AddDays(-1))
-            {
-                streak.CurrentStreak++;
-                streak.LastSubmissionDate = today;
-            }
-            else if (streak.LastSubmissionDate == today.AddDays(-2) && streak.FreezeCount > 0)
-            {
-                streak.FreezeCount--;
-                streak.CurrentStreak++;
-                streak.LastSubmissionDate = today;
-            }
-            else
-            {
-                streak.CurrentStreak = 1;
-                streak.LastSubmissionDate = today;
-            }
-
-            if (streak.CurrentStreak > streak.LongestStreak)
-                streak.LongestStreak = streak.CurrentStreak;
-
-            await _challengeStreaks.UpdateAsync(streak, ct);
-
-            if (streak.CurrentStreak is 3 or 7 or 30)
-                await _badges.TryAwardAsync(userId, $"STREAK_CHALLENGE_{streak.CurrentStreak}", ct: ct);
-        }
-        catch
-        {
-            // streak update failure must not affect the main submission flow
-        }
     }
 
     private async Task AwardParticipationAsync(Guid userId, CancellationToken ct)
