@@ -104,4 +104,44 @@ public class ModerationTests : IntegrationTestBase
         // Sẽ Fail (đỏ) làm bằng chứng nếu Backend quên cấu hình chặn (BR-ADMIN-02)
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
+
+    // [State Boundary / Idempotency] (NAC-02) - Không xử lý lại Report đã chốt
+    [Fact]
+    public async Task HandleReport_AlreadyReviewed_ReturnsBadRequest()
+    {
+        var adminId = await AuthenticateAsAsync("Manager");
+
+        var reportId = Guid.NewGuid();
+        var report = new Report { Id = reportId, ReporterId = adminId, TargetId = Guid.NewGuid(), TargetType = TargetType.Comment, Reason = "Test", Status = ReportStatus.Reviewed }; // Đã Reviewed
+        _dbContext.Reports.Add(report);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new { ActionType = "Dismiss", Action = "Dismiss" };
+        var response = await _client.PostAsJsonAsync($"/api/reports/{reportId}/handle", request);
+
+        response.IsSuccessStatusCode.Should().BeFalse("Manager không được phép xử lý Report không còn ở trạng thái Pending (NAC-02)[cite: 1]");
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    // [Happy Path / Role Boundary] (AC-03) - Contributor Reviewer xóa trực tiếp comment
+    [Fact]
+    public async Task DeleteViolatingComment_ByContributorReviewer_DeletesCommentAndLogs()
+    {
+        var prereq = await SeedDefaultPrerequisitesAsync();
+        var commentId = Guid.NewGuid();
+        _dbContext.Comments.Add(new Comment { Id = commentId, AuthorId = prereq.AuthorId, TargetId = Guid.NewGuid(), TargetType = TargetType.CommunityPost, Content = "Vi phạm rõ ràng", IsDeleted = false });
+        await _dbContext.SaveChangesAsync();
+
+        // Đăng nhập đúng Role ContributorReviewer
+        await AuthenticateAsAsync("ContributorReviewer");
+
+        // Note: Bạn hãy check lại URL thực tế trong ModerationController của BE nếu nó khác nhé
+        var response = await _client.DeleteAsync($"/api/moderation/comments/{commentId}");
+
+        response.IsSuccessStatusCode.Should().BeTrue("Contributor Reviewer phải có quyền gọi API xóa Comment trực tiếp");
+
+        _dbContext.ChangeTracker.Clear();
+        var commentInDb = await _dbContext.Comments.FirstOrDefaultAsync(c => c.Id == commentId);
+        commentInDb!.IsDeleted.Should().BeTrue("Bình luận phải bị soft-delete thành công");
+    }
 }

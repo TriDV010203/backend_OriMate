@@ -24,7 +24,7 @@ public class CommunityPostsController : ControllerBase
         if (!Guid.TryParse(userIdString, out Guid userId))
             return Unauthorized();
 
-        var command = new CreateCommunityPostCommand(userId, request.Content, request.TutorialId, request.MediaItems);
+        var command = new CreateCommunityPostCommand(userId, request.Content, request.MediaItems);
         var postId = await _createPost.HandleAsync(command, ct);
 
         return Ok(new { PostId = postId });

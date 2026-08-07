@@ -34,7 +34,6 @@ public class CreateCommunityPostHandler
         {
             Id = postId,
             AuthorId = cmd.UserId,
-            LinkedTutorialId = cmd.TutorialId,
             Content = cmd.Content,
             IsVisible = true,
             IsDeleted = false,

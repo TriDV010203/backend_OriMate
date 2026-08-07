@@ -21,12 +21,18 @@ public class SearchByObjectHandler(
             return new ObjectSearchResultDto(Message: "Không nhận diện được vật thể trong ảnh.");
 
         // 2. Lấy trực tiếp từ khóa từ YOLO (vì YOLO đã trả về từ chung chung như "dog", "cat"...)
+        // 2. Làm sạch từ khóa từ YOLO (Xử lý trường hợp AI trả về dạng "16: bird" hoặc "17: dog")
         var searchKeywords = new HashSet<string>();
         foreach (var raw in rawLabels)
         {
-            // Chỉ cần xóa khoảng trắng thừa và chuyển về chữ thường
-            var cleanRaw = raw.Trim().ToLower();
-            searchKeywords.Add(cleanRaw);
+            // Nếu chuỗi chứa dấu ':', tách lấy phần tên ở vế sau (ví dụ: "16: bird" -> "bird")
+            var cleanValue = raw.Contains(':') ? raw.Split(':')[1] : raw;
+
+            var cleanRaw = cleanValue.Trim().ToLower();
+            if (!string.IsNullOrEmpty(cleanRaw))
+            {
+                searchKeywords.Add(cleanRaw);
+            }
         }
 
         // 3. Lấy tất cả bài hướng dẫn đã xuất bản từ Database

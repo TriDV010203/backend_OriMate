@@ -2,12 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using OrigamiPlatform.Application.DTOs.Auth;
 using OrigamiPlatform.Domain.Enums;
-using OrigamiPlatform.IntegrationTests;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
 
-namespace OrigamiPlatform.IntegrationTests.Controllers.Auth;
+namespace OrigamiPlatform.IntegrationTests.Controllers.WorkFlow;
 
 public class AuthWorkflowTests : IntegrationTestBase
 {
@@ -65,7 +64,7 @@ public class AuthWorkflowTests : IntegrationTestBase
         var oldPassword = "OldPassword123!";
         var newPassword = "NewBrandPassword999!";
 
-        var testUser = new OrigamiPlatform.Domain.Entities.User
+        var testUser = new Domain.Entities.User
         {
             Id = Guid.NewGuid(),
             Email = email,
