@@ -128,6 +128,8 @@ public class HandleReportHandler
             if (post != null)
             {
                 post.IsDeleted = true;
+                post.IsVisible = false; // 🟢 Tắt cờ hiển thị
+                await _posts.UpdateAsync(post); // 🟢 ÉP LƯU XUỐNG DB
             }
         }
         else if (targetType == TargetType.Tutorial)
@@ -136,6 +138,9 @@ public class HandleReportHandler
             if (tutorial != null)
             {
                 tutorial.IsDeleted = true;
+                tutorial.Status = TutorialStatus.Removed;
+                // Tùy theo Interface của bạn có UpdateAsync hay không:
+                // await _tutorials.UpdateAsync(tutorial);
             }
         }
         else if (targetType == TargetType.Comment)
@@ -144,6 +149,7 @@ public class HandleReportHandler
             if (comment != null)
             {
                 comment.IsDeleted = true;
+                await _comments.UpdateAsync(comment); // 🟢 ÉP LƯU XUỐNG DB
             }
         }
     }

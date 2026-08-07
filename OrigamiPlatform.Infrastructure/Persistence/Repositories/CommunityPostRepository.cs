@@ -71,5 +71,12 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Repositories
                 .Where(p => ids.Contains(p.Id))
                 .ToListAsync(ct);
         }
+
+        public async Task<CommunityPost> UpdateAsync(CommunityPost post, CancellationToken ct = default)
+        {
+            _context.CommunityPosts.Update(post);
+            await _context.SaveChangesAsync(ct);
+            return post; // 🟢 Trả về post để khớp với chữ ký của Interface
+        }
     }
 }
