@@ -58,7 +58,7 @@ public class SubmitDailyChallengeHandlerTests
         var req = new SubmitDailyChallengeRequest("photo.jpg", "badword");
         var command = new SubmitDailyChallengeCommand(Guid.NewGuid(), req);
 
-        _mockBlockedWordService.Setup(b => b.ContainsBlockedWordAsync(req.Note, default)).ReturnsAsync(true);
+        _mockBlockedWordService.Setup(b => b.ContainsBlockedWordAsync(req.Note!, default)).ReturnsAsync(true);
 
         var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
         Assert.Contains("từ ngữ không phù hợp", ex.Message);
@@ -70,7 +70,7 @@ public class SubmitDailyChallengeHandlerTests
         var req = new SubmitDailyChallengeRequest("photo.jpg", "Good");
         var command = new SubmitDailyChallengeCommand(Guid.NewGuid(), req);
 
-        _mockBlockedWordService.Setup(b => b.ContainsBlockedWordAsync(req.Note, default)).ReturnsAsync(false);
+        _mockBlockedWordService.Setup(b => b.ContainsBlockedWordAsync(req.Note!, default)).ReturnsAsync(false);
         _mockChallenges.Setup(c => c.GetByDateAsync(It.IsAny<DateOnly>(), default)).ReturnsAsync((OrigamiPlatform.Domain.Entities.DailyChallenge?)null);
 
         var ex = await Assert.ThrowsAsync<NotFoundException>(() => _handler.HandleAsync(command));
@@ -84,7 +84,7 @@ public class SubmitDailyChallengeHandlerTests
         var command = new SubmitDailyChallengeCommand(Guid.NewGuid(), req);
         var challenge = new OrigamiPlatform.Domain.Entities.DailyChallenge { Status = DailyChallengeStatus.Closed };
 
-        _mockBlockedWordService.Setup(b => b.ContainsBlockedWordAsync(req.Note, default)).ReturnsAsync(false);
+        _mockBlockedWordService.Setup(b => b.ContainsBlockedWordAsync(req.Note!, default)).ReturnsAsync(false);
         _mockChallenges.Setup(c => c.GetByDateAsync(It.IsAny<DateOnly>(), default)).ReturnsAsync(challenge);
 
         var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
@@ -98,7 +98,7 @@ public class SubmitDailyChallengeHandlerTests
         var command = new SubmitDailyChallengeCommand(Guid.NewGuid(), req);
         var challenge = new OrigamiPlatform.Domain.Entities.DailyChallenge { Id = Guid.NewGuid(), Status = DailyChallengeStatus.Active };
 
-        _mockBlockedWordService.Setup(b => b.ContainsBlockedWordAsync(req.Note, default)).ReturnsAsync(false);
+        _mockBlockedWordService.Setup(b => b.ContainsBlockedWordAsync(req.Note!, default)).ReturnsAsync(false);
         _mockChallenges.Setup(c => c.GetByDateAsync(It.IsAny<DateOnly>(), default)).ReturnsAsync(challenge);
         _mockSubmissions.Setup(s => s.ExistsAsync(challenge.Id, command.UserId, default)).ReturnsAsync(true);
 
@@ -114,7 +114,7 @@ public class SubmitDailyChallengeHandlerTests
         var challenge = new OrigamiPlatform.Domain.Entities.DailyChallenge { Id = Guid.NewGuid(), Status = DailyChallengeStatus.Active };
         var streak = new ChallengeStreakLog { UserId = command.UserId, CurrentStreak = 1, LastSubmissionDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)) };
 
-        _mockBlockedWordService.Setup(b => b.ContainsBlockedWordAsync(req.Note, default)).ReturnsAsync(false);
+        _mockBlockedWordService.Setup(b => b.ContainsBlockedWordAsync(req.Note!, default)).ReturnsAsync(false);
         _mockChallenges.Setup(c => c.GetByDateAsync(It.IsAny<DateOnly>(), default)).ReturnsAsync(challenge);
         _mockSubmissions.Setup(s => s.ExistsAsync(challenge.Id, command.UserId, default)).ReturnsAsync(false);
         _mockChallengeStreaks.Setup(s => s.GetByUserIdAsync(command.UserId, default)).ReturnsAsync(streak);

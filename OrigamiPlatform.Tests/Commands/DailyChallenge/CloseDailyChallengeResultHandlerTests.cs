@@ -35,7 +35,7 @@ public class CloseDailyChallengeResultHandlerTests
         var badgeService = new BadgeAwardService(_mockBadgeRepo.Object, _mockUserBadgeRepo.Object, _mockNotifications.Object);
 
         _handler = new CloseDailyChallengeResultHandler(
-            _mockChallenges.Object, _mockSubmissions.Object, _mockLikes.Object, _mockChallengeStreaks.Object, 
+            _mockChallenges.Object, _mockSubmissions.Object, _mockLikes.Object, _mockChallengeStreaks.Object,
             hatGapService, badgeService, _mockNotifications.Object);
     }
 
@@ -71,10 +71,10 @@ public class CloseDailyChallengeResultHandlerTests
     {
         var command = new CloseDailyChallengeResultCommand(DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7)));
         var challenge = new OrigamiPlatform.Domain.Entities.DailyChallenge { Id = Guid.NewGuid(), Status = DailyChallengeStatus.Active };
-        
+
         var sub1 = new DailyChallengeSubmission { Id = Guid.NewGuid(), UserId = Guid.NewGuid() };
         var sub2 = new DailyChallengeSubmission { Id = Guid.NewGuid(), UserId = Guid.NewGuid() };
-        
+
         _mockChallenges.Setup(c => c.GetByDateAsync(command.ChallengeDate, default)).ReturnsAsync(challenge);
         _mockSubmissions.Setup(s => s.GetByChallengeAsync(challenge.Id, default)).ReturnsAsync(new List<DailyChallengeSubmission> { sub1, sub2 });
         _mockLikes.Setup(l => l.GetCountsForTargetsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<TargetType>()))

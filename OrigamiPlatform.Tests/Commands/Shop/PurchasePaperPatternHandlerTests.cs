@@ -21,7 +21,7 @@ public class PurchasePaperPatternHandlerTests
         _mockPatterns = new Mock<IPaperPatternRepository>();
         _mockUserPatterns = new Mock<IUserPaperPatternRepository>();
         _mockHatGapRepo = new Mock<IHatGapTransactionRepository>();
-        
+
         var hatGapService = new HatGapAwardService(_mockHatGapRepo.Object);
         _handler = new PurchasePaperPatternHandler(_mockPatterns.Object, _mockUserPatterns.Object, hatGapService);
     }
@@ -41,7 +41,7 @@ public class PurchasePaperPatternHandlerTests
     {
         var command = new PurchasePaperPatternCommand(Guid.NewGuid(), Guid.NewGuid());
         var pattern = new PaperPattern { Id = command.PaperPatternId, IsActive = true };
-        
+
         _mockPatterns.Setup(p => p.GetByIdAsync(command.PaperPatternId, default)).ReturnsAsync(pattern);
         _mockUserPatterns.Setup(p => p.ExistsAsync(command.UserId, command.PaperPatternId, default)).ReturnsAsync(true);
 
@@ -54,7 +54,7 @@ public class PurchasePaperPatternHandlerTests
     {
         var command = new PurchasePaperPatternCommand(Guid.NewGuid(), Guid.NewGuid());
         var pattern = new PaperPattern { Id = command.PaperPatternId, IsActive = true, PriceInHatGap = 100 }; // Costs 100
-        
+
         _mockPatterns.Setup(p => p.GetByIdAsync(command.PaperPatternId, default)).ReturnsAsync(pattern);
         _mockUserPatterns.Setup(p => p.ExistsAsync(command.UserId, command.PaperPatternId, default)).ReturnsAsync(false);
         _mockHatGapRepo.Setup(r => r.GetLatestBalanceAsync(command.UserId, default)).ReturnsAsync(50); // Balance is 50 (< 100)
@@ -68,7 +68,7 @@ public class PurchasePaperPatternHandlerTests
     {
         var command = new PurchasePaperPatternCommand(Guid.NewGuid(), Guid.NewGuid());
         var pattern = new PaperPattern { Id = command.PaperPatternId, IsActive = true, PriceInHatGap = 50 };
-        
+
         _mockPatterns.Setup(p => p.GetByIdAsync(command.PaperPatternId, default)).ReturnsAsync(pattern);
         _mockUserPatterns.Setup(p => p.ExistsAsync(command.UserId, command.PaperPatternId, default)).ReturnsAsync(false);
         _mockHatGapRepo.Setup(r => r.GetLatestBalanceAsync(command.UserId, default)).ReturnsAsync(100);
@@ -76,16 +76,16 @@ public class PurchasePaperPatternHandlerTests
         await _handler.HandleAsync(command);
 
         // Verify HatGap deduction transaction
-        _mockHatGapRepo.Verify(r => r.AddAsync(It.Is<HatGapTransaction>(t => 
-            t.UserId == command.UserId && 
+        _mockHatGapRepo.Verify(r => r.AddAsync(It.Is<HatGapTransaction>(t =>
+            t.UserId == command.UserId &&
             t.Amount == -50 &&
             t.Type == HatGapTransactionType.Spend &&
             t.BalanceAfter == 50
         ), default), Times.Once);
 
         // Verify UserPattern added
-        _mockUserPatterns.Verify(p => p.AddAsync(It.Is<UserPaperPattern>(u => 
-            u.UserId == command.UserId && 
+        _mockUserPatterns.Verify(p => p.AddAsync(It.Is<UserPaperPattern>(u =>
+            u.UserId == command.UserId &&
             u.PaperPatternId == command.PaperPatternId
         ), default), Times.Once);
     }

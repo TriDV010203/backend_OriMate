@@ -17,7 +17,7 @@ public class CompleteTutorialStepHandlerTests
     private readonly Mock<IDailyQuestRepository> _mockDailyQuests;
     private readonly Mock<IUserDailyQuestProgressRepository> _mockQuestProgress;
     private readonly Mock<INotificationService> _mockNotifications;
-    
+
     private readonly Mock<IHatGapTransactionRepository> _mockHatGapRepo;
     private readonly Mock<IBadgeRepository> _mockBadgeRepo;
     private readonly Mock<IUserBadgeRepository> _mockUserBadgeRepo;
@@ -41,13 +41,13 @@ public class CompleteTutorialStepHandlerTests
         var badgeService = new BadgeAwardService(_mockBadgeRepo.Object, _mockUserBadgeRepo.Object, _mockNotifications.Object);
 
         _handler = new CompleteTutorialStepHandler(
-            _mockProgress.Object, 
-            _mockUsers.Object, 
+            _mockProgress.Object,
+            _mockUsers.Object,
             _mockStreakLogs.Object,
-            _mockDailyQuests.Object, 
-            _mockQuestProgress.Object, 
+            _mockDailyQuests.Object,
+            _mockQuestProgress.Object,
             hatGapService,
-            _mockNotifications.Object, 
+            _mockNotifications.Object,
             badgeService);
     }
 
@@ -76,10 +76,10 @@ public class CompleteTutorialStepHandlerTests
     public async Task HandleAsync_TutorialNotPublished_ThrowsDomainException()
     {
         var command = new CompleteTutorialStepCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
-        var step = new TutorialStep 
-        { 
-            Id = command.StepId, 
-            TutorialId = command.TutorialId, 
+        var step = new TutorialStep
+        {
+            Id = command.StepId,
+            TutorialId = command.TutorialId,
             Tutorial = new Tutorial { Status = TutorialStatus.Draft }
         };
         _mockProgress.Setup(p => p.GetStepWithTutorialAsync(command.StepId, default)).ReturnsAsync(step);
@@ -92,10 +92,10 @@ public class CompleteTutorialStepHandlerTests
     public async Task HandleAsync_AlreadyCompleted_ThrowsDomainException()
     {
         var command = new CompleteTutorialStepCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
-        var step = new TutorialStep 
-        { 
-            Id = command.StepId, 
-            TutorialId = command.TutorialId, 
+        var step = new TutorialStep
+        {
+            Id = command.StepId,
+            TutorialId = command.TutorialId,
             Tutorial = new Tutorial { Status = TutorialStatus.Published }
         };
         _mockProgress.Setup(p => p.GetStepWithTutorialAsync(command.StepId, default)).ReturnsAsync(step);
@@ -110,10 +110,10 @@ public class CompleteTutorialStepHandlerTests
     {
         // Arrange
         var command = new CompleteTutorialStepCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
-        var step = new TutorialStep 
-        { 
-            Id = command.StepId, 
-            TutorialId = command.TutorialId, 
+        var step = new TutorialStep
+        {
+            Id = command.StepId,
+            TutorialId = command.TutorialId,
             Tutorial = new Tutorial { Status = TutorialStatus.Published, Difficulty = TutorialDifficulty.Beginner }
         };
         var streakLog = new StreakLog { UserId = command.UserId, CurrentStreak = 1, LastActiveDate = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7)) };
@@ -123,7 +123,7 @@ public class CompleteTutorialStepHandlerTests
         _mockProgress.Setup(p => p.ExistsAsync(command.UserId, command.StepId, default)).ReturnsAsync(false);
         _mockProgress.Setup(p => p.CountStepsAsync(command.TutorialId, default)).ReturnsAsync(3);
         _mockProgress.Setup(p => p.GetCompletedStepIdsAsync(command.UserId, command.TutorialId, default)).ReturnsAsync(completedIds);
-        
+
         // Mock streak log for UpdateStreakAsync so it doesn't fail silently
         _mockStreakLogs.Setup(s => s.GetByUserIdAsync(command.UserId, default)).ReturnsAsync(streakLog);
 
@@ -131,8 +131,8 @@ public class CompleteTutorialStepHandlerTests
         var result = await _handler.HandleAsync(command);
 
         // Assert
-        _mockProgress.Verify(p => p.AddAsync(It.Is<TutorialStepProgress>(sp => 
-            sp.UserId == command.UserId && 
+        _mockProgress.Verify(p => p.AddAsync(It.Is<TutorialStepProgress>(sp =>
+            sp.UserId == command.UserId &&
             sp.TutorialId == command.TutorialId &&
             sp.TutorialStepId == command.StepId), default), Times.Once);
 

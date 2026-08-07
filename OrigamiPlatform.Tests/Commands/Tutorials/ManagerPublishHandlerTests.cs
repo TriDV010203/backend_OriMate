@@ -40,7 +40,7 @@ public class ManagerPublishHandlerTests
     {
         var command = new ManagerPublishCommand(Guid.NewGuid(), Guid.NewGuid());
         var tutorial = new Tutorial { Id = command.TutorialId, Status = invalidStatus };
-        
+
         _mockRepo.Setup(r => r.GetByIdWithStepsAsync(command.TutorialId, default)).ReturnsAsync(tutorial);
 
         var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
@@ -51,7 +51,7 @@ public class ManagerPublishHandlerTests
     public async Task HandleAsync_ValidRequest_PublishesTutorialAndNotifiesAuthor()
     {
         var command = new ManagerPublishCommand(Guid.NewGuid(), Guid.NewGuid());
-        var tutorial = new Tutorial 
+        var tutorial = new Tutorial
         {
             Id = command.TutorialId,
             AuthorId = Guid.NewGuid(),
@@ -68,9 +68,9 @@ public class ManagerPublishHandlerTests
 
         // Assert Repository was called to save the changes
         _mockRepo.Verify(r => r.UpdateAsync(tutorial, default), Times.Once);
-        
+
         // Assert Review History was inserted
-        _mockRepo.Verify(r => r.AddReviewHistoryAsync(It.Is<TutorialReviewHistory>(h => 
+        _mockRepo.Verify(r => r.AddReviewHistoryAsync(It.Is<TutorialReviewHistory>(h =>
             h.TutorialId == tutorial.Id &&
             h.ReviewerId == command.ManagerId &&
             h.ToStatus == TutorialStatus.Published &&

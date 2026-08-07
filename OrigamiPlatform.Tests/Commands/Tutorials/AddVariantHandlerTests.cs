@@ -48,7 +48,7 @@ public class AddVariantHandlerTests
     {
         var command = new AddVariantCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 1);
         var parent = new Tutorial { Id = command.ParentTutorialId, AuthorId = command.RequesterId };
-        
+
         _mockTutorialRepo.Setup(r => r.GetByIdWithStepsAsync(command.ParentTutorialId, default)).ReturnsAsync(parent);
         _mockTutorialRepo.Setup(r => r.GetByIdWithStepsAsync(command.VariantTutorialId, default)).ReturnsAsync((Tutorial?)null);
 
@@ -62,7 +62,7 @@ public class AddVariantHandlerTests
         var command = new AddVariantCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 1);
         var parent = new Tutorial { Id = command.ParentTutorialId, AuthorId = command.RequesterId };
         var variant = new Tutorial { Id = command.VariantTutorialId, AuthorId = command.RequesterId };
-        
+
         _mockTutorialRepo.Setup(r => r.GetByIdWithStepsAsync(command.ParentTutorialId, default)).ReturnsAsync(parent);
         _mockTutorialRepo.Setup(r => r.GetByIdWithStepsAsync(command.VariantTutorialId, default)).ReturnsAsync(variant);
         _mockVariantRepo.Setup(r => r.GetByPairAsync(command.ParentTutorialId, command.VariantTutorialId, default)).ReturnsAsync(new TutorialVariant());
@@ -77,16 +77,16 @@ public class AddVariantHandlerTests
         var command = new AddVariantCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 1);
         var parent = new Tutorial { Id = command.ParentTutorialId, AuthorId = command.RequesterId };
         var variant = new Tutorial { Id = command.VariantTutorialId };
-        
+
         _mockTutorialRepo.Setup(r => r.GetByIdWithStepsAsync(command.ParentTutorialId, default)).ReturnsAsync(parent);
         _mockTutorialRepo.Setup(r => r.GetByIdWithStepsAsync(command.VariantTutorialId, default)).ReturnsAsync(variant);
         _mockVariantRepo.Setup(r => r.GetByPairAsync(command.ParentTutorialId, command.VariantTutorialId, default)).ReturnsAsync((TutorialVariant?)null);
 
         await _handler.HandleAsync(command);
 
-        _mockVariantRepo.Verify(r => r.AddAsync(It.Is<TutorialVariant>(v => 
-            v.ParentTutorialId == command.ParentTutorialId && 
-            v.VariantTutorialId == command.VariantTutorialId && 
+        _mockVariantRepo.Verify(r => r.AddAsync(It.Is<TutorialVariant>(v =>
+            v.ParentTutorialId == command.ParentTutorialId &&
+            v.VariantTutorialId == command.VariantTutorialId &&
             v.DifficultyDelta == 1), default), Times.Once);
     }
 }
