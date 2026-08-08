@@ -112,7 +112,7 @@ public class SubmitDailyChallengeHandlerTests
         var req = new SubmitDailyChallengeRequest("photo.jpg", "Good");
         var command = new SubmitDailyChallengeCommand(Guid.NewGuid(), req);
         var challenge = new OrigamiPlatform.Domain.Entities.DailyChallenge { Id = Guid.NewGuid(), Status = DailyChallengeStatus.Active };
-        var streak = new ChallengeStreakLog { UserId = command.UserId, CurrentStreak = 1, LastSubmissionDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)) };
+        var streak = new ChallengeStreakLog { UserId = command.UserId, CurrentStreak = 1, LastSubmissionDate = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7).AddDays(-1)) };
 
         _mockBlockedWordService.Setup(b => b.ContainsBlockedWordAsync(req.Note!, default)).ReturnsAsync(false);
         _mockChallenges.Setup(c => c.GetByDateAsync(It.IsAny<DateOnly>(), default)).ReturnsAsync(challenge);
