@@ -81,4 +81,108 @@ public class UpdateWorkingCopyHandlerTests
         _mockTutorialRepo.Verify(r => r.UpdateAsync(workingCopy, default), Times.Once);
         _mockTutorialRepo.Verify(r => r.AddStepsAsync(It.Is<List<TutorialStep>>(s => s.Count == 1), default), Times.Once);
     }
+
+    [Fact]
+    public async Task HandleAsync_DescriptionInvalidLength_ThrowsDomainException()
+    {
+        var req = new UpdateTutorialRequest("Valid Title", "Short", 1, "Beginner", "Free", "cover.jpg", null);
+        var command = new UpdateWorkingCopyCommand(Guid.NewGuid(), Guid.NewGuid(), req);
+        var workingCopy = new Tutorial { Id = command.WorkingCopyId, AuthorId = command.AuthorId, ParentTutorialId = Guid.NewGuid(), Status = TutorialStatus.EditPendingReview };
+        _mockTutorialRepo.Setup(r => r.GetByIdWithStepsAsync(command.WorkingCopyId, default)).ReturnsAsync(workingCopy);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("Description must be between 20 and 500 characters", ex.Message);
+    }
+
+    [Fact]
+    public async Task HandleAsync_DescriptionContainsBlockedWord_ThrowsDomainException()
+    {
+        var req = new UpdateTutorialRequest("Valid Title", "Bad description spanning 20 chars!", 1, "Beginner", "Free", "cover.jpg", null);
+        var command = new UpdateWorkingCopyCommand(Guid.NewGuid(), Guid.NewGuid(), req);
+        var workingCopy = new Tutorial { Id = command.WorkingCopyId, AuthorId = command.AuthorId, ParentTutorialId = Guid.NewGuid(), Status = TutorialStatus.EditPendingReview };
+        
+        _mockTutorialRepo.Setup(r => r.GetByIdWithStepsAsync(command.WorkingCopyId, default)).ReturnsAsync(workingCopy);
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync("Valid Title", default)).ReturnsAsync(false);
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync("Bad description spanning 20 chars!", default)).ReturnsAsync(true);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("Description contains a blocked word", ex.Message);
+    }
+
+    [Fact]
+    public async Task HandleAsync_InvalidType_ThrowsDomainException()
+    {
+        var req = new UpdateTutorialRequest("Valid Title", "Valid description spanning 20 chars!", 1, "Beginner", "InvalidType", "cover.jpg", null);
+        var command = new UpdateWorkingCopyCommand(Guid.NewGuid(), Guid.NewGuid(), req);
+        var workingCopy = new Tutorial { Id = command.WorkingCopyId, AuthorId = command.AuthorId, ParentTutorialId = Guid.NewGuid(), Status = TutorialStatus.EditPendingReview };
+        
+        _mockTutorialRepo.Setup(r => r.GetByIdWithStepsAsync(command.WorkingCopyId, default)).ReturnsAsync(workingCopy);
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync(It.IsAny<string>(), default)).ReturnsAsync(false);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("Invalid tutorial type", ex.Message);
+    }
+
+    [Fact]
+    public async Task HandleAsync_InvalidDifficulty_ThrowsDomainException()
+    {
+        var req = new UpdateTutorialRequest("Valid Title", "Valid description spanning 20 chars!", 1, "InvalidDiff", "Free", "cover.jpg", null);
+        var command = new UpdateWorkingCopyCommand(Guid.NewGuid(), Guid.NewGuid(), req);
+        var workingCopy = new Tutorial { Id = command.WorkingCopyId, AuthorId = command.AuthorId, ParentTutorialId = Guid.NewGuid(), Status = TutorialStatus.EditPendingReview };
+        
+        _mockTutorialRepo.Setup(r => r.GetByIdWithStepsAsync(command.WorkingCopyId, default)).ReturnsAsync(workingCopy);
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync(It.IsAny<string>(), default)).ReturnsAsync(false);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("Invalid difficulty", ex.Message);
+    }
+
+    [Fact]
+    public async Task HandleAsync_VIPWithoutSettings_ThrowsDomainException()
+    {
+        var req = new UpdateTutorialRequest("Valid Title", "Valid description spanning 20 chars!", 1, "Beginner", "VIP", "cover.jpg", null);
+        var command = new UpdateWorkingCopyCommand(Guid.NewGuid(), Guid.NewGuid(), req);
+        var workingCopy = new Tutorial { Id = command.WorkingCopyId, AuthorId = command.AuthorId, ParentTutorialId = Guid.NewGuid(), Status = TutorialStatus.EditPendingReview };
+        
+        _mockTutorialRepo.Setup(r => r.GetByIdWithStepsAsync(command.WorkingCopyId, default)).ReturnsAsync(workingCopy);
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync(It.IsAny<string>(), default)).ReturnsAsync(false);
+        _mockTutorialRepo.Setup(r => r.GetActiveCreatorVipSettingsAsync(command.AuthorId, default)).ReturnsAsync((CreatorVipSettings?)null);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("You must have an active VIP pricing tier", ex.Message);
+    }
+
+    [Fact]
+    public async Task HandleAsync_InvalidCategory_ThrowsDomainException()
+    {
+        var req = new UpdateTutorialRequest("Valid Title", "Valid description spanning 20 chars!", 999, "Beginner", "Free", "cover.jpg", null);
+        var command = new UpdateWorkingCopyCommand(Guid.NewGuid(), Guid.NewGuid(), req);
+        var workingCopy = new Tutorial { Id = command.WorkingCopyId, AuthorId = command.AuthorId, ParentTutorialId = Guid.NewGuid(), Status = TutorialStatus.EditPendingReview };
+        
+        _mockTutorialRepo.Setup(r => r.GetByIdWithStepsAsync(command.WorkingCopyId, default)).ReturnsAsync(workingCopy);
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync(It.IsAny<string>(), default)).ReturnsAsync(false);
+        _mockTutorialRepo.Setup(r => r.GetActiveCategoryAsync(999, default)).ReturnsAsync((Category?)null);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("does not exist or is not active", ex.Message);
+    }
+
+    [Fact]
+    public async Task HandleAsync_StepDescriptionContainsBlockedWord_ThrowsDomainException()
+    {
+        var steps = new List<CreateTutorialStepRequest> { new(1, "Bad Step", "img.jpg") };
+        var req = new UpdateTutorialRequest("Valid Title", "Valid description spanning 20 chars!", 1, "Beginner", "Free", "cover.jpg", steps);
+        var command = new UpdateWorkingCopyCommand(Guid.NewGuid(), Guid.NewGuid(), req);
+        var workingCopy = new Tutorial { Id = command.WorkingCopyId, AuthorId = command.AuthorId, ParentTutorialId = Guid.NewGuid(), Status = TutorialStatus.EditPendingReview };
+        
+        _mockTutorialRepo.Setup(r => r.GetByIdWithStepsAsync(command.WorkingCopyId, default)).ReturnsAsync(workingCopy);
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync("Valid Title", default)).ReturnsAsync(false);
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync("Valid description spanning 20 chars!", default)).ReturnsAsync(false);
+        _mockTutorialRepo.Setup(r => r.GetActiveCategoryAsync(1, default)).ReturnsAsync(new Category());
+        
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync("Bad Step", default)).ReturnsAsync(true);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("description contains a blocked word", ex.Message);
+    }
 }

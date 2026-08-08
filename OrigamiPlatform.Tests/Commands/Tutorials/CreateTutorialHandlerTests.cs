@@ -90,4 +90,110 @@ public class CreateTutorialHandlerTests
         Assert.Equal("valid-title-2", result.Slug);
         _mockTutorialRepo.Verify(r => r.AddAsync(It.Is<Tutorial>(t => t.Title == "Valid Title" && t.Steps.Count == 1), default), Times.Once);
     }
+
+    [Fact]
+    public async Task HandleAsync_DescriptionInvalidLength_ThrowsDomainException()
+    {
+        var req = new CreateTutorialRequest("Valid Title", "Short", 1, "Beginner", "Free", "cover.jpg", null);
+        var command = new CreateTutorialCommand(Guid.NewGuid(), req);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("Description must be between 20 and 500 characters", ex.Message);
+    }
+
+    [Fact]
+    public async Task HandleAsync_DescriptionContainsBlockedWord_ThrowsDomainException()
+    {
+        var req = new CreateTutorialRequest("Valid Title", "Bad description spanning 20 chars!", 1, "Beginner", "Free", "cover.jpg", null);
+        var command = new CreateTutorialCommand(Guid.NewGuid(), req);
+
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync("Valid Title", default)).ReturnsAsync(false);
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync("Bad description spanning 20 chars!", default)).ReturnsAsync(true);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("Description contains a blocked word", ex.Message);
+    }
+
+    [Fact]
+    public async Task HandleAsync_MetaTitleContainsBlockedWord_ThrowsDomainException()
+    {
+        var req = new CreateTutorialRequest("Valid Title", "Valid description spanning 20 chars!", 1, "Beginner", "Free", "cover.jpg", null) { MetaTitle = "Bad Meta Title" };
+        var command = new CreateTutorialCommand(Guid.NewGuid(), req);
+
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync(It.IsAny<string>(), default)).ReturnsAsync(false);
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync("Bad Meta Title", default)).ReturnsAsync(true);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("Meta title contains a blocked word", ex.Message);
+    }
+
+    [Fact]
+    public async Task HandleAsync_MetaDescriptionContainsBlockedWord_ThrowsDomainException()
+    {
+        var req = new CreateTutorialRequest("Valid Title", "Valid description spanning 20 chars!", 1, "Beginner", "Free", "cover.jpg", null) { MetaDescription = "Bad Meta Desc" };
+        var command = new CreateTutorialCommand(Guid.NewGuid(), req);
+
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync(It.IsAny<string>(), default)).ReturnsAsync(false);
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync("Bad Meta Desc", default)).ReturnsAsync(true);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("Meta description contains a blocked word", ex.Message);
+    }
+
+    [Fact]
+    public async Task HandleAsync_InvalidType_ThrowsDomainException()
+    {
+        var req = new CreateTutorialRequest("Valid Title", "Valid description spanning 20 chars!", 1, "Beginner", "InvalidType", "cover.jpg", null);
+        var command = new CreateTutorialCommand(Guid.NewGuid(), req);
+
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync(It.IsAny<string>(), default)).ReturnsAsync(false);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("Invalid tutorial type", ex.Message);
+    }
+
+    [Fact]
+    public async Task HandleAsync_InvalidDifficulty_ThrowsDomainException()
+    {
+        var req = new CreateTutorialRequest("Valid Title", "Valid description spanning 20 chars!", 1, "InvalidDiff", "Free", "cover.jpg", null);
+        var command = new CreateTutorialCommand(Guid.NewGuid(), req);
+
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync(It.IsAny<string>(), default)).ReturnsAsync(false);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("Invalid difficulty", ex.Message);
+    }
+
+    [Fact]
+    public async Task HandleAsync_StepDescriptionContainsBlockedWord_ThrowsDomainException()
+    {
+        var steps = new List<CreateTutorialStepRequest> { new(1, "Bad Step", "img.jpg") };
+        var req = new CreateTutorialRequest("Valid Title", "Valid description spanning 20 chars!", 1, "Beginner", "Free", "cover.jpg", steps);
+        var command = new CreateTutorialCommand(Guid.NewGuid(), req);
+
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync(It.IsAny<string>(), default)).ReturnsAsync(false);
+        _mockTutorialRepo.Setup(r => r.GetActiveCategoryAsync(req.CategoryId, default)).ReturnsAsync(new Category());
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync("Bad Step", default)).ReturnsAsync(true);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("description contains a blocked word", ex.Message);
+    }
+
+    [Fact]
+    public async Task HandleAsync_LongTitle_TruncatesSlug()
+    {
+        string longTitle = new string('A', 150); // 150 chars > 110 limit
+        var req = new CreateTutorialRequest(longTitle, "Valid description spanning 20 chars!", 1, "Beginner", "Free", "cover.jpg", null);
+        var command = new CreateTutorialCommand(Guid.NewGuid(), req);
+
+        _mockBlockedWords.Setup(b => b.ContainsBlockedWordAsync(It.IsAny<string>(), default)).ReturnsAsync(false);
+        _mockTutorialRepo.Setup(r => r.GetActiveCategoryAsync(req.CategoryId, default)).ReturnsAsync(new Category());
+        _mockTutorialRepo.Setup(r => r.SlugExistsAsync(It.IsAny<string>(), default)).ReturnsAsync(false);
+
+        var result = await _handler.HandleAsync(command);
+
+        Assert.NotNull(result);
+        Assert.Equal(110, result.Slug.Length);
+        Assert.Equal(new string('a', 110), result.Slug);
+    }
 }

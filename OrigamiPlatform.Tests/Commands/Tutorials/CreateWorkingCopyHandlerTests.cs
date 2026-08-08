@@ -87,4 +87,23 @@ public class CreateWorkingCopyHandlerTests
             t.Slug == "my-tutorial-edit-2" &&
             t.Steps.Count == 1), default), Times.Once);
     }
+
+    [Fact]
+    public async Task HandleAsync_LongOriginalSlug_TruncatesEditSlug()
+    {
+        var command = new CreateWorkingCopyCommand(Guid.NewGuid(), Guid.NewGuid());
+        string longSlug = new string('a', 150); // original slug is 150 chars
+        var tutorial = new Tutorial { Id = command.TutorialId, AuthorId = command.AuthorId, Status = TutorialStatus.Published, Slug = longSlug, Steps = new List<TutorialStep>() };
+        
+        _mockTutorialRepo.Setup(r => r.GetByIdWithStepsAsync(command.TutorialId, default)).ReturnsAsync(tutorial);
+        _mockTutorialRepo.Setup(r => r.GetWorkingCopyByParentIdAsync(command.TutorialId, default)).ReturnsAsync((Tutorial?)null);
+        _mockTutorialRepo.Setup(r => r.SlugExistsAsync(It.IsAny<string>(), default)).ReturnsAsync(false);
+
+        var result = await _handler.HandleAsync(command);
+
+        Assert.NotNull(result);
+        _mockTutorialRepo.Verify(r => r.AddAsync(It.Is<Tutorial>(t => 
+            t.Slug.Length == 120 &&
+            t.Slug == (longSlug + "-edit").Substring(0, 120).TrimEnd('-')), default), Times.Once);
+    }
 }

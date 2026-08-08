@@ -117,4 +117,65 @@ public class SubmitTutorialHandlerTests
             tutorial.Id,
             default), Times.Once);
     }
+
+    [Fact]
+    public async Task HandleAsync_BadSteps_ThrowsDomainException()
+    {
+        var authorId = Guid.NewGuid();
+        var command = new SubmitTutorialCommand(Guid.NewGuid(), authorId);
+        var steps = new List<TutorialStep> 
+        {
+            new() { StepOrder = 1, Description = "Step 1", ImageUrl = "img.jpg" },
+            new() { StepOrder = 2, Description = "", ImageUrl = "img2.jpg" }, // bad
+            new() { StepOrder = 3, Description = "Step 3", ImageUrl = "" }    // bad
+        };
+        var tutorial = new Tutorial
+        {
+            Id = command.TutorialId,
+            AuthorId = authorId,
+            Status = TutorialStatus.Draft,
+            Title = "Valid Title Origami",
+            Description = "This is a valid description that has more than twenty characters.",
+            CoverImageUrl = "http://example.com/cover.jpg",
+            CategoryId = 1,
+            Steps = steps
+        };
+        
+        _mockRepo.Setup(r => r.GetByIdWithStepsAsync(command.TutorialId, default)).ReturnsAsync(tutorial);
+        _mockRepo.Setup(r => r.GetActiveCategoryAsync(1, default)).ReturnsAsync(new Category());
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("Steps 2, 3 are missing description or image.", ex.Message);
+    }
+
+    [Fact]
+    public async Task HandleAsync_VIPWithoutSettings_ThrowsDomainException()
+    {
+        var authorId = Guid.NewGuid();
+        var command = new SubmitTutorialCommand(Guid.NewGuid(), authorId);
+        var tutorial = new Tutorial
+        {
+            Id = command.TutorialId,
+            AuthorId = authorId,
+            Status = TutorialStatus.Draft,
+            Title = "Valid Title Origami",
+            Description = "This is a valid description that has more than twenty characters.",
+            CoverImageUrl = "http://example.com/cover.jpg",
+            CategoryId = 1,
+            Type = TutorialType.VIP,
+            Steps = new List<TutorialStep>
+            {
+                new TutorialStep { StepOrder = 1, Description = "Step 1", ImageUrl = "img1.jpg" },
+                new TutorialStep { StepOrder = 2, Description = "Step 2", ImageUrl = "img2.jpg" },
+                new TutorialStep { StepOrder = 3, Description = "Step 3", ImageUrl = "img3.jpg" }
+            }
+        };
+        
+        _mockRepo.Setup(r => r.GetByIdWithStepsAsync(command.TutorialId, default)).ReturnsAsync(tutorial);
+        _mockRepo.Setup(r => r.GetActiveCategoryAsync(1, default)).ReturnsAsync(new Category());
+        _mockRepo.Setup(r => r.GetActiveCreatorVipSettingsAsync(authorId, default)).ReturnsAsync((CreatorVipSettings?)null);
+
+        var ex = await Assert.ThrowsAsync<DomainException>(() => _handler.HandleAsync(command));
+        Assert.Contains("VIP tutorials require an active VIP pricing tier. BR-13.", ex.Message);
+    }
 }
