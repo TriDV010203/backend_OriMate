@@ -66,7 +66,7 @@ public class GetChallengeSubmissionsHandlerTests
 
         var likeCounts = new Dictionary<Guid, int>
         {
-            { submissions[0].Id, 5 },
+            { submissions.ElementAt(0).Id, 5 },
             { submissions[1].Id, 10 } // More likes, should be first
         };
 
@@ -87,7 +87,7 @@ public class GetChallengeSubmissionsHandlerTests
         result.TotalCount.Should().Be(2);
         result.Items.Should().HaveCount(2);
         result.Items.ElementAt(0).Id.Should().Be(submissions[1].Id); // Has more likes
-        result.Items.ElementAt(1).Id.Should().Be(submissions[0].Id);
+        result.Items.ElementAt(1).Id.Should().Be(submissions.ElementAt(0).Id);
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reflection;
 using Moq;
 using Xunit;
@@ -20,7 +21,7 @@ public class QueriesCoverageTests
             var ctors = handlerType.GetConstructors();
             if (ctors.Length == 0) continue;
             
-            var ctor = ctors[0];
+            var ctor = ctors.ElementAt(0);
             var parameters = ctor.GetParameters();
             var args = new object[parameters.Length];
             
@@ -58,7 +59,7 @@ public class QueriesCoverageTests
             var handleParams = handleMethod.GetParameters();
             if (handleParams.Length == 0) continue;
 
-            var queryType = handleParams[0].ParameterType;
+            var queryType = handleParams.ElementAt(0).ParameterType;
             var queryInstance = CreateDummyInstance(queryType);
             
             var handleArgs = new object[handleParams.Length];

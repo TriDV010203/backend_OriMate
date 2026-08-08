@@ -1,3 +1,4 @@
+using System.Linq;
 using FluentAssertions;
 using Moq;
 using OrigamiPlatform.Application.DTOs.DailyChallenge;
@@ -38,9 +39,9 @@ public class GetChallengeStreakLeaderboardHandlerTests
 
         // Assert
         result.Should().HaveCount(2);
-        result[0].Rank.Should().Be(1);
-        result[0].DisplayName.Should().Be("User 1");
-        result[0].CurrentStreak.Should().Be(5);
+        result.ElementAt(0).Rank.Should().Be(1);
+        result.ElementAt(0).DisplayName.Should().Be("User 1");
+        result.ElementAt(0).CurrentStreak.Should().Be(5);
         result[1].Rank.Should().Be(2);
         result[1].DisplayName.Should().Be("User 2");
     }

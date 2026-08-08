@@ -76,7 +76,7 @@ public class GetChallengeResultHandlerTests
 
         var likeCounts = new Dictionary<Guid, int>
         {
-            { submissions[0].Id, 10 },
+            { submissions.ElementAt(0).Id, 10 },
             { submissions[1].Id, 5 }
         };
 

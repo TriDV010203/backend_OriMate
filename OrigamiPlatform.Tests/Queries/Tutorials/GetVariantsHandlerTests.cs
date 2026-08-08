@@ -1,3 +1,4 @@
+using System.Linq;
 using Moq;
 using Xunit;
 using OrigamiPlatform.Application.Queries.Tutorials;
@@ -45,7 +46,7 @@ public class GetVariantsHandlerTests
 
         Assert.NotNull(result);
         Assert.Single(result);
-        Assert.Equal("Variant 1", result[0].Title);
-        Assert.Equal(1, result[0].DifficultyDelta);
+        Assert.Equal("Variant 1", result.ElementAt(0).Title);
+        Assert.Equal(1, result.ElementAt(0).DifficultyDelta);
     }
 }
