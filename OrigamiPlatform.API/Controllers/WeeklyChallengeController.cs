@@ -63,32 +63,32 @@ public class WeeklyChallengeController : ControllerBase
         return Ok(new { message = "Challenge result calculated and rewards distributed." });
     }
 
-    [Authorize(Roles = "Admin,Manager")]
-    [HttpGet("admin/suggestions")]
-    public async Task<ActionResult<IEnumerable<WeeklyChallengeSuggestionDto>>> GetAdminSuggestions([FromQuery] int count = 5)
-    {
-        return Ok(await _service.GetAdminSuggestionsAsync(count));
-    }
+    // [Authorize(Roles = "Admin,Manager")]
+    // [HttpGet("admin/suggestions")]
+    // public async Task<ActionResult<IEnumerable<WeeklyChallengeSuggestionDto>>> GetAdminSuggestions([FromQuery] int count = 5)
+    // {
+    //     return Ok(await _service.GetAdminSuggestionsAsync(count));
+    // }
 
-    [Authorize(Roles = "Admin,Manager")]
-    [HttpPost("admin/schedule")]
-    public async Task<ActionResult<WeeklyChallengeDto>> ScheduleChallenge([FromBody] ScheduleWeeklyChallengeRequest request)
-    {
-        var adminId = GetCurrentUserId();
-        var result = await _service.ScheduleChallengeAsync(request, adminId);
-        return Created($"/api/weekly-challenges/{result.Id}", result);
-    }
+    // [Authorize(Roles = "Admin,Manager")]
+    // [HttpPost("admin/schedule")]
+    // public async Task<ActionResult<WeeklyChallengeDto>> ScheduleChallenge([FromBody] ScheduleWeeklyChallengeRequest request)
+    // {
+    //     var adminId = GetCurrentUserId();
+    //     var result = await _service.ScheduleChallengeAsync(request, adminId);
+    //     return Created($"/api/weekly-challenges/{result.Id}", result);
+    // }
 
-    [Authorize(Roles = "Admin,Manager")]
-    [HttpGet("admin/calendar")]
-    public async Task<ActionResult<PagedResult<AdminWeeklyChallengeCalendarItemDto>>> GetAdminCalendar(
-        [FromQuery] DateOnly? fromDate,
-        [FromQuery] DateOnly? toDate,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 60)
-    {
-        return Ok(await _service.GetAdminCalendarAsync(fromDate, toDate, page, pageSize));
-    }
+    // [Authorize(Roles = "Admin,Manager")]
+    // [HttpGet("admin/calendar")]
+    // public async Task<ActionResult<PagedResult<AdminWeeklyChallengeCalendarItemDto>>> GetAdminCalendar(
+    //     [FromQuery] DateOnly? fromDate,
+    //     [FromQuery] DateOnly? toDate,
+    //     [FromQuery] int page = 1,
+    //     [FromQuery] int pageSize = 60)
+    // {
+    //     return Ok(await _service.GetAdminCalendarAsync(fromDate, toDate, page, pageSize));
+    // }
 
     [Authorize(Roles = "Admin,Manager")]
     [HttpPost("admin/run-scheduler")]
