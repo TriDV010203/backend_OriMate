@@ -127,7 +127,7 @@ public class ModerationTests : IntegrationTestBase
 
     [Fact]
     // 🔬 Coverage Technique: Error Path (NAC-03)
-    public async Task SubmitReport_WithoutReason_ReturnsBadRequest()
+        public async Task SubmitReport_WithoutReason_ReturnsBadRequest()
     {
         await AuthenticateAsAsync("User");
         var reportRequest = new
