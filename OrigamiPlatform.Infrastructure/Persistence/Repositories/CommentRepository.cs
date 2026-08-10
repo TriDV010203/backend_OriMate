@@ -66,7 +66,16 @@ public class CommentRepository : ICommentRepository
 
     public async Task<int> GetCommentCountAsync(Guid targetId, TargetType targetType, CancellationToken ct = default)
     {
-        return await _context.Comments
-            .CountAsync(c => c.TargetId == targetId && c.TargetType == targetType && !c.IsDeleted, ct);
+        var topLevelIds = await _context.Comments
+            .Where(c => c.TargetId == targetId && c.TargetType == targetType && !c.IsDeleted)
+            .Select(c => c.Id)
+            .ToListAsync(ct);
+
+        if (topLevelIds.Count == 0) return 0;
+
+        var replyCount = await _context.Comments
+            .CountAsync(c => c.TargetType == TargetType.Comment && topLevelIds.Contains(c.TargetId) && !c.IsDeleted, ct);
+
+        return topLevelIds.Count + replyCount;
     }
 }

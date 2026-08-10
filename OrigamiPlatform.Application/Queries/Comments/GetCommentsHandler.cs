@@ -1,5 +1,4 @@
 ﻿using OrigamiPlatform.Application.DTOs.Comments;
-using OrigamiPlatform.Application.DTOs.Common;
 using OrigamiPlatform.Application.Interfaces;
 
 namespace OrigamiPlatform.Application.Queries.Comments;
@@ -11,13 +10,13 @@ public class GetCommentsHandler
     public GetCommentsHandler(ICommentRepository comments)
         => _comments = comments;
 
-    public async Task<PagedResult<CommentDto>> HandleAsync(GetCommentsQuery query, CancellationToken ct = default)
+    public async Task<CommentsPagedResult> HandleAsync(GetCommentsQuery query, CancellationToken ct = default)
     {
         var pagedComments = await _comments.GetCommentsByTargetAsync(query.TargetId, query.TargetType, query.Page, query.PageSize);
 
         if (!pagedComments.Items.Any())
         {
-            return new PagedResult<CommentDto>(new List<CommentDto>(), 0, query.Page, query.PageSize, 0);
+            return new CommentsPagedResult(new List<CommentDto>(), 0, query.Page, query.PageSize, 0, 0);
         }
 
         var parentIds = pagedComments.Items.Select(c => c.Id).ToList();
@@ -40,6 +39,9 @@ public class GetCommentsHandler
                 )).ToList()
         )).ToList();
 
-        return new PagedResult<CommentDto>(dtos, pagedComments.TotalCount, query.Page, query.PageSize, pagedComments.TotalPages);
+        // Đếm tổng số bình luận gốc + trả lời (không chỉ trong trang hiện tại) để hiển thị "Bình luận (N)".
+        var totalCommentCount = await _comments.GetCommentCountAsync(query.TargetId, query.TargetType, ct);
+
+        return new CommentsPagedResult(dtos, pagedComments.TotalCount, query.Page, query.PageSize, pagedComments.TotalPages, totalCommentCount);
     }
 }
