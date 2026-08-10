@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
+using OrigamiPlatform.Domain.Exceptions;
 
 namespace OrigamiPlatform.Infrastructure.Persistence.Repositories;
 
@@ -60,6 +61,9 @@ public class AchievementRepository : IAchievementRepository
     public Task<int> CountByUserAsync(Guid userId, CancellationToken ct = default)
         => _db.Achievements.CountAsync(a => a.UserId == userId, ct);
 
+    public Task<int> CountByTutorialAsync(Guid tutorialId, CancellationToken ct = default)
+        => _db.Achievements.CountAsync(a => a.TutorialId == tutorialId, ct);
+
     public Task<int> CountByUserAndDifficultyAsync(Guid userId, TutorialDifficulty difficulty, CancellationToken ct = default)
         => _db.Achievements.CountAsync(a => a.UserId == userId && a.Tutorial.Difficulty == difficulty, ct);
 
@@ -80,7 +84,17 @@ public class AchievementRepository : IAchievementRepository
     public async Task AddAsync(Achievement achievement, CancellationToken ct = default)
     {
         _db.Achievements.Add(achievement);
-        await _db.SaveChangesAsync(ct);
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            // Concurrent request already created the (UserId, TutorialId) achievement — translate the
+            // unique-index violation into the same domain error the pre-check above would have thrown.
+            _db.Entry(achievement).State = EntityState.Detached;
+            throw new DomainException("You already marked this tutorial as completed.");
+        }
     }
 
     public async Task UpdateAsync(Achievement achievement, CancellationToken ct = default)

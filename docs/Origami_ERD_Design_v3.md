@@ -158,9 +158,16 @@ Tham chiếu: `docs/FT_MAPPING_v5.md` · `docs/MVP_SCOPE.md` · `docs/CLAUDE.md`
 
 ## 3. Learning *(FT-09, FT-10)*
 
-### StepProgress
+### StepProgress (`TutorialStepProgress` trong code — bảng dưới đây đã lệch so với entity thật từ trước, không sửa lại toàn bộ ở đây, chỉ audit 2 cột mới thêm 2026-08-10)
 
-| Field | Type | Constraint | Ghi chú |
+*Entity thật: `Id`, `UserId`, `TutorialId`, `TutorialStepId`, `CompletedAt` (1 dòng / step đã hoàn thành, không phải 1 dòng / tutorial như bảng dưới mô tả — xem `TutorialStepProgress.cs`). 2 cột mới thêm 2026-08-10 để chống farm điểm khi uncomplete → complete lại:*
+
+| Field mới | Type | Constraint | Ghi chú |
+|---|---|---|---|
+| IsDeleted | bit | NOT NULL, default false | Soft-delete — "uncomplete" set true thay vì xoá row, để giữ `HasBeenRewarded` qua vòng uncomplete→complete |
+| HasBeenRewarded | bit | NOT NULL, default false | True sau khi row này từng kích hoạt skill points/Hạt Gấp/streak/quest — set 1 lần, không bao giờ reset, kể cả sau uncomplete→complete lại |
+
+| Field (cũ, có thể lệch code) | Type | Constraint | Ghi chú |
 |---|---|---|---|
 | Id | Guid | PK |  |
 | UserId | Guid | FK → User |  |
@@ -168,6 +175,18 @@ Tham chiếu: `docs/FT_MAPPING_v5.md` · `docs/MVP_SCOPE.md` · `docs/CLAUDE.md`
 | CompletedStepsCount | int | NOT NULL, default 0 |  |
 | Status | enum | NOT NULL | InProgress / Completed / Archived — BR-TUT-04 |
 | UpdatedAt | datetime2 | NOT NULL | Dùng cho Re-engagement 48h & Discovery 1-99% |
+
+### TutorialDifficultyRating *(mới 2026-08-10)*
+
+*Đánh giá độ khó (Dễ/Trung bình/Khó) người học tự chấm cho tutorial, ghi 1 lần duy nhất khi hoàn thành lần đầu (cùng lúc tạo `Achievement`) — khác với `Tutorial.Difficulty` (tác giả gắn lúc soạn bài). Chỉ INSERT, không bao giờ UPDATE.*
+
+| Field | Type | Constraint | Ghi chú |
+|---|---|---|---|
+| Id | Guid | PK |  |
+| UserId | Guid | FK → User (Restrict) |  |
+| TutorialId | Guid | FK → Tutorial (Restrict) | Unique (UserId, TutorialId) |
+| Rating | enum (`PerceivedDifficulty`) | NOT NULL | Easy=1 / Medium=2 / Hard=3 — enum riêng, không tái dùng `TutorialDifficulty` |
+| CreatedAt | datetime2 | NOT NULL |  |
 
 ### StuckThread
 

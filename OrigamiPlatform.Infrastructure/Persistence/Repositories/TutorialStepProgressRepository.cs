@@ -17,28 +17,57 @@ public class TutorialStepProgressRepository : ITutorialStepProgressRepository
             .FirstOrDefaultAsync(s => s.Id == stepId, ct);
 
     public Task<bool> ExistsAsync(Guid userId, Guid stepId, CancellationToken ct = default)
-        => _db.TutorialStepProgresses.AnyAsync(p => p.UserId == userId && p.TutorialStepId == stepId, ct);
+        => _db.TutorialStepProgresses.AnyAsync(
+            p => p.UserId == userId && p.TutorialStepId == stepId && !p.IsDeleted, ct);
 
     public Task<TutorialStepProgress?> GetAsync(Guid userId, Guid stepId, CancellationToken ct = default)
-        => _db.TutorialStepProgresses.FirstOrDefaultAsync(p => p.UserId == userId && p.TutorialStepId == stepId, ct);
+        => _db.TutorialStepProgresses.FirstOrDefaultAsync(
+            p => p.UserId == userId && p.TutorialStepId == stepId && !p.IsDeleted, ct);
+
+    public Task<TutorialStepProgress?> GetIncludingDeletedAsync(Guid userId, Guid stepId, CancellationToken ct = default)
+        => _db.TutorialStepProgresses.FirstOrDefaultAsync(
+            p => p.UserId == userId && p.TutorialStepId == stepId, ct);
 
     public async Task AddAsync(TutorialStepProgress progress, CancellationToken ct = default)
     {
         _db.TutorialStepProgresses.Add(progress);
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            // Concurrent request already inserted the same (UserId, TutorialStepId) row —
+            // the unique index protects it; treat this loser attempt as a no-op.
+            _db.Entry(progress).State = EntityState.Detached;
+        }
+    }
+
+    public async Task UpdateAsync(TutorialStepProgress progress, CancellationToken ct = default)
+    {
+        _db.TutorialStepProgresses.Update(progress);
         await _db.SaveChangesAsync(ct);
     }
 
     public async Task RemoveAsync(TutorialStepProgress progress, CancellationToken ct = default)
     {
-        _db.TutorialStepProgresses.Remove(progress);
+        progress.IsDeleted = true;
+        _db.TutorialStepProgresses.Update(progress);
         await _db.SaveChangesAsync(ct);
     }
 
     public async Task<IReadOnlyList<Guid>> GetCompletedStepIdsAsync(
         Guid userId, Guid tutorialId, CancellationToken ct = default)
         => await _db.TutorialStepProgresses
-            .Where(p => p.UserId == userId && p.TutorialId == tutorialId)
+            .Where(p => p.UserId == userId && p.TutorialId == tutorialId && !p.IsDeleted)
             .Select(p => p.TutorialStepId)
+            .ToListAsync(ct);
+
+    public async Task<IReadOnlyList<Guid>> GetOrderedStepIdsAsync(Guid tutorialId, CancellationToken ct = default)
+        => await _db.TutorialSteps
+            .Where(s => s.TutorialId == tutorialId)
+            .OrderBy(s => s.StepOrder)
+            .Select(s => s.Id)
             .ToListAsync(ct);
 
     public Task<int> CountStepsAsync(Guid tutorialId, CancellationToken ct = default)

@@ -49,6 +49,7 @@ using OrigamiPlatform.Application.Queries.WeeklyChallenge;
 using OrigamiPlatform.Application.Queries.Wishlists;
 using OrigamiPlatform.Infrastructure.BackgroundJobs;
 using OrigamiPlatform.Infrastructure.Options;
+using OrigamiPlatform.Infrastructure.Persistence;
 using OrigamiPlatform.Infrastructure.Persistence.Repositories;
 using OrigamiPlatform.Infrastructure.Services;
 
@@ -79,6 +80,8 @@ public static class DependencyInjection
         services.AddScoped<IFollowRepository, FollowRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<ITutorialStepProgressRepository, TutorialStepProgressRepository>();
+        services.AddScoped<ITutorialDifficultyRatingRepository, TutorialDifficultyRatingRepository>();
+        services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddScoped<IStuckThreadRepository, StuckThreadRepository>();
         services.AddScoped<IShopLinkRepository, ShopLinkRepository>();
         services.AddScoped<IPersonalMilestoneRepository, PersonalMilestoneRepository>();
@@ -227,6 +230,7 @@ public static class DependencyInjection
         // Handlers — Tutorial step progress (per user)
         services.AddScoped<CompleteTutorialStepHandler>();
         services.AddScoped<UncompleteTutorialStepHandler>();
+        services.AddScoped<CompleteTutorialHandler>();
         services.AddScoped<GetTutorialProgressHandler>();
         services.AddScoped<RaiseStuckFlagHandler>();
 

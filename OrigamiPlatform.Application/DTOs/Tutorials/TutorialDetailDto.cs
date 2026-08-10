@@ -22,5 +22,12 @@ public record TutorialDetailDto(
     string? MetaDescription = null,
     string? Tags = null,
     string? Model3DUrl = null,
-    string? Model3DPosterUrl = null
+    string? Model3DPosterUrl = null,
+    TutorialRatingSummaryDto? RatingSummary = null,
+    bool HasAchievement = false,
+    bool HasRated = false,
+    int CompletedStepCount = 0,
+    int TotalStepCount = 0,
+    int ProgressPercent = 0,
+    int CompletedCount = 0
 );

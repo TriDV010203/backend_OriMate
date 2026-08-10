@@ -51,34 +51,59 @@ public class CompleteTutorialStepHandler
         if (step.Tutorial.Status != TutorialStatus.Published || step.Tutorial.IsDeleted)
             throw new DomainException("You can only track progress on a published tutorial.");
 
-        // Each user can complete a step only once.
+        // Still actively completed (not merely uncompleted-then-untouched) -> reject, same as before.
         if (await _progress.ExistsAsync(command.UserId, command.StepId, ct))
             throw new DomainException("You have already completed this step.");
 
-        await _progress.AddAsync(new TutorialStepProgress
+        // A soft-deleted row from a prior uncomplete carries HasBeenRewarded forward — reactivate it
+        // instead of inserting fresh, so an uncomplete->complete cycle can't re-earn rewards.
+        var record = await _progress.GetIncludingDeletedAsync(command.UserId, command.StepId, ct);
+        if (record is not null)
         {
-            Id = Guid.NewGuid(),
-            UserId = command.UserId,
-            TutorialId = step.TutorialId,
-            TutorialStepId = command.StepId,
-            CompletedAt = DateTime.UtcNow
-        }, ct);
-
-        var total = await _progress.CountStepsAsync(command.TutorialId, ct);
-        var completedIds = await _progress.GetCompletedStepIdsAsync(command.UserId, command.TutorialId, ct);
-
-        if (total > 0 && completedIds.Count >= total)
+            record.IsDeleted = false;
+            record.CompletedAt = DateTime.UtcNow;
+            await _progress.UpdateAsync(record, ct);
+        }
+        else
         {
-            await AwardSkillPointsAsync(command.UserId, step.Tutorial.Difficulty, ct);
-            await AwardTutorialCompletionHatGapAsync(command.UserId, step.Tutorial.Difficulty, ct);
+            record = new TutorialStepProgress
+            {
+                Id = Guid.NewGuid(),
+                UserId = command.UserId,
+                TutorialId = step.TutorialId,
+                TutorialStepId = command.StepId,
+                CompletedAt = DateTime.UtcNow
+            };
+            await _progress.AddAsync(record, ct);
+
+            // Race guard: a concurrent request may have won the insert (AddAsync no-ops on the unique-index
+            // conflict instead of throwing) — read back the authoritative row so HasBeenRewarded reflects it.
+            record = await _progress.GetAsync(command.UserId, command.StepId, ct) ?? record;
         }
 
-        // FT-26 / FT-27: streak and daily quest only track tutorial-step completions
-        // (not comments/posts) — fired on every step, independent of full-tutorial completion above.
-        await UpdateStreakAsync(command.UserId, ct);
-        await UpdateQuestProgressAsync(command.UserId, ct);
+        if (!record.HasBeenRewarded)
+        {
+            record.HasBeenRewarded = true;
+            await _progress.UpdateAsync(record, ct);
 
-        return TutorialProgressFactory.Create(command.TutorialId, total, completedIds);
+            var total = await _progress.CountStepsAsync(command.TutorialId, ct);
+            var completedIdsForReward = await _progress.GetCompletedStepIdsAsync(command.UserId, command.TutorialId, ct);
+
+            if (total > 0 && completedIdsForReward.Count >= total)
+            {
+                await AwardSkillPointsAsync(command.UserId, step.Tutorial.Difficulty, ct);
+                await AwardTutorialCompletionHatGapAsync(command.UserId, step.Tutorial.Difficulty, ct);
+            }
+
+            // FT-26 / FT-27: streak and daily quest only track tutorial-step completions
+            // (not comments/posts) — fired on every step, independent of full-tutorial completion above.
+            await UpdateStreakAsync(command.UserId, ct);
+            await UpdateQuestProgressAsync(command.UserId, ct);
+        }
+
+        var finalTotal = await _progress.CountStepsAsync(command.TutorialId, ct);
+        var finalCompletedIds = await _progress.GetCompletedStepIdsAsync(command.UserId, command.TutorialId, ct);
+        return TutorialProgressFactory.Create(command.TutorialId, finalTotal, finalCompletedIds);
     }
 
     // FT-25: tutorial just completed for the first time (steps can only be completed once each,

@@ -36,6 +36,7 @@ public class AppDbContext : DbContext
     public DbSet<Achievement> Achievements => Set<Achievement>();
     public DbSet<Journal> Journals => Set<Journal>();
     public DbSet<TutorialStepProgress> TutorialStepProgresses => Set<TutorialStepProgress>();
+    public DbSet<TutorialDifficultyRating> TutorialDifficultyRatings => Set<TutorialDifficultyRating>();
     public DbSet<StuckThread> StuckThreads => Set<StuckThread>();
     public DbSet<PersonalMilestone> PersonalMilestones => Set<PersonalMilestone>();
 

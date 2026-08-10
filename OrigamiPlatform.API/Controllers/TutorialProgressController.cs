@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrigamiPlatform.Application.Commands.TutorialProgress;
+using OrigamiPlatform.Application.DTOs.TutorialProgress;
 using OrigamiPlatform.Application.Queries.TutorialProgress;
 using OrigamiPlatform.Domain.Exceptions;
 
@@ -15,15 +16,18 @@ public class TutorialProgressController : ControllerBase
 {
     private readonly CompleteTutorialStepHandler _complete;
     private readonly UncompleteTutorialStepHandler _uncomplete;
+    private readonly CompleteTutorialHandler _completeTutorial;
     private readonly GetTutorialProgressHandler _getProgress;
     private readonly RaiseStuckFlagHandler _raiseStuck;
 
     public TutorialProgressController(
         CompleteTutorialStepHandler complete,
         UncompleteTutorialStepHandler uncomplete,
+        CompleteTutorialHandler completeTutorial,
         GetTutorialProgressHandler getProgress,
         RaiseStuckFlagHandler raiseStuck)
-        => (_complete, _uncomplete, _getProgress, _raiseStuck) = (complete, uncomplete, getProgress, raiseStuck);
+        => (_complete, _uncomplete, _completeTutorial, _getProgress, _raiseStuck)
+            = (complete, uncomplete, completeTutorial, getProgress, raiseStuck);
 
     [HttpPost("{tutorialId:guid}/steps/{stepId:guid}/complete")]
     public async Task<IActionResult> CompleteStep(Guid tutorialId, Guid stepId, CancellationToken ct)
@@ -38,6 +42,17 @@ public class TutorialProgressController : ControllerBase
     {
         var result = await _uncomplete.HandleAsync(
             new UncompleteTutorialStepCommand(GetCurrentUserId(), tutorialId, stepId), ct);
+        return Ok(result);
+    }
+
+    [HttpPost("{tutorialId:guid}/complete")]
+    public async Task<IActionResult> CompleteTutorial(
+        Guid tutorialId, CompleteTutorialRequest request, CancellationToken ct)
+    {
+        var result = await _completeTutorial.HandleAsync(
+            new CompleteTutorialCommand(
+                GetCurrentUserId(), tutorialId, request.PerceivedDifficulty, request.PhotoUrl, request.Note, request.IsPublic),
+            ct);
         return Ok(result);
     }
 

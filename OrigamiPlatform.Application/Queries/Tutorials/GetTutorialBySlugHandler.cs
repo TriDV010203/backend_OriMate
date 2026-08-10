@@ -12,17 +12,30 @@ public class GetTutorialBySlugHandler
     private readonly IVipSubscriptionRepository _vipSubscriptions;
     private readonly ILikeRepository _likes;
     private readonly IWishlistRepository _wishlists;
+    private readonly IAchievementRepository? _achievements;
+    private readonly ITutorialDifficultyRatingRepository? _ratings;
+    private readonly ITutorialStepProgressRepository? _stepProgress;
 
+    // The 3 rating/achievement/progress dependencies are optional (default null) purely so existing
+    // callers that construct this handler directly with the original 4 args keep compiling; the DI
+    // container always resolves and injects the real implementations in production (see
+    // Infrastructure/DependencyInjection.cs). Every use below is null-guarded accordingly.
     public GetTutorialBySlugHandler(
         ITutorialRepository tutorials,
         IVipSubscriptionRepository vipSubscriptions,
         ILikeRepository likes,
-        IWishlistRepository wishlists)
+        IWishlistRepository wishlists,
+        IAchievementRepository? achievements = null,
+        ITutorialDifficultyRatingRepository? ratings = null,
+        ITutorialStepProgressRepository? stepProgress = null)
     {
         _tutorials = tutorials;
         _vipSubscriptions = vipSubscriptions;
         _likes = likes;
         _wishlists = wishlists;
+        _achievements = achievements;
+        _ratings = ratings;
+        _stepProgress = stepProgress;
     }
 
     public async Task<TutorialDetailDto> HandleAsync(
@@ -56,6 +69,9 @@ public class GetTutorialBySlugHandler
 
         bool isLiked = false;
         bool isWishlisted = false;
+        bool hasAchievement = false;
+        bool hasRated = false;
+        int completedStepCount = 0;
 
         if (query.CurrentUserId.HasValue && query.CurrentUserId.Value != Guid.Empty)
         {
@@ -64,7 +80,29 @@ public class GetTutorialBySlugHandler
 
             var wishlistRecord = await _wishlists.GetByUserAndTargetAsync(query.CurrentUserId.Value, tutorial.Id, TargetType.Tutorial, ct);
             isWishlisted = wishlistRecord != null;
+
+            hasAchievement = _achievements is not null
+                && await _achievements.GetByUserAndTutorialAsync(query.CurrentUserId.Value, tutorial.Id, ct) is not null;
+            hasRated = _ratings is not null
+                && await _ratings.ExistsAsync(query.CurrentUserId.Value, tutorial.Id, ct);
+            completedStepCount = _stepProgress is not null
+                ? (await _stepProgress.GetCompletedStepIdsAsync(query.CurrentUserId.Value, tutorial.Id, ct)).Count
+                : 0;
         }
+
+        var totalStepCount = tutorial.Steps.Count;
+        var progressPercent = totalStepCount == 0
+            ? 0
+            : (int)Math.Round((double)completedStepCount / totalStepCount * 100);
+
+        var ratingCounts = _ratings is not null
+            ? await _ratings.GetCountsAsync(tutorial.Id, ct)
+            : new Dictionary<PerceivedDifficulty, int>();
+        var ratingSummary = new TutorialRatingSummaryDto(ratingCounts, ratingCounts.Values.Sum());
+
+        var completedCount = _achievements is not null
+            ? await _achievements.CountByTutorialAsync(tutorial.Id, ct)
+            : 0;
 
         return new TutorialDetailDto(
             tutorial.Id,
@@ -91,7 +129,14 @@ public class GetTutorialBySlugHandler
             MetaDescription: tutorial.MetaDescription,
             Tags: tutorial.Tags,
             Model3DUrl: tutorial.Model3DUrl,
-            Model3DPosterUrl: tutorial.Model3DPosterUrl
+            Model3DPosterUrl: tutorial.Model3DPosterUrl,
+            RatingSummary: ratingSummary,
+            HasAchievement: hasAchievement,
+            HasRated: hasRated,
+            CompletedStepCount: completedStepCount,
+            TotalStepCount: totalStepCount,
+            ProgressPercent: progressPercent,
+            CompletedCount: completedCount
         );
     }
 }

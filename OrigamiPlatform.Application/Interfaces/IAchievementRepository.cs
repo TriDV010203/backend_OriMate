@@ -23,6 +23,9 @@ public interface IAchievementRepository
 
     Task<int> CountByUserAsync(Guid userId, CancellationToken ct = default);
 
+    /// <summary>Number of distinct completions (Achievement rows) recorded for a tutorial — shown publicly on the tutorial detail page.</summary>
+    Task<int> CountByTutorialAsync(Guid tutorialId, CancellationToken ct = default);
+
     /// <summary>Used by FT-35 badge thresholds that only count completions of a given difficulty (e.g. "10 bài Khó").</summary>
     Task<int> CountByUserAndDifficultyAsync(Guid userId, TutorialDifficulty difficulty, CancellationToken ct = default);
 
