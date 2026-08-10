@@ -9,7 +9,6 @@ using OrigamiPlatform.Application.Commands.CommunityPosts;
 using OrigamiPlatform.Application.Commands.DailyChallenge;
 using OrigamiPlatform.Application.Commands.Follows;
 using OrigamiPlatform.Application.Commands.Gamification;
-using OrigamiPlatform.Application.Commands.Journals;
 using OrigamiPlatform.Application.Commands.LearningPaths;
 using OrigamiPlatform.Application.Commands.LearningPathModes;
 using OrigamiPlatform.Application.Commands.Likes;
@@ -34,7 +33,6 @@ using OrigamiPlatform.Application.Queries.Comments;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
 using OrigamiPlatform.Application.Queries.DailyChallenge;
 using OrigamiPlatform.Application.Queries.Gamification;
-using OrigamiPlatform.Application.Queries.Journals;
 using OrigamiPlatform.Application.Queries.LearningPaths;
 using OrigamiPlatform.Application.Queries.LearningPathModes;
 using OrigamiPlatform.Application.Queries.Notifications;
@@ -67,7 +65,6 @@ public static class DependencyInjection
         services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<ISePayWebhookLogRepository, SePayWebhookLogRepository>();
         services.AddScoped<IAchievementRepository, AchievementRepository>();
-        services.AddScoped<IJournalRepository, JournalRepository>();
 
         services.AddScoped<ICommunityPostRepository, CommunityPostRepository>();
         services.AddScoped<ILikeRepository, LikeRepository>();
@@ -200,10 +197,6 @@ public static class DependencyInjection
         services.AddScoped<DeleteAchievementHandler>();
         services.AddScoped<GetUserAchievementsHandler>();
         services.AddScoped<GetMyMilestonesHandler>();
-        services.AddScoped<CreateJournalHandler>();
-        services.AddScoped<UpdateJournalHandler>();
-        services.AddScoped<DeleteJournalHandler>();
-        services.AddScoped<GetUserJournalsHandler>();
         services.AddScoped<AddCommentHandler>();
         services.AddScoped<DeleteCommentHandler>();
         services.AddScoped<GetCommentsHandler>();
