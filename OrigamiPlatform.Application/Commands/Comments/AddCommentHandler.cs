@@ -73,10 +73,11 @@ public class AddCommentHandler
 
         if (targetAuthorId.HasValue && targetAuthorId.Value != cmd.UserId)
         {
+            // Lấy tên người bình luận nếu cần, hoặc đưa trực tiếp nội dung vào message
             await _notifications.NotifyUserAsync(
                 userId: targetAuthorId.Value,
-                type: NotificationType.NewComment, // (Có thể đổi thành NewComment theo Nhóm 2 sau)
-                message: "Bài viết của bạn có bình luận mới.",
+                type: NotificationType.NewComment,
+                message: $"đã bình luận: \"{cmd.Content}\"", // Hiển thị thẳng nội dung comment lên thông báo
                 entityType: cmd.TargetType.ToString(),
                 entityId: cmd.TargetId,
                 ct: ct

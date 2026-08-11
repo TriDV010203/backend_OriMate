@@ -10,6 +10,7 @@ public enum NotificationType
 
     NewComment,
     NewFollower,
+    NewLike,
 
     // FT-04 Tutorial review workflow
     NewTutorialPendingReview,
