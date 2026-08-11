@@ -64,39 +64,33 @@ public class CloseDailyChallengeResultHandler
     }
 
     private async Task RewardRankAsync(
-        OrigamiPlatform.Domain.Entities.DailyChallenge challenge, DailyChallengeSubmission submission, int rank, CancellationToken ct)
+            OrigamiPlatform.Domain.Entities.DailyChallenge challenge, DailyChallengeSubmission submission, int rank, CancellationToken ct)
     {
-        try
+        // Đã bỏ try-catch
+        var reward = HatGapEconomy.ChallengeRankReward[rank];
+        await _hatGap.AwardAsync(submission.UserId, reward, HatGapTransactionType.Earn, $"DailyChallengeRank{rank}", ct);
+
+        await _notifications.NotifyUserAsync(
+            userId: submission.UserId,
+            type: NotificationType.DailyChallengeResult,
+            message: $"Chúc mừng! Bài nộp của bạn xếp hạng {rank} Thử thách ngày {challenge.ChallengeDate:dd/MM/yyyy}. +{reward} Hạt Gấp 🏆",
+            entityType: nameof(DailyChallengeSubmission),
+            entityId: submission.Id,
+            ct: ct);
+
+        if (rank == 1)
         {
-            var reward = HatGapEconomy.ChallengeRankReward[rank];
-            await _hatGap.AwardAsync(submission.UserId, reward, HatGapTransactionType.Earn, $"DailyChallengeRank{rank}", ct);
+            await _badges.TryAwardAsync(submission.UserId, "CHALLENGE_RANK1_FIRST", contextRefId: challenge.Id, ct: ct);
 
-            await _notifications.NotifyUserAsync(
-                userId: submission.UserId,
-                type: NotificationType.DailyChallengeResult,
-                message: $"Chúc mừng! Bài nộp của bạn xếp hạng {rank} Thử thách ngày {challenge.ChallengeDate:dd/MM/yyyy}. +{reward} Hạt Gấp 🏆",
-                entityType: nameof(DailyChallengeSubmission),
-                entityId: submission.Id,
-                ct: ct);
-
-            if (rank == 1)
-            {
-                await _badges.TryAwardAsync(submission.UserId, "CHALLENGE_RANK1_FIRST", contextRefId: challenge.Id, ct: ct);
-
-                var streak = await _challengeStreaks.GetByUserIdAsync(submission.UserId, ct);
-                streak.FreezeCount++;
-                await _challengeStreaks.UpdateAsync(streak, ct);
-            }
-
-            await _badges.TryAwardAsync(submission.UserId, "CHALLENGE_TOP3_FIRST", contextRefId: challenge.Id, ct: ct);
-
-            var top3Count = await _submissions.CountByUserWithMaxRankAsync(submission.UserId, 3, ct);
-            if (top3Count >= 5)
-                await _badges.TryAwardAsync(submission.UserId, "CHALLENGE_TOP3_5X", contextRefId: challenge.Id, ct: ct);
+            var streak = await _challengeStreaks.GetByUserIdAsync(submission.UserId, ct);
+            streak.FreezeCount++;
+            await _challengeStreaks.UpdateAsync(streak, ct);
         }
-        catch
-        {
-            // rank reward failure for one user must not block closing the challenge or rewarding others
-        }
+
+        await _badges.TryAwardAsync(submission.UserId, "CHALLENGE_TOP3_FIRST", contextRefId: challenge.Id, ct: ct);
+
+        var top3Count = await _submissions.CountByUserWithMaxRankAsync(submission.UserId, 3, ct);
+        if (top3Count >= 5)
+            await _badges.TryAwardAsync(submission.UserId, "CHALLENGE_TOP3_5X", contextRefId: challenge.Id, ct: ct);
     }
 }

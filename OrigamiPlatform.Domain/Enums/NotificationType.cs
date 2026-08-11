@@ -8,6 +8,9 @@ public enum NotificationType
     TutorialStatusChanged,
     System,
 
+    NewComment,
+    NewFollower,
+
     // FT-04 Tutorial review workflow
     NewTutorialPendingReview,
     TutorialReadyForManagerApproval,

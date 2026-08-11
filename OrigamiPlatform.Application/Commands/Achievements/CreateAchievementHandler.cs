@@ -77,47 +77,41 @@ public class CreateAchievementHandler
 
     private async Task UnlockMilestonesAsync(Guid userId, CancellationToken ct)
     {
-        try
-        {
-            var totalCount = await _achievements.CountByUserAsync(userId, ct);
+        // Đã bỏ try-catch
+        var totalCount = await _achievements.CountByUserAsync(userId, ct);
 
-            foreach (var threshold in MilestoneThresholds.Values)
+        foreach (var threshold in MilestoneThresholds.Values)
+        {
+            if (totalCount < threshold)
+                continue;
+
+            if (await _milestones.ExistsAsync(userId, threshold, ct))
+                continue;
+
+            var milestone = new PersonalMilestone
             {
-                if (totalCount < threshold)
-                    continue;
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                Threshold = threshold,
+                UnlockedAt = DateTime.UtcNow
+            };
 
-                if (await _milestones.ExistsAsync(userId, threshold, ct))
-                    continue;
+            await _milestones.AddAsync(milestone, ct);
 
-                var milestone = new PersonalMilestone
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = userId,
-                    Threshold = threshold,
-                    UnlockedAt = DateTime.UtcNow
-                };
+            var reward = HatGapEconomy.PersonalMilestoneReward[threshold];
+            await _hatGap.AwardAsync(userId, reward, HatGapTransactionType.Earn, $"PersonalMilestone{threshold}", ct);
 
-                await _milestones.AddAsync(milestone, ct);
+            await _notifications.NotifyUserAsync(
+                userId: userId,
+                type: NotificationType.MilestoneUnlocked,
+                message: $"Bạn đã mở khoá huy hiệu {threshold} thành tựu! +{reward} Hạt Gấp & 1 Mẫu giấy đặc biệt 🎁",
+                entityType: nameof(PersonalMilestone),
+                entityId: milestone.Id,
+                ct: ct
+            );
 
-                var reward = HatGapEconomy.PersonalMilestoneReward[threshold];
-                await _hatGap.AwardAsync(userId, reward, HatGapTransactionType.Earn, $"PersonalMilestone{threshold}", ct);
-
-                await _notifications.NotifyUserAsync(
-                    userId: userId,
-                    type: NotificationType.MilestoneUnlocked,
-                    message: $"Bạn đã mở khoá huy hiệu {threshold} thành tựu! +{reward} Hạt Gấp & 1 Mẫu giấy đặc biệt 🎁",
-                    entityType: nameof(PersonalMilestone),
-                    entityId: milestone.Id,
-                    ct: ct
-                );
-
-                // FT-35: badge catalog mirrors the same 10/30/50/100 thresholds
-                await _badges.TryAwardAsync(userId, $"TUTORIAL_COUNT_{threshold}", ct: ct);
-            }
-        }
-        catch
-        {
-            // milestone unlock failure must not affect the main achievement creation flow
+            // FT-35: badge catalog mirrors the same 10/30/50/100 thresholds
+            await _badges.TryAwardAsync(userId, $"TUTORIAL_COUNT_{threshold}", ct: ct);
         }
     }
 
@@ -142,44 +136,38 @@ public class CreateAchievementHandler
     // Awards a one-time Hạt Gấp bonus the moment a user finishes every tutorial in a published Learning Path.
     private async Task AwardLearningPathCompletionAsync(Guid userId, Guid tutorialId, CancellationToken ct)
     {
-        try
+        // Đã bỏ try-catch
+        var path = await _learningPaths.GetPublishedPathContainingTutorialAsync(tutorialId, ct);
+        if (path is null)
+            return;
+
+        if (await _pathCompletions.ExistsAsync(userId, path.Id, ct))
+            return;
+
+        var completedTutorialIds = await _achievements.GetCompletedTutorialIdsAsync(userId, ct);
+        var pathTutorialIds = path.Items.Select(i => i.TutorialId);
+        if (!pathTutorialIds.All(completedTutorialIds.Contains))
+            return;
+
+        await _pathCompletions.AddAsync(new LearningPathCompletion
         {
-            var path = await _learningPaths.GetPublishedPathContainingTutorialAsync(tutorialId, ct);
-            if (path is null)
-                return;
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            LearningPathId = path.Id,
+            CompletedAt = DateTime.UtcNow
+        }, ct);
 
-            if (await _pathCompletions.ExistsAsync(userId, path.Id, ct))
-                return;
+        await _hatGap.AwardAsync(
+            userId, HatGapEconomy.LearningPathCompletionReward, HatGapTransactionType.Earn, $"LearningPathComplete_{path.Id}", ct);
 
-            var completedTutorialIds = await _achievements.GetCompletedTutorialIdsAsync(userId, ct);
-            var pathTutorialIds = path.Items.Select(i => i.TutorialId);
-            if (!pathTutorialIds.All(completedTutorialIds.Contains))
-                return;
-
-            await _pathCompletions.AddAsync(new LearningPathCompletion
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                LearningPathId = path.Id,
-                CompletedAt = DateTime.UtcNow
-            }, ct);
-
-            await _hatGap.AwardAsync(
-                userId, HatGapEconomy.LearningPathCompletionReward, HatGapTransactionType.Earn, $"LearningPathComplete_{path.Id}", ct);
-
-            await _notifications.NotifyUserAsync(
-                userId: userId,
-                type: NotificationType.LearningPathCompleted,
-                message: $"Bạn đã hoàn thành lộ trình \"{path.Title}\"! +{HatGapEconomy.LearningPathCompletionReward} Hạt Gấp 🎉",
-                entityType: nameof(LearningPath),
-                entityId: path.Id,
-                ct: ct
-            );
-        }
-        catch
-        {
-            // learning-path completion reward failure must not affect the main achievement creation flow
-        }
+        await _notifications.NotifyUserAsync(
+            userId: userId,
+            type: NotificationType.LearningPathCompleted,
+            message: $"Bạn đã hoàn thành lộ trình \"{path.Title}\"! +{HatGapEconomy.LearningPathCompletionReward} Hạt Gấp 🎉",
+            entityType: nameof(LearningPath),
+            entityId: path.Id,
+            ct: ct
+        );
     }
 
     private static void Validate(string? photoUrl, string? note)

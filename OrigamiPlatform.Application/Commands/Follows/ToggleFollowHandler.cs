@@ -43,7 +43,7 @@ public class ToggleFollowHandler
             // Notifications
             await _notifications.NotifyUserAsync(
                 userId: cmd.FollowingId,
-                type: NotificationType.System,
+                type: NotificationType.NewFollower,
                 message: "Bạn có người theo dõi mới.",
                 entityType: "User",
                 entityId: cmd.FollowerId,

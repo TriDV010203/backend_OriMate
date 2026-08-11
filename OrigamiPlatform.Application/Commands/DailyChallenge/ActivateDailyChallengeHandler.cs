@@ -69,30 +69,24 @@ public class ActivateDailyChallengeHandler
 
     private async Task NotifyAndRewardAuthorAsync(Guid challengeId, Tutorial tutorial, CancellationToken ct)
     {
-        try
-        {
-            await _hatGap.AwardAsync(
-                tutorial.AuthorId, HatGapEconomy.DailyChallengeAuthorSelectedReward, HatGapTransactionType.Earn,
-                "DailyChallengeAuthorSelected", ct);
+        // Đã bỏ try-catch
+        await _hatGap.AwardAsync(
+            tutorial.AuthorId, HatGapEconomy.DailyChallengeAuthorSelectedReward, HatGapTransactionType.Earn,
+            "DailyChallengeAuthorSelected", ct);
 
-            await _notifications.NotifyUserAsync(
-                userId: tutorial.AuthorId,
-                type: NotificationType.TutorialSelectedAsChallenge,
-                message: $"Hướng dẫn \"{tutorial.Title}\" của bạn đã trở thành Thử thách ngày hôm nay! +{HatGapEconomy.DailyChallengeAuthorSelectedReward} Hạt Gấp 🎉",
-                entityType: nameof(OrigamiPlatform.Domain.Entities.DailyChallenge),
-                entityId: challengeId,
-                ct: ct);
+        await _notifications.NotifyUserAsync(
+            userId: tutorial.AuthorId,
+            type: NotificationType.TutorialSelectedAsChallenge,
+            message: $"Hướng dẫn \"{tutorial.Title}\" của bạn đã trở thành Thử thách ngày hôm nay! +{HatGapEconomy.DailyChallengeAuthorSelectedReward} Hạt Gấp 🎉",
+            entityType: nameof(OrigamiPlatform.Domain.Entities.DailyChallenge),
+            entityId: challengeId,
+            ct: ct);
 
-            await _badges.TryAwardAsync(tutorial.AuthorId, "CHALLENGE_AUTHOR_SELECTED", contextRefId: challengeId, ct: ct);
+        await _badges.TryAwardAsync(tutorial.AuthorId, "CHALLENGE_AUTHOR_SELECTED", contextRefId: challengeId, ct: ct);
 
-            var authorSelectedCount = await _challenges.CountByTutorialAuthorAsync(tutorial.AuthorId, ct);
-            if (authorSelectedCount >= 5)
-                await _badges.TryAwardAsync(tutorial.AuthorId, "CHALLENGE_AUTHOR_5X", contextRefId: challengeId, ct: ct);
-        }
-        catch
-        {
-            // author reward/notify failure must not block challenge activation
-        }
+        var authorSelectedCount = await _challenges.CountByTutorialAuthorAsync(tutorial.AuthorId, ct);
+        if (authorSelectedCount >= 5)
+            await _badges.TryAwardAsync(tutorial.AuthorId, "CHALLENGE_AUTHOR_5X", contextRefId: challengeId, ct: ct);
     }
 
     // BR-34 fallback chain: relax difficulty filter, then relax the 30-day "recently used"

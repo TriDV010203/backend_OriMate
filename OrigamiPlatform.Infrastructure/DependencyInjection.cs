@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using OrigamiPlatform.Application.Commands.Achievements;
 using OrigamiPlatform.Application.Commands.AdminConfiguration;
 using OrigamiPlatform.Application.Commands.Auth;
@@ -9,8 +10,8 @@ using OrigamiPlatform.Application.Commands.CommunityPosts;
 using OrigamiPlatform.Application.Commands.DailyChallenge;
 using OrigamiPlatform.Application.Commands.Follows;
 using OrigamiPlatform.Application.Commands.Gamification;
-using OrigamiPlatform.Application.Commands.LearningPaths;
 using OrigamiPlatform.Application.Commands.LearningPathModes;
+using OrigamiPlatform.Application.Commands.LearningPaths;
 using OrigamiPlatform.Application.Commands.Likes;
 using OrigamiPlatform.Application.Commands.Moderation;
 using OrigamiPlatform.Application.Commands.Notifications;
@@ -33,8 +34,8 @@ using OrigamiPlatform.Application.Queries.Comments;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
 using OrigamiPlatform.Application.Queries.DailyChallenge;
 using OrigamiPlatform.Application.Queries.Gamification;
-using OrigamiPlatform.Application.Queries.LearningPaths;
 using OrigamiPlatform.Application.Queries.LearningPathModes;
+using OrigamiPlatform.Application.Queries.LearningPaths;
 using OrigamiPlatform.Application.Queries.Notifications;
 using OrigamiPlatform.Application.Queries.Reports;
 using OrigamiPlatform.Application.Queries.Shop;
@@ -110,7 +111,17 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<IBlockedWordService, BlockedWordService>();
         services.AddScoped<IEmailService, EmailService>();
-        services.AddScoped<INotificationService, NotificationService>();
+        // 1. Đăng ký service gốc (không dùng interface để tránh đụng độ)
+        services.AddScoped<NotificationService>();
+
+        // 2. Đăng ký interface trỏ về Wrapper, và truyền service gốc vào Wrapper
+        services.AddScoped<NotificationService>();
+        services.AddScoped<INotificationService>(provider =>
+        {
+            var originalService = provider.GetRequiredService<NotificationService>();
+            // Không cần resolve ILogger nữa
+            return new SafeNotificationService(originalService);
+        });
         services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
         services.AddScoped<HatGapAwardService>();
         services.AddScoped<BadgeAwardService>();
