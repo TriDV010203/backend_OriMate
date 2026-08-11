@@ -196,24 +196,19 @@ public class CompleteTutorialStepHandler
         if (!HatGapEconomy.StreakMilestoneReward.TryGetValue(currentStreak, out var reward))
             return;
 
-        try
-        {
-            await _hatGap.AwardAsync(userId, reward, HatGapTransactionType.Earn, $"StreakMilestone{currentStreak}", ct);
-            await _notifications.NotifyUserAsync(
-                userId: userId,
-                type: NotificationType.StreakMilestoneReached,
-                message: $"Chuỗi {currentStreak} ngày liên tiếp! Bạn nhận được +{reward} Hạt Gấp 🔥",
-                entityType: nameof(StreakLog),
-                entityId: userId,
-                ct: ct);
+        // Đã bỏ try-catch
+        await _hatGap.AwardAsync(userId, reward, HatGapTransactionType.Earn, $"StreakMilestone{currentStreak}", ct);
 
-            // FT-35: badge catalog mirrors the same 7/14/30-day thresholds
-            await _badges.TryAwardAsync(userId, $"STREAK_LEARNING_{currentStreak}", ct: ct);
-        }
-        catch
-        {
-            // Hạt Gấp award failure must not affect the main step-completion flow
-        }
+        await _notifications.NotifyUserAsync(
+            userId: userId,
+            type: NotificationType.StreakMilestoneReached,
+            message: $"Chuỗi {currentStreak} ngày liên tiếp! Bạn nhận được +{reward} Hạt Gấp 🔥",
+            entityType: nameof(StreakLog),
+            entityId: userId,
+            ct: ct);
+
+        // FT-35: badge catalog mirrors the same 7/14/30-day thresholds
+        await _badges.TryAwardAsync(userId, $"STREAK_LEARNING_{currentStreak}", ct: ct);
     }
 
     // FT-27: Daily Quest bonus = base reward × streak multiplier, capped at ×1.5 on Free Fold Day (Sunday).

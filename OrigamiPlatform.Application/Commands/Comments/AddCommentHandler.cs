@@ -52,41 +52,35 @@ public class AddCommentHandler
 
         await _comments.AddAsync(comment);
 
-        try
+        // Đã bỏ try-catch ở đây
+        Guid? targetAuthorId = null;
+
+        if (cmd.TargetType == TargetType.CommunityPost)
         {
-            Guid? targetAuthorId = null;
-
-            if (cmd.TargetType == TargetType.CommunityPost)
-            {
-                var post = await _posts.GetByIdAsync(cmd.TargetId);
-                if (post != null) targetAuthorId = post.AuthorId;
-            }
-            else if (cmd.TargetType == TargetType.Tutorial)
-            {
-                var tutorial = await _tutorials.GetByIdWithStepsAsync(cmd.TargetId, ct);
-                if (tutorial != null) targetAuthorId = tutorial.AuthorId;
-            }
-            else if (cmd.TargetType == TargetType.StuckThread)
-            {
-                var thread = await _stuckThreads.GetByIdAsync(cmd.TargetId, ct);
-                if (thread != null) targetAuthorId = thread.UserId;
-            }
-
-            if (targetAuthorId.HasValue && targetAuthorId.Value != cmd.UserId)
-            {
-                await _notifications.NotifyUserAsync(
-                    userId: targetAuthorId.Value,
-                    type: NotificationType.System,
-                    message: "Bài viết của bạn có bình luận mới.",
-                    entityType: cmd.TargetType.ToString(),
-                    entityId: cmd.TargetId,
-                    ct: ct
-                );
-            }
+            var post = await _posts.GetByIdAsync(cmd.TargetId);
+            if (post != null) targetAuthorId = post.AuthorId;
         }
-        catch
+        else if (cmd.TargetType == TargetType.Tutorial)
         {
-            // notification failure must not affect the main flow
+            var tutorial = await _tutorials.GetByIdWithStepsAsync(cmd.TargetId, ct);
+            if (tutorial != null) targetAuthorId = tutorial.AuthorId;
+        }
+        else if (cmd.TargetType == TargetType.StuckThread)
+        {
+            var thread = await _stuckThreads.GetByIdAsync(cmd.TargetId, ct);
+            if (thread != null) targetAuthorId = thread.UserId;
+        }
+
+        if (targetAuthorId.HasValue && targetAuthorId.Value != cmd.UserId)
+        {
+            await _notifications.NotifyUserAsync(
+                userId: targetAuthorId.Value,
+                type: NotificationType.NewComment, // (Có thể đổi thành NewComment theo Nhóm 2 sau)
+                message: "Bài viết của bạn có bình luận mới.",
+                entityType: cmd.TargetType.ToString(),
+                entityId: cmd.TargetId,
+                ct: ct
+            );
         }
 
         return comment.Id;

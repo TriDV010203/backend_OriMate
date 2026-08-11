@@ -85,17 +85,13 @@ public class SubmitModeUnlockTestHandler
 
     private async Task NotifyReviewersAsync(string modeName, Guid submissionId, CancellationToken ct)
     {
-        try
-        {
-            var message = $"Có bài nộp bài test mở khoá chế độ \"{modeName}\" đang chờ duyệt.";
-            await _notifications.NotifyUsersWithRoleAsync(
-                UserRoleType.Manager, NotificationType.NewModeUnlockSubmission, message, nameof(ModeUnlockSubmission), submissionId, ct);
-            await _notifications.NotifyUsersWithRoleAsync(
-                UserRoleType.Admin, NotificationType.NewModeUnlockSubmission, message, nameof(ModeUnlockSubmission), submissionId, ct);
-        }
-        catch
-        {
-            // reviewer notification failure must not affect the main submission flow
-        }
+        // Đã bỏ try-catch
+        var message = $"Có bài nộp bài test mở khoá chế độ \"{modeName}\" đang chờ duyệt.";
+
+        await _notifications.NotifyUsersWithRoleAsync(
+            UserRoleType.Manager, NotificationType.NewModeUnlockSubmission, message, nameof(ModeUnlockSubmission), submissionId, ct);
+
+        await _notifications.NotifyUsersWithRoleAsync(
+            UserRoleType.Admin, NotificationType.NewModeUnlockSubmission, message, nameof(ModeUnlockSubmission), submissionId, ct);
     }
 }
