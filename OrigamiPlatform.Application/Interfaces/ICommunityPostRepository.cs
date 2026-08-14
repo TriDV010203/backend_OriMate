@@ -1,5 +1,4 @@
-﻿using OrigamiPlatform.Application.DTOs.CommunityPosts;
-using OrigamiPlatform.Domain.Entities;
+﻿using OrigamiPlatform.Domain.Entities;
 
 namespace OrigamiPlatform.Application.Interfaces
 {
@@ -12,9 +11,5 @@ namespace OrigamiPlatform.Application.Interfaces
         Task<List<CommunityPost>> GetCommunityFeedAsync(List<Guid> followedUserIds, int skip, int take);
         Task<List<CommunityPost>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default);
         Task<CommunityPost> UpdateAsync(CommunityPost post, CancellationToken ct = default);
-
-        // Single-query DTO projection (avoids N+1 like/comment/isLiked lookups)
-        Task<List<CommunityPostDto>> GetCommunityFeedListAsync(
-            List<Guid> followedUserIds, Guid? currentUserId, int skip, int take, CancellationToken ct = default);
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -7,21 +7,34 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
     /// <inheritdoc />
     public partial class SyncTutorial3DModelSnapshot : Migration
     {
-        // No-op: this migration was scaffolded as a byte-for-byte duplicate of
-        // 20260814082650_DropTutorial3DModelMetadata, which already dropped these two columns.
-        // Running its original Up() a second time fails with "column does not exist" on any DB
-        // that applies migrations in order — local, CI, or production alike. Both Up and Down are
-        // emptied together so migrating past or below this point doesn't re-add or re-drop columns
-        // that this migration never actually owned.
-
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropColumn(
+                name: "Model3DPosterUrl",
+                table: "Tutorials");
+
+            migrationBuilder.DropColumn(
+                name: "Model3DUrl",
+                table: "Tutorials");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<string>(
+                name: "Model3DPosterUrl",
+                table: "Tutorials",
+                type: "nvarchar(512)",
+                maxLength: 512,
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "Model3DUrl",
+                table: "Tutorials",
+                type: "nvarchar(512)",
+                maxLength: 512,
+                nullable: true);
         }
     }
 }

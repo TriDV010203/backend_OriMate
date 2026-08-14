@@ -13,9 +13,6 @@ public class CommunityPostConfiguration : IEntityTypeConfiguration<CommunityPost
 
         builder.Property(p => p.Content).HasMaxLength(2000).IsRequired();
 
-        // Covers the feed's Where(IsVisible, IsDeleted) + OrderByDescending(CreatedAt).
-        builder.HasIndex(p => new { p.IsVisible, p.IsDeleted, p.CreatedAt });
-
         builder.HasOne(p => p.Author)
                .WithMany()
                .HasForeignKey(p => p.AuthorId)

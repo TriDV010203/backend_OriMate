@@ -13,17 +13,7 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
-{
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
-
-    // Dev-only: log every SQL statement EF Core issues, so N+1 query patterns are visible
-    // in the console while iterating locally. Never enabled outside Development.
-    if (builder.Environment.IsDevelopment())
-    {
-        opt.LogTo(Console.WriteLine, new[] { "Microsoft.EntityFrameworkCore.Database.Command" }, LogLevel.Information)
-           .EnableSensitiveDataLogging();
-    }
-});
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.Configure<SePayOptions>(builder.Configuration.GetSection("SePay"));

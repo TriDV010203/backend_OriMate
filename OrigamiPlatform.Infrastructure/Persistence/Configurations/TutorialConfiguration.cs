@@ -25,10 +25,6 @@ public class TutorialConfiguration : IEntityTypeConfiguration<Tutorial>
         builder.Property(t => t.Status).HasConversion<string>().HasMaxLength(30);
         builder.Property(t => t.IsOfficial).HasDefaultValue(false);
 
-        // Covers the public tutorial list's Where(Status, IsDeleted) + OrderByDescending(PublishedAt) —
-        // the default (non-"likes") sort path.
-        builder.HasIndex(t => new { t.Status, t.IsDeleted, t.PublishedAt });
-
         builder.HasOne(t => t.Author)
                .WithMany(u => u.Tutorials)
                .HasForeignKey(t => t.AuthorId)

@@ -1,5 +1,4 @@
 using OrigamiPlatform.Application.DTOs.Common;
-using OrigamiPlatform.Application.DTOs.Tutorials;
 using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
 
@@ -7,8 +6,8 @@ namespace OrigamiPlatform.Application.Interfaces;
 
 public interface ITutorialRepository
 {
-    // Public browsing — single-query DTO projection (avoids N+1 like/wishlist/comment/isLiked/isWishlisted lookups)
-    Task<(List<TutorialListItemDto> Items, int TotalCount)> GetPublishedListAsync(
+    // Public browsing
+    Task<(IEnumerable<Tutorial> Items, int TotalCount)> GetPublishedAsync(
         string? search,
         int? categoryId,
         TutorialDifficulty? difficulty,
@@ -16,9 +15,7 @@ public interface ITutorialRepository
         string sortBy,
         int page,
         int pageSize,
-        IReadOnlySet<Guid>? followedCreatorIds,
-        IReadOnlySet<Guid>? subscribedCreatorIds,
-        Guid? currentUserId,
+        IReadOnlySet<Guid>? followedCreatorIds = null,
         CancellationToken ct = default);
 
     Task<Tutorial?> GetPublishedBySlugAsync(string slug, CancellationToken ct = default);

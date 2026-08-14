@@ -1,7 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using OrigamiPlatform.Application.Common;
 using OrigamiPlatform.Application.DTOs.Common;
-using OrigamiPlatform.Application.DTOs.Tutorials;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
@@ -16,11 +14,7 @@ public class TutorialRepository : ITutorialRepository
 
     // ── Public browsing ──────────────────────────────────────────────────────
 
-    // Comment counting mirrors ICommentRepository.GetCommentCountAsync's two-level thread shape
-    // (top-level comments on the target + replies on those comments), expressed below as one
-    // correlated subquery instead of two round trips per item.
-
-    public async Task<(List<TutorialListItemDto> Items, int TotalCount)> GetPublishedListAsync(
+    public async Task<(IEnumerable<Tutorial> Items, int TotalCount)> GetPublishedAsync(
         string? search,
         int? categoryId,
         TutorialDifficulty? difficulty,
@@ -28,14 +22,14 @@ public class TutorialRepository : ITutorialRepository
         string sortBy,
         int page,
         int pageSize,
-        IReadOnlySet<Guid>? followedCreatorIds,
-        IReadOnlySet<Guid>? subscribedCreatorIds,
-        Guid? currentUserId,
+        IReadOnlySet<Guid>? followedCreatorIds = null,
         CancellationToken ct = default)
     {
         var query = _db.Tutorials
-            .AsNoTracking()
             .Where(t => t.Status == TutorialStatus.Published && !t.IsDeleted)
+            .Include(t => t.Category)
+            .Include(t => t.Author).ThenInclude(a => a.Profile)
+            .Include(t => t.Steps)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -68,75 +62,11 @@ public class TutorialRepository : ITutorialRepository
                 : query.OrderByDescending(t => t.PublishedAt);
         }
 
-        var page2 = ordered.Skip((page - 1) * pageSize).Take(pageSize);
-        var subscribedIds = subscribedCreatorIds?.ToList() ?? new List<Guid>();
-
-        List<TutorialListItemDto> items;
-        if (currentUserId.HasValue)
-        {
-            var uid = currentUserId.Value;
-            items = await page2.Select(t => new TutorialListItemDto(
-                t.Id,
-                t.Title,
-                t.Slug,
-                t.Description,
-                t.CoverImageUrl,
-                t.Type.ToString(),
-                t.Difficulty.ToString(),
-                t.CategoryId,
-                t.Category.Name,
-                new AuthorDto(
-                    t.Author.Id,
-                    t.IsOfficial ? TutorialConstants.OfficialAuthorDisplayName : (t.Author.Profile != null ? t.Author.Profile.DisplayName : null) ?? t.Author.Email,
-                    t.IsOfficial ? null : (t.Author.Profile != null ? t.Author.Profile.AvatarUrl : null)),
-                t.Steps.Count,
-                t.PublishedAt ?? t.CreatedAt,
-                t.Type == TutorialType.VIP && !subscribedIds.Contains(t.AuthorId),
-                _db.Likes.Count(l => l.TargetType == TargetType.Tutorial && l.TargetId == t.Id),
-                _db.Wishlists.Count(w => w.TargetType == TargetType.Tutorial && w.TargetId == t.Id),
-                _db.Comments.Count(c => !c.IsDeleted && (
-                    (c.TargetType == TargetType.Tutorial && c.TargetId == t.Id) ||
-                    (c.TargetType == TargetType.Comment && _db.Comments.Any(p =>
-                        p.Id == c.TargetId && p.TargetType == TargetType.Tutorial && p.TargetId == t.Id && !p.IsDeleted)))),
-                _db.Likes.Any(l => l.UserId == uid && l.TargetType == TargetType.Tutorial && l.TargetId == t.Id),
-                _db.Wishlists.Any(w => w.UserId == uid && w.TargetType == TargetType.Tutorial && w.TargetId == t.Id),
-                t.MetaTitle,
-                t.MetaDescription,
-                t.Tags
-            )).ToListAsync(ct);
-        }
-        else
-        {
-            items = await page2.Select(t => new TutorialListItemDto(
-                t.Id,
-                t.Title,
-                t.Slug,
-                t.Description,
-                t.CoverImageUrl,
-                t.Type.ToString(),
-                t.Difficulty.ToString(),
-                t.CategoryId,
-                t.Category.Name,
-                new AuthorDto(
-                    t.Author.Id,
-                    t.IsOfficial ? TutorialConstants.OfficialAuthorDisplayName : (t.Author.Profile != null ? t.Author.Profile.DisplayName : null) ?? t.Author.Email,
-                    t.IsOfficial ? null : (t.Author.Profile != null ? t.Author.Profile.AvatarUrl : null)),
-                t.Steps.Count,
-                t.PublishedAt ?? t.CreatedAt,
-                t.Type == TutorialType.VIP && !subscribedIds.Contains(t.AuthorId),
-                _db.Likes.Count(l => l.TargetType == TargetType.Tutorial && l.TargetId == t.Id),
-                _db.Wishlists.Count(w => w.TargetType == TargetType.Tutorial && w.TargetId == t.Id),
-                _db.Comments.Count(c => !c.IsDeleted && (
-                    (c.TargetType == TargetType.Tutorial && c.TargetId == t.Id) ||
-                    (c.TargetType == TargetType.Comment && _db.Comments.Any(p =>
-                        p.Id == c.TargetId && p.TargetType == TargetType.Tutorial && p.TargetId == t.Id && !p.IsDeleted)))),
-                false,
-                false,
-                t.MetaTitle,
-                t.MetaDescription,
-                t.Tags
-            )).ToListAsync(ct);
-        }
+        var items = await ordered
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .AsSplitQuery()
+            .ToListAsync(ct);
 
         return (items, totalCount);
     }
