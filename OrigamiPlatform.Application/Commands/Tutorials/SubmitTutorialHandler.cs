@@ -87,7 +87,7 @@ public class SubmitTutorialHandler
         await _notifications.NotifyUsersWithRoleAsync(
             UserRoleType.Manager,
             NotificationType.TutorialReadyForManagerApproval,
-            "A new tutorial is awaiting your review.",
+            $"Hướng dẫn mới \"{tutorial.Title}\" đang chờ bạn duyệt.",
             "Tutorial",
             tutorial.Id,
             ct);
@@ -106,7 +106,5 @@ public class SubmitTutorialHandler
         tutorial.CategoryId,
         tutorial.Status.ToString(),
         tutorial.CreatedAt,
-        tutorial.UpdatedAt,
-        tutorial.Model3DUrl,
-        tutorial.Model3DPosterUrl);
+        tutorial.UpdatedAt);
 }

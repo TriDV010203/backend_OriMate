@@ -41,9 +41,7 @@ public class TutorialAuthoringIntegrationTests : IntegrationTestBase
             },
             MetaTitle: null,
             MetaDescription: null,
-            Tags: null,
-            Model3DUrl: null,
-            Model3DPosterUrl: null
+            Tags: null
         );
 
         // Act
@@ -87,9 +85,7 @@ public class TutorialAuthoringIntegrationTests : IntegrationTestBase
             },
             MetaTitle: null,
             MetaDescription: null,
-            Tags: null,
-            Model3DUrl: null,
-            Model3DPosterUrl: null
+            Tags: null
         );
 
         var response = await _client.PostAsJsonAsync("/api/tutorials", request);

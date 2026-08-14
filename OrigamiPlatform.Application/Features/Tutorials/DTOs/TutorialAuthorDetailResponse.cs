@@ -15,7 +15,5 @@ public record TutorialAuthorDetailResponse(
     string Status,
     IReadOnlyList<TutorialStepDto> Steps,
     DateTime CreatedAt,
-    DateTime? UpdatedAt,
-    string? Model3DUrl = null,
-    string? Model3DPosterUrl = null
+    DateTime? UpdatedAt
 );

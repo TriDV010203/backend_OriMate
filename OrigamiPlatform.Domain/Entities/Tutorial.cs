@@ -13,10 +13,6 @@ public class Tutorial
     public string Slug { get; set; } = string.Empty;
     public string? CoverImageUrl { get; set; }
 
-    // FT-04/FT-06: optional completed-model preview for the tutorial detail page.
-    public string? Model3DUrl { get; set; }
-    public string? Model3DPosterUrl { get; set; }
-
     // FT-08: SEO metadata — all optional, author may leave blank
     public string? MetaTitle { get; set; }
     public string? MetaDescription { get; set; }

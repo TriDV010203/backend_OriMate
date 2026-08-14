@@ -52,7 +52,7 @@ public class SuspendUserHandler
         await _notifications.NotifyUserAsync(
             command.UserId,
             NotificationType.AccountSuspended,
-            $"Your account has been suspended: {req.Reason}",
+            $"Tài khoản của bạn đã bị tạm khoá: {req.Reason}",
             "User",
             command.UserId,
             ct);

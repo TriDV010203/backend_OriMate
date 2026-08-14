@@ -128,8 +128,6 @@ public class GetTutorialBySlugHandler
             MetaTitle: tutorial.MetaTitle,
             MetaDescription: tutorial.MetaDescription,
             Tags: tutorial.Tags,
-            Model3DUrl: tutorial.Model3DUrl,
-            Model3DPosterUrl: tutorial.Model3DPosterUrl,
             RatingSummary: ratingSummary,
             HasAchievement: hasAchievement,
             HasRated: hasRated,

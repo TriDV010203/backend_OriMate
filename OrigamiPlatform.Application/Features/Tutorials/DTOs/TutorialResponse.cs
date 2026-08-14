@@ -11,7 +11,5 @@ public record TutorialResponse(
     int CategoryId,
     string Status,
     DateTime CreatedAt,
-    DateTime? UpdatedAt,
-    string? Model3DUrl = null,
-    string? Model3DPosterUrl = null
+    DateTime? UpdatedAt
 );

@@ -37,28 +37,4 @@ public class CloudinaryFileStorageService : IFileStorageService
 
         return result.SecureUrl.ToString();
     }
-
-    public async Task<string> UploadModel3DAsync(
-        Stream fileStream,
-        string fileName,
-        string folder,
-        CancellationToken ct = default)
-    {
-        var uploadParams = new RawUploadParams
-        {
-            File = new FileDescription(fileName, fileStream),
-            Folder = $"orimate/{folder}",
-            UseFilename = true,
-            UniqueFilename = true,
-            Overwrite = false,
-            AllowedFormats = ["glb"]
-        };
-
-        var result = await _cloudinary.UploadAsync(uploadParams, "raw", ct);
-
-        if (result.Error is not null)
-            throw new DomainException($"3D model upload failed: {result.Error.Message}");
-
-        return result.SecureUrl.ToString();
-    }
 }

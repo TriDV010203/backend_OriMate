@@ -44,10 +44,14 @@ public class ManagerRemoveHandler
             CreatedAt = DateTime.UtcNow
         }, ct);
 
+        var removedMessage = string.IsNullOrWhiteSpace(reason)
+            ? $"Hướng dẫn \"{tutorial.Title}\" của bạn đã bị quản lý gỡ bỏ."
+            : $"Hướng dẫn \"{tutorial.Title}\" của bạn đã bị quản lý gỡ bỏ: {reason}";
+
         await _notifications.NotifyUserAsync(
             tutorial.AuthorId,
             NotificationType.TutorialRemoved,
-            "Your tutorial has been removed by a manager.",
+            removedMessage,
             "Tutorial",
             tutorial.Id,
             ct);

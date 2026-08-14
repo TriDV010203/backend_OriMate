@@ -59,7 +59,7 @@ public class SubscriptionTests : IntegrationTestBase
         var instructionNode = result.GetProperty("paymentInstruction");
 
         transactionNode.GetProperty("status").GetString().Should().Be("PendingConfirmation");
-        transactionNode.GetProperty("amount").GetDecimal().Should().Be(50000);
+        transactionNode.GetProperty("amount").GetDecimal().Should().Be(30000);
 
         instructionNode.GetProperty("paymentCode").GetString().Should().NotBeNullOrEmpty();
         instructionNode.GetProperty("qrCodeUrl").GetString().Should().Contain("sepay.vn");

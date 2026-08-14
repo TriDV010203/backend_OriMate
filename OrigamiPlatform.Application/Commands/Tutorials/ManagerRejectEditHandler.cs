@@ -48,7 +48,7 @@ public class ManagerRejectEditHandler
         await _notifications.NotifyUserAsync(
             workingCopy.AuthorId,
             NotificationType.TutorialEditRejected,
-            $"Your tutorial edit was rejected: {reason}",
+            $"Bản chỉnh sửa hướng dẫn \"{workingCopy.Title}\" của bạn đã bị từ chối: {reason}",
             "Tutorial",
             workingCopy.Id,
             ct);

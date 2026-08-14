@@ -39,8 +39,6 @@ public class CreateWorkingCopyHandler
             Description = original.Description,
             Slug = editSlug,
             CoverImageUrl = original.CoverImageUrl,
-            Model3DUrl = original.Model3DUrl,
-            Model3DPosterUrl = original.Model3DPosterUrl,
             Type = original.Type,
             Difficulty = original.Difficulty,
             Status = TutorialStatus.EditPendingReview,

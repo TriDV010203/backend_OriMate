@@ -49,7 +49,7 @@ public class ManagerRejectHandler
         await _notifications.NotifyUserAsync(
             tutorial.AuthorId,
             NotificationType.TutorialRejected,
-            $"Your tutorial needs revision: {reason}",
+            $"Hướng dẫn \"{tutorial.Title}\" của bạn cần chỉnh sửa: {reason}",
             "Tutorial",
             tutorial.Id,
             ct);

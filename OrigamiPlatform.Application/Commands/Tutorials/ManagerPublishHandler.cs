@@ -46,7 +46,7 @@ public class ManagerPublishHandler
         await _notifications.NotifyUserAsync(
             tutorial.AuthorId,
             NotificationType.TutorialPublished,
-            "Congratulations! Your tutorial has been published.",
+            $"Chúc mừng! Hướng dẫn \"{tutorial.Title}\" của bạn đã được xuất bản.",
             "Tutorial",
             tutorial.Id,
             ct);

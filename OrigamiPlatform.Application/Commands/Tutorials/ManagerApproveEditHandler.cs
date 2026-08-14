@@ -47,8 +47,6 @@ public class ManagerApproveEditHandler
         original.Difficulty = workingCopy.Difficulty;
         original.Type = workingCopy.Type;
         original.CoverImageUrl = workingCopy.CoverImageUrl;
-        original.Model3DUrl = workingCopy.Model3DUrl;
-        original.Model3DPosterUrl = workingCopy.Model3DPosterUrl;
         original.UpdatedAt = DateTime.UtcNow;
 
         await _tutorialRepo.UpdateAsync(original, ct);
@@ -79,7 +77,7 @@ public class ManagerApproveEditHandler
         await _notifications.NotifyUserAsync(
             original.AuthorId,
             NotificationType.TutorialEditPublished,
-            "Your tutorial edit has been approved and published.",
+            $"Bản chỉnh sửa hướng dẫn \"{original.Title}\" của bạn đã được duyệt và xuất bản.",
             "Tutorial",
             originalId,
             ct);

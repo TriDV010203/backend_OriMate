@@ -42,7 +42,7 @@ public class ActivateUserHandler
         await _notifications.NotifyUserAsync(
             command.UserId,
             NotificationType.AccountActivated,
-            "Your account has been reactivated.",
+            "Tài khoản của bạn đã được kích hoạt lại.",
             "User",
             command.UserId,
             ct);

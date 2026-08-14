@@ -67,7 +67,7 @@ public static class SeedData
         {
             Id = Guid.NewGuid(),
             Email = "admin@orimate.dev",
-            PasswordHash = passwordHasher.Hash("Admin@123"), // ⚠️ CHỈ dùng cho dev, đổi ngay nếu deploy thật
+            PasswordHash = passwordHasher.Hash("Admin@123"),
             Status = AccountStatus.Active,
             CreatedAt = now,
         };

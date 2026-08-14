@@ -88,7 +88,7 @@ public class SubmitEditHandler
         await _notifications.NotifyUsersWithRoleAsync(
             UserRoleType.Manager,
             NotificationType.TutorialReadyForManagerApproval,
-            "A tutorial edit is awaiting your review.",
+            $"Bản chỉnh sửa hướng dẫn \"{workingCopy.Title}\" đang chờ bạn duyệt.",
             "Tutorial",
             workingCopy.Id,
             ct);
@@ -107,7 +107,5 @@ public class SubmitEditHandler
         tutorial.CategoryId,
         tutorial.Status.ToString(),
         tutorial.CreatedAt,
-        tutorial.UpdatedAt,
-        tutorial.Model3DUrl,
-        tutorial.Model3DPosterUrl);
+        tutorial.UpdatedAt);
 }

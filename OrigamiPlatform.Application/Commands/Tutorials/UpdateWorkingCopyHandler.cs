@@ -28,8 +28,6 @@ public class UpdateWorkingCopyHandler
         if (workingCopy.AuthorId != command.AuthorId)
             throw new ForbiddenException("You are not the author of this tutorial.");
 
-        Tutorial3DModelValidator.Validate(request.Model3DUrl, request.Model3DPosterUrl);
-
         // BR-23: blocked word checks
         if (await _blockedWords.ContainsBlockedWordAsync(request.Title, ct))
             throw new DomainException("Title contains a blocked word. BR-23.");
@@ -66,8 +64,6 @@ public class UpdateWorkingCopyHandler
         workingCopy.Difficulty = tutorialDifficulty;
         workingCopy.Type = tutorialType;
         workingCopy.CoverImageUrl = request.CoverImageUrl;
-        workingCopy.Model3DUrl = request.Model3DUrl;
-        workingCopy.Model3DPosterUrl = request.Model3DPosterUrl;
         workingCopy.MetaTitle = request.MetaTitle;
         workingCopy.MetaDescription = request.MetaDescription;
         workingCopy.Tags = request.Tags;
@@ -116,7 +112,5 @@ public class UpdateWorkingCopyHandler
         tutorial.CategoryId,
         tutorial.Status.ToString(),
         tutorial.CreatedAt,
-        tutorial.UpdatedAt,
-        tutorial.Model3DUrl,
-        tutorial.Model3DPosterUrl);
+        tutorial.UpdatedAt);
 }

@@ -52,7 +52,7 @@ Lý do chọn kiến trúc này:
 | Database | Microsoft SQL Server (Azure SQL khi deploy) | EF Core Code First hỗ trợ tốt, Azure SQL Serverless tiết kiệm credit sinh viên | Azure for Students $100 credit |
 | Auth | JWT Bearer (stateless) | Không cần session store dùng chung khi scale nhiều instance sau này | NFR-SEC01 |
 | Payment | SePay bank-transfer webhook (tự động) | Không cần tích hợp cổng thanh toán thẻ phức tạp trong 3 tuần, phù hợp thị trường VN | Timeline, chi phí |
-| Media/GLB storage | Cloudinary | Không tự vận hành file storage, có SDK .NET sẵn | Timeline |
+| Media storage | Cloudinary | Không tự vận hành file storage, có SDK .NET sẵn | Timeline |
 
 ## 1.2 System / Component Diagram
 
@@ -88,7 +88,7 @@ External inbound: SePay  ──HTTPS webhook, header Authorization: Apikey <key>
 | OrigamiPlatform.Domain | Service (in-process) | Entity, Enum, Exception — không phụ thuộc project nào | C# .NET 8 |
 | OrigamiPlatform.Infrastructure | Service (in-process) | EF Core, repository impl, JWT/Email/Cloudinary client, background job | EF Core 8, MailKit, Cloudinary SDK |
 | SQL Server / Azure SQL | DB | Lưu toàn bộ dữ liệu hệ thống (metadata, không lưu file nhị phân) | SQL Server 2022 / Azure SQL Serverless |
-| Cloudinary | External | Lưu ảnh/video/GLB, trả URL HTTPS | Cloudinary SaaS |
+| Cloudinary | External | Lưu ảnh/video, trả URL HTTPS | Cloudinary SaaS |
 | SePay | External Webhook | Gửi sự kiện "tiền vào" đã ký, dùng xác nhận thanh toán VIP tự động | SePay SaaS |
 | Gmail SMTP | External | Gửi email verify/reset/notification | SMTP (MailKit client) |
 
@@ -128,7 +128,7 @@ Application/Commands|Queries  ──► Domain/Entities, Domain/Enums, Domain/Ex
 | CI/CD | GitHub Actions (`.github/workflows/build.yml`) | — | Build + test + guard chống merge lại code đã xoá (FamilyProject/Ad) — **chưa có job deploy tự động**, xem mục 9.4 |
 | Monitoring | **Chưa triển khai** | — | Không có APM/Prometheus/Grafana — gap, xem Part 8.3 |
 | Logging | `ILogger<T>` built-in .NET, ghi ra console/App Service log stream | — | Chưa có structured logging tập trung (ELK/Seq) — gap, xem Part 8.2 |
-| File storage | Cloudinary SDK | latest | Ảnh/video/GLB, không lưu binary trong DB |
+| File storage | Cloudinary SDK | latest | Ảnh/video, không lưu binary trong DB |
 | Email | MailKit (Gmail SMTP, App Password) | latest | Send-only, không cần mail server riêng |
 | Payment | SePay webhook (signed, API Key auth) | — | Xác nhận chuyển khoản tự động, thị trường VN |
 
@@ -188,8 +188,7 @@ Toàn bộ interface là **REST API** — không có SSR page (frontend Next.js 
 | `GamificationController` | REST API | FT-25–28, FT-35 | `[Authorize]` |
 | `DailyChallengeController` | REST API | FT-34 | `[Authorize]` |
 | `LearningPathsController`, `LearningPathModesController` | REST API | FT-33 | Public read, `Roles=Admin,Manager` write |
-| `VisualSearchController` | REST API | Tìm kiếm bằng hình ảnh (SRS 1.2 — client entry point "chưa hoàn thiện") | Public/`[Authorize]` — client FE hiện chưa có UI đầy đủ |
-| `UploadsController` | REST API | Dùng chung cho mọi feature upload ảnh/GLB qua Cloudinary | `[Authorize]` |
+| `UploadsController` | REST API | Dùng chung cho mọi feature upload ảnh qua Cloudinary | `[Authorize]` |
 
 *Ghi chú: một số tên Controller thật (`ReviewController`, `LearningController`...) khác tên gợi ý trong `FT_MAPPING_v5.md` — danh sách trên lấy trực tiếp từ `ls Controllers/` ngày 07/08/2026, coi là nguồn đúng hơn file mapping cũ.
 
@@ -417,9 +416,8 @@ EF Core Code First — quy ước bắt buộc (khớp `BE_PROJECT_RULES.md` m�
 | External System | Direction | Protocol | Auth Method | Sync/Async | Error Handling | SRS Ref |
 |---|---|---|---|---|---|---|
 | SePay | Inbound webhook | HTTPS/REST | API Key trong header `Authorization: Apikey <key>`, so khớp `FixedTimeEquals` | Async (webhook, không blocking user request) | Sai key → 401, không xử lý payload. Không khớp giao dịch/lệch tiền → vẫn 200, ghi log `SePayWebhookLog` để audit thủ công | FT-16 |
-| Cloudinary | Outbound | HTTPS/REST (SDK) | API Key + Secret (`Cloudinary:ApiKey/ApiSecret`) | Sync (chờ URL trả về trước khi lưu DB) | Chưa xác nhận có retry — cần đọc `FileStorageService.cs` nếu cần chi tiết | FT-05, FT-14, FT-39 (3D viewer, GLB) |
+| Cloudinary | Outbound | HTTPS/REST (SDK) | API Key + Secret (`Cloudinary:ApiKey/ApiSecret`) | Sync (chờ URL trả về trước khi lưu DB) | Chưa xác nhận có retry — cần đọc `FileStorageService.cs` nếu cần chi tiết | FT-05, FT-14 |
 | Gmail SMTP | Outbound | SMTP (587) qua MailKit | App Password (`Email:SmtpAppPassword`) | Sync trong Handler gọi `IEmailService`, không qua queue | Ghi vào `EmailLog` với `Status`/`RetryCount` để debug khi email không tới nơi | Verify/reset/notification email |
-| Visual search / image-labeling service | Inbound (client gọi qua BE) | HTTPS/REST (`VisualSearchController`) | Chưa xác nhận chi tiết — đọc `MLModels/` và `VisualSearchController.cs` nếu cần | Sync | Chưa xác nhận | SRS 1.2 — "client entry point chưa hoàn thiện" |
 
 ## 4.2 Webhook Handling Design (SePay)
 
@@ -444,13 +442,12 @@ EF Core Code First — quy ước bắt buộc (khớp `BE_PROJECT_RULES.md` m�
 | Retry policy | Không áp dụng chiều outbound |
 | Fallback | Chưa có UI xác nhận thủ công dự phòng trong code hiện tại — nếu webhook lỗi/không tới, `Transaction` vẫn ở `PendingConfirmation` (cần xử lý thủ công qua truy vấn DB, không có endpoint Admin confirm tay nào còn hoạt động theo thiết kế Giai đoạn 2 hiện tại — khác với `MVP_SCOPE.md`/`FT_MAPPING_v5.md` cũ vốn mô tả Admin confirm thủ công là Giai đoạn 1; cần xác nhận với team liệu endpoint xác nhận tay có còn giữ làm fallback hay đã gỡ hoàn toàn) |
 
-### Cloudinary — Media & GLB Upload
+### Cloudinary — Media Upload
 
 | Aspect | Detail |
 |---|---|
 | Triggered by | `UploadsController` — FE gửi file lên BE, BE forward lên Cloudinary rồi trả `url` (FE không upload thẳng client → Cloudinary, đúng quy ước `API_CONVENTIONS.md` mục 7) |
 | Giới hạn dung lượng | Theo BR từng feature — ví dụ ảnh Achievement ≤10MB |
-| 3D asset | GLB 2.0 — validate + lưu qua Cloudinary tương tự ảnh/video, render ở client (Next.js), BE không xử lý logic 3D |
 
 ## 4.4 Asynchronous Communication Design
 

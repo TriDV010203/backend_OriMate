@@ -36,8 +36,6 @@ public class AdminUpdateTutorialHandler
         if (request.Description.Length < 20 || request.Description.Length > 500)
             throw new DomainException("Description must be between 20 and 500 characters. BR-12.");
 
-        Tutorial3DModelValidator.Validate(request.Model3DUrl, request.Model3DPosterUrl);
-
         // BR-23: blocked word checks
         if (await _blockedWords.ContainsBlockedWordAsync(request.Title, ct))
             throw new DomainException("Title contains a blocked word. BR-23.");
@@ -72,8 +70,6 @@ public class AdminUpdateTutorialHandler
         tutorial.Difficulty = tutorialDifficulty;
         tutorial.Type = tutorialType;
         tutorial.CoverImageUrl = request.CoverImageUrl;
-        tutorial.Model3DUrl = request.Model3DUrl;
-        tutorial.Model3DPosterUrl = request.Model3DPosterUrl;
         tutorial.UpdatedAt = now;
 
         await _tutorialRepo.DeleteStepsByTutorialIdAsync(command.TutorialId, ct);
@@ -133,7 +129,5 @@ public class AdminUpdateTutorialHandler
         tutorial.CategoryId,
         tutorial.Status.ToString(),
         tutorial.CreatedAt,
-        tutorial.UpdatedAt,
-        tutorial.Model3DUrl,
-        tutorial.Model3DPosterUrl);
+        tutorial.UpdatedAt);
 }

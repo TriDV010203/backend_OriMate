@@ -66,18 +66,19 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "http://localhost:3000",
-                "https://localhost:3000")
+                "https://localhost:3000",
+                "https://orimate-web.vercel.app")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 var app = builder.Build();
 
+app.UseSwagger();
+app.UseSwaggerUI();
+
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-
     using var seedScope = app.Services.CreateScope();
     var seedContext = seedScope.ServiceProvider.GetRequiredService<AppDbContext>();
     var seedHasher = seedScope.ServiceProvider.GetRequiredService<IPasswordHasher>();

@@ -43,7 +43,6 @@ using OrigamiPlatform.Application.Queries.Subscriptions;
 using OrigamiPlatform.Application.Queries.TutorialProgress;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Application.Queries.Users;
-using OrigamiPlatform.Application.Queries.VisualSearch;
 using OrigamiPlatform.Application.Queries.WeeklyChallenge;
 using OrigamiPlatform.Application.Queries.Wishlists;
 using OrigamiPlatform.Infrastructure.BackgroundJobs;
@@ -142,7 +141,6 @@ public static class DependencyInjection
 
         // Handlers — Uploads
         services.AddScoped<UploadImageHandler>();
-        services.AddScoped<UploadModel3DHandler>();
 
         // Handlers — Tutorials (public)
         services.AddScoped<GetTutorialsHandler>();
@@ -327,10 +325,6 @@ public static class DependencyInjection
         // Background jobs
         services.AddHostedService<DailyChallengeSchedulerService>();
         services.AddHostedService<ReengagementJob>();
-
-        services.AddScoped<IImageLabelingService, LocalOnnxImageLabelingService>();
-
-        services.AddScoped<SearchByObjectHandler>();
 
         return services;
     }

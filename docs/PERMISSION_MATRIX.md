@@ -155,6 +155,5 @@ Không nằm trong logic phân quyền theo role (đều là hành động `O` �
 - Mua Paper Pattern bằng Hạt Gấp
 - First-run onboarding
 - Gợi ý tutorial cá nhân hoá
-- Tìm kiếm bằng hình ảnh
 
 Chi tiết đầy đủ từng tính năng xem `docs/FT_FE_SC_AsImplemented.md`.

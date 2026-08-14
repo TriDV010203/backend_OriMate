@@ -21,8 +21,6 @@ public record TutorialDetailDto(
     string? MetaTitle = null,
     string? MetaDescription = null,
     string? Tags = null,
-    string? Model3DUrl = null,
-    string? Model3DPosterUrl = null,
     TutorialRatingSummaryDto? RatingSummary = null,
     bool HasAchievement = false,
     bool HasRated = false,

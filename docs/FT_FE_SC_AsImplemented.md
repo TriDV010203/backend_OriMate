@@ -748,7 +748,6 @@ Sau khi vừa đạt streak thử thách 7 ngày liên tiếp và tổng cộng 
 | FT-35 | Gợi ý tutorial cá nhân hoá | Theo lịch sử hoàn thành + skill level | **BE-only** |
 | FT-36 | Nhắc quay lại app qua email | Sau 3 ngày không hoạt động, gửi lúc 9h sáng GMT+7 | BE ✅ (trải nghiệm qua email + app) |
 | FT-37 | Nội dung Official ban đầu | Admin tự đăng tutorial, gắn cờ Official | BE ✅ · FE ✅ |
-| FT-38 | Tìm kiếm bằng hình ảnh | Nhận diện vật thể trong ảnh, khớp tutorial theo từ khoá | **BE-only** |
 
 ### Use Case Diagram — FE-08
 
@@ -763,11 +762,9 @@ flowchart LR
     UC35([UC-35: Gợi ý cá nhân hoá - BE-only])
     UC36([UC-36: Nhắc quay lại app qua email])
     UC37([UC-37: Nội dung Official ban đầu])
-    UC38([UC-38: Tìm kiếm bằng hình ảnh - BE-only])
 
     NewUser --> UC34
     User --> UC35
-    User --> UC38
     Admin --> UC37
     Job -.->|quét user 3 ngày không hoạt động| UC36
     User -.->|nhận email, quay lại app| UC36
@@ -808,15 +805,6 @@ flowchart LR
 | Actor chính | Admin |
 | Luồng chính | 1. Admin tạo tutorial trực tiếp qua công cụ dành riêng cho Admin (gán tác giả hệ thống cố định).<br>2. Admin gắn cờ `IsOfficial = true`.<br>3. Tutorial công khai ngay, không qua hàng đợi Manager (vì Admin tạo). |
 | Kết quả (Postcondition) | Tutorial Official xuất hiện trong thư viện, gắn nhãn riêng. |
-| Business Rule | — |
-
-#### UC-38 — Tìm kiếm bằng hình ảnh — BE-only
-| Trường | Nội dung |
-|---|---|
-| Actor chính | User |
-| Luồng chính | *(chỉ qua API — chưa có nút upload ảnh trên FE)* 1. User (hoặc công cụ gọi API) upload một ảnh.<br>2. Hệ thống chạy nhận diện vật thể (`IImageLabelingService`, theo comment code là YOLOv8) trên ảnh, trả danh sách nhãn.<br>3. Hệ thống khớp nhãn với tiêu đề/category tutorial đã Published bằng từ khoá.<br>4. Trả kết quả theo nhóm độ khó. |
-| Luồng thay thế / ngoại lệ | Không nhận diện được vật thể khớp tutorial nào → danh sách rỗng. |
-| Kết quả (Postcondition, lý thuyết) | Danh sách tutorial gợi ý theo ảnh — thực tế người dùng app chưa chạm tới được vì chưa có UI. |
 | Business Rule | — |
 
 ### S33 — Trạng thái onboarding của Mai được lưu, nhưng chưa có màn hình hỏi *(FT-34, BE-only)*
