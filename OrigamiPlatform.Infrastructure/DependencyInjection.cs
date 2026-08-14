@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using OrigamiPlatform.Application.Commands.Achievements;
 using OrigamiPlatform.Application.Commands.AdminConfiguration;
 using OrigamiPlatform.Application.Commands.Auth;
-using OrigamiPlatform.Application.Commands.Clan;
 using OrigamiPlatform.Application.Commands.Comments;
 using OrigamiPlatform.Application.Commands.CommunityPosts;
 using OrigamiPlatform.Application.Commands.DailyChallenge;
@@ -29,7 +28,6 @@ using OrigamiPlatform.Application.Common;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Application.Queries.Achievements;
 using OrigamiPlatform.Application.Queries.AdminConfiguration;
-using OrigamiPlatform.Application.Queries.Clan;
 using OrigamiPlatform.Application.Queries.Comments;
 using OrigamiPlatform.Application.Queries.CommunityPosts;
 using OrigamiPlatform.Application.Queries.DailyChallenge;
@@ -82,9 +80,6 @@ public static class DependencyInjection
         services.AddScoped<IStuckThreadRepository, StuckThreadRepository>();
         services.AddScoped<IShopLinkRepository, ShopLinkRepository>();
         services.AddScoped<IPersonalMilestoneRepository, PersonalMilestoneRepository>();
-        services.AddScoped<IClanRepository, ClanRepository>();
-        services.AddScoped<IClanMemberRepository, ClanMemberRepository>();
-        services.AddScoped<IClanInviteRepository, ClanInviteRepository>();
         services.AddScoped<IStreakLogRepository, StreakLogRepository>();
         services.AddScoped<IDailyQuestRepository, DailyQuestRepository>();
         services.AddScoped<IUserDailyQuestProgressRepository, UserDailyQuestProgressRepository>();
@@ -290,15 +285,6 @@ public static class DependencyInjection
         services.AddScoped<SubmitModeUnlockTestHandler>();
         services.AddScoped<ApproveModeUnlockSubmissionHandler>();
         services.AddScoped<RejectModeUnlockSubmissionHandler>();
-
-        // Handlers — Clan (FT-22)
-        services.AddScoped<CreateClanHandler>();
-        services.AddScoped<InviteMemberHandler>();
-        services.AddScoped<AcceptInviteHandler>();
-        services.AddScoped<LeaveClanHandler>();
-        services.AddScoped<TransferOwnershipHandler>();
-        services.AddScoped<GetMyClanHandler>();
-        services.AddScoped<GetPendingInvitesHandler>();
 
         // Handlers — Daily Challenge (FT-34)
         services.AddScoped<AdminScheduleDailyChallengeHandler>();

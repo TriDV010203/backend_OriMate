@@ -63,11 +63,6 @@ public class AppDbContext : DbContext
     public DbSet<LearningPathModeUnlockTest> LearningPathModeUnlockTests => Set<LearningPathModeUnlockTest>();
     public DbSet<ModeUnlockSubmission> ModeUnlockSubmissions => Set<ModeUnlockSubmission>();
 
-    // Clan
-    public DbSet<Clan> Clans => Set<Clan>();
-    public DbSet<ClanMember> ClanMembers => Set<ClanMember>();
-    public DbSet<ClanInvite> ClanInvites => Set<ClanInvite>();
-
     // Gamification (FT-26 Streak, FT-27 Daily Quest, FT-28 Hạt Gấp)
     public DbSet<StreakLog> StreakLogs => Set<StreakLog>();
     public DbSet<DailyQuest> DailyQuests => Set<DailyQuest>();

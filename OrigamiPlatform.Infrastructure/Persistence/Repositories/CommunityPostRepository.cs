@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using OrigamiPlatform.Application.DTOs.CommunityPosts;
 using OrigamiPlatform.Application.Interfaces;
 using OrigamiPlatform.Domain.Entities;
+using OrigamiPlatform.Domain.Enums;
 
 namespace OrigamiPlatform.Infrastructure.Persistence.Repositories
 {
@@ -77,6 +79,62 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Repositories
             _context.CommunityPosts.Update(post);
             await _context.SaveChangesAsync(ct);
             return post; // 🟢 Trả về post để khớp với chữ ký của Interface
+        }
+
+        public async Task<List<CommunityPostDto>> GetCommunityFeedListAsync(
+            List<Guid> followedUserIds, Guid? currentUserId, int skip, int take, CancellationToken ct = default)
+        {
+            var query = _context.CommunityPosts
+                .AsNoTracking()
+                .Where(p => p.IsVisible && !p.IsDeleted);
+
+            IOrderedQueryable<CommunityPost> ordered = followedUserIds.Count > 0
+                ? query.OrderByDescending(p => followedUserIds.Contains(p.AuthorId)).ThenByDescending(p => p.CreatedAt)
+                : query.OrderByDescending(p => p.CreatedAt);
+
+            var page = ordered.Skip(skip).Take(take);
+
+            if (currentUserId.HasValue)
+            {
+                var uid = currentUserId.Value;
+                return await page.Select(post => new CommunityPostDto(
+                    post.Id,
+                    post.AuthorId,
+                    post.Content,
+                    post.CreatedAt,
+                    _context.Comments.Count(c => !c.IsDeleted && (
+                        (c.TargetType == TargetType.CommunityPost && c.TargetId == post.Id) ||
+                        (c.TargetType == TargetType.Comment && _context.Comments.Any(p =>
+                            p.Id == c.TargetId && p.TargetType == TargetType.CommunityPost && p.TargetId == post.Id && !p.IsDeleted)))),
+                    _context.Likes.Count(l => l.TargetType == TargetType.CommunityPost && l.TargetId == post.Id),
+                    _context.Likes.Any(l => l.UserId == uid && l.TargetType == TargetType.CommunityPost && l.TargetId == post.Id),
+                    followedUserIds.Contains(post.AuthorId),
+                    post.Media.OrderBy(m => m.DisplayOrder).Select(m => new MediaItemDto
+                    {
+                        MediaUrl = m.Url,
+                        MediaType = m.MediaType
+                    }).ToList()
+                )).ToListAsync(ct);
+            }
+
+            return await page.Select(post => new CommunityPostDto(
+                post.Id,
+                post.AuthorId,
+                post.Content,
+                post.CreatedAt,
+                _context.Comments.Count(c => !c.IsDeleted && (
+                    (c.TargetType == TargetType.CommunityPost && c.TargetId == post.Id) ||
+                    (c.TargetType == TargetType.Comment && _context.Comments.Any(p =>
+                        p.Id == c.TargetId && p.TargetType == TargetType.CommunityPost && p.TargetId == post.Id && !p.IsDeleted)))),
+                _context.Likes.Count(l => l.TargetType == TargetType.CommunityPost && l.TargetId == post.Id),
+                false,
+                followedUserIds.Contains(post.AuthorId),
+                post.Media.OrderBy(m => m.DisplayOrder).Select(m => new MediaItemDto
+                {
+                    MediaUrl = m.Url,
+                    MediaType = m.MediaType
+                }).ToList()
+            )).ToListAsync(ct);
         }
     }
 }

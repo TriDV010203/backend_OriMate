@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OrigamiPlatform.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using OrigamiPlatform.Infrastructure.Persistence;
 namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260814100551_RemoveClanEntities")]
+    partial class RemoveClanEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -279,8 +282,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CommunityPostId");
 
-                    b.HasIndex("TargetType", "TargetId");
-
                     b.ToTable("Comments");
                 });
 
@@ -317,8 +318,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("AuthorId");
 
                     b.HasIndex("LinkedTutorialId");
-
-                    b.HasIndex("IsVisible", "IsDeleted", "CreatedAt");
 
                     b.ToTable("CommunityPosts");
                 });
@@ -765,8 +764,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("UserId", "TargetType", "TargetId");
-
-                    b.HasIndex("TargetType", "TargetId");
 
                     b.ToTable("Likes");
                 });
@@ -1261,8 +1258,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Slug")
                         .IsUnique();
-
-                    b.HasIndex("Status", "IsDeleted", "PublishedAt");
 
                     b.ToTable("Tutorials");
                 });
@@ -1805,8 +1800,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("UserId", "TargetType", "TargetId");
-
-                    b.HasIndex("TargetType", "TargetId");
 
                     b.ToTable("Wishlists");
                 });

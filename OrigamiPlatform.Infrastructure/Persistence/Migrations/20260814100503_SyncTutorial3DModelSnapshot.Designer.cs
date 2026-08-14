@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OrigamiPlatform.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using OrigamiPlatform.Infrastructure.Persistence;
 namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260814100503_SyncTutorial3DModelSnapshot")]
+    partial class SyncTutorial3DModelSnapshot
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -240,6 +243,88 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("ChallengeStreakLogs");
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Clan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Clans");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.ClanInvite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClanId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ClanId", "UserId");
+
+                    b.ToTable("ClanInvites");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.ClanMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClanId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ContributionPoints")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClanId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("ClanMembers");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Comment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -279,8 +364,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CommunityPostId");
 
-                    b.HasIndex("TargetType", "TargetId");
-
                     b.ToTable("Comments");
                 });
 
@@ -317,8 +400,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("AuthorId");
 
                     b.HasIndex("LinkedTutorialId");
-
-                    b.HasIndex("IsVisible", "IsDeleted", "CreatedAt");
 
                     b.ToTable("CommunityPosts");
                 });
@@ -765,8 +846,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("UserId", "TargetType", "TargetId");
-
-                    b.HasIndex("TargetType", "TargetId");
 
                     b.ToTable("Likes");
                 });
@@ -1261,8 +1340,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Slug")
                         .IsUnique();
-
-                    b.HasIndex("Status", "IsDeleted", "PublishedAt");
 
                     b.ToTable("Tutorials");
                 });
@@ -1806,8 +1883,6 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 
                     b.HasKey("UserId", "TargetType", "TargetId");
 
-                    b.HasIndex("TargetType", "TargetId");
-
                     b.ToTable("Wishlists");
                 });
 
@@ -1847,6 +1922,55 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .HasForeignKey("OrigamiPlatform.Domain.Entities.ChallengeStreakLog", "UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Clan", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.ClanInvite", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.Clan", "Clan")
+                        .WithMany()
+                        .HasForeignKey("ClanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Clan");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.ClanMember", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.Clan", "Clan")
+                        .WithMany()
+                        .HasForeignKey("ClanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Clan");
 
                     b.Navigation("User");
                 });

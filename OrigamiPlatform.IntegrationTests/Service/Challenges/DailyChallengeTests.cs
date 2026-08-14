@@ -7,7 +7,7 @@ using OrigamiPlatform.Domain.Entities;
 using OrigamiPlatform.Domain.Enums;
 using Xunit;
 
-namespace OrigamiPlatform.IntegrationTests.Controllers.ClanAndChallenge;
+namespace OrigamiPlatform.IntegrationTests.Service.Challenges;
 
 public class DailyChallengeTests : IntegrationTestBase
 {

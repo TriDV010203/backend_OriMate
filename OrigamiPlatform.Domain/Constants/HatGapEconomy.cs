@@ -2,7 +2,7 @@ using OrigamiPlatform.Domain.Enums;
 
 namespace OrigamiPlatform.Domain.Constants;
 
-// BR-SEEDS: central point values for the non-Clan "Hạt Gấp" economy —
+// BR-SEEDS: central point values for the "Hạt Gấp" economy —
 // tutorial completion, daily quest (with streak multiplier + Free Fold Day cap),
 // streak milestones, personal milestones and learning-path completion.
 public static class HatGapEconomy

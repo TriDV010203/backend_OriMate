@@ -13,6 +13,10 @@ public class LikeConfiguration : IEntityTypeConfiguration<Like>
         // FT-34: widened from 20 to fit "DailyChallengeSubmission" (24 chars)
         builder.Property(l => l.TargetType).HasConversion<string>().HasMaxLength(32);
 
+        // The PK leads with UserId, so it can't serve per-target aggregate queries (like counts
+        // for a list of tutorials/posts). This covers those without touching UserId.
+        builder.HasIndex(l => new { l.TargetType, l.TargetId });
+
         builder.HasOne(l => l.User)
                .WithMany()
                .HasForeignKey(l => l.UserId)
