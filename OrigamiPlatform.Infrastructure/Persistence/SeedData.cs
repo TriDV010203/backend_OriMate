@@ -16,9 +16,7 @@ public static class SeedData
     public static async Task SeedAsync(AppDbContext context, IPasswordHasher passwordHasher)
     {
         await SeedCategoriesAsync(context);
-        await SeedBlockedWordsAsync(context);
         await SeedAdminAccountsAsync(context, passwordHasher);
-        await SeedDailyQuestsAsync(context);
         await SeedBadgesAsync(context);
         await context.SaveChangesAsync();
     }
@@ -38,23 +36,6 @@ public static class SeedData
         };
 
         context.Categories.AddRange(categories);
-    }
-
-    private static async Task SeedBlockedWordsAsync(AppDbContext context)
-    {
-        if (await context.BlockedWords.AnyAsync()) return;
-
-        // ⚠️ Đây CHỈ là placeholder để chứng minh cơ chế BlockedWordService hoạt động.
-        // Team cần tự bổ sung danh sách từ cấm thật (tiếng Việt + tiếng Anh) trước khi
-        // đưa lên môi trường thật — không seed sẵn danh sách từ nhạy cảm ở đây.
-        var placeholders = new[] { "spamword1", "spamword2", "testbadword" };
-        var now = DateTime.UtcNow;
-
-        context.BlockedWords.AddRange(placeholders.Select(w => new BlockedWord
-        {
-            Word = w,
-            CreatedAt = now
-        }));
     }
 
     private static async Task SeedAdminAccountsAsync(AppDbContext context, IPasswordHasher passwordHasher)
@@ -91,20 +72,6 @@ public static class SeedData
             new UserRole { UserId = admin.Id, Role = UserRoleType.Admin, CreatedAt = now },
             new UserRole { UserId = manager.Id, Role = UserRoleType.Manager, CreatedAt = now }
         );
-    }
-
-    // FT-27: single fixed Daily Quest for MVP — no Admin CRUD for DailyQuest in this pass.
-    private static async Task SeedDailyQuestsAsync(AppDbContext context)
-    {
-        if (await context.DailyQuests.AnyAsync()) return;
-
-        context.DailyQuests.Add(new DailyQuest
-        {
-            Id = Guid.NewGuid(),
-            Title = "Hoàn thành 3 bước học hôm nay",
-            TargetValue = 3,
-            IsActive = true
-        });
     }
 
     // FT-35: badge catalog — not admin-editable in v1, awarded automatically via BadgeAwardService

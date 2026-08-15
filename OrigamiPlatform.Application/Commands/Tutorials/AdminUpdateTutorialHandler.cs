@@ -13,10 +13,9 @@ namespace OrigamiPlatform.Application.Commands.Tutorials;
 public class AdminUpdateTutorialHandler
 {
     private readonly ITutorialRepository _tutorialRepo;
-    private readonly IBlockedWordService _blockedWords;
 
-    public AdminUpdateTutorialHandler(ITutorialRepository tutorialRepo, IBlockedWordService blockedWords)
-        => (_tutorialRepo, _blockedWords) = (tutorialRepo, blockedWords);
+    public AdminUpdateTutorialHandler(ITutorialRepository tutorialRepo)
+        => _tutorialRepo = tutorialRepo;
 
     public async Task<TutorialResponse> HandleAsync(AdminUpdateTutorialCommand command, CancellationToken ct = default)
     {
@@ -35,12 +34,6 @@ public class AdminUpdateTutorialHandler
             throw new DomainException("Title must be between 5 and 150 characters. BR-12.");
         if (request.Description.Length < 20 || request.Description.Length > 500)
             throw new DomainException("Description must be between 20 and 500 characters. BR-12.");
-
-        // BR-23: blocked word checks
-        if (await _blockedWords.ContainsBlockedWordAsync(request.Title, ct))
-            throw new DomainException("Title contains a blocked word. BR-23.");
-        if (await _blockedWords.ContainsBlockedWordAsync(request.Description, ct))
-            throw new DomainException("Description contains a blocked word. BR-23.");
 
         if (!Enum.TryParse<TutorialType>(request.Type, ignoreCase: true, out var tutorialType))
             throw new DomainException($"Invalid tutorial type '{request.Type}'. Valid values: Free, VIP.");
@@ -79,10 +72,6 @@ public class AdminUpdateTutorialHandler
         {
             foreach (var stepReq in request.Steps)
             {
-                if (!string.IsNullOrWhiteSpace(stepReq.Description)
-                    && await _blockedWords.ContainsBlockedWordAsync(stepReq.Description, ct))
-                    throw new DomainException($"Step {stepReq.StepOrder} description contains a blocked word. BR-23.");
-
                 newSteps.Add(new TutorialStep
                 {
                     Id = Guid.NewGuid(),

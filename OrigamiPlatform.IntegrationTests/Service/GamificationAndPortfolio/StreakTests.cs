@@ -9,9 +9,9 @@ using Xunit;
 
 namespace OrigamiPlatform.IntegrationTests.Controllers.GamificationAndPortfolio;
 
-public class StreakAndQuestTests : IntegrationTestBase
+public class StreakTests : IntegrationTestBase
 {
-    public StreakAndQuestTests(CustomWebApplicationFactory factory) : base(factory) { }
+    public StreakTests(CustomWebApplicationFactory factory) : base(factory) { }
 
     // 🔬 Coverage Technique: Happy Path: Verify the primary success flow — DB state correct, events published, response correct.
     [Fact]
@@ -121,64 +121,5 @@ public class StreakAndQuestTests : IntegrationTestBase
 
         // Assert: Chặn truy cập chưa đăng nhập
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-    }
-
-    // 🔬 Coverage Technique: Happy Path: Verify the primary success flow — DB state correct, events published, response correct.
-    [Fact]
-    public async Task GetMyQuestToday_ReturnsActiveQuestProgress_HappyPath()
-    {
-        // Arrange
-        await AuthenticateAsAsync("User");
-
-        var quest = new DailyQuest
-        {
-            Id = Guid.NewGuid(),
-            Title = "Complete 1 step",
-            TargetValue = 1,
-            IsActive = true
-        };
-        _dbContext.DailyQuests.Add(quest);
-        await _dbContext.SaveChangesAsync();
-        _dbContext.ChangeTracker.Clear();
-
-        // Act
-        var response = await _client.GetAsync("/api/gamification/quest-today");
-
-        // Assert
-        response.EnsureSuccessStatusCode();
-        var questData = await response.Content.ReadFromJsonAsync<JsonElement>();
-        questData.ValueKind.Should().NotBe(JsonValueKind.Undefined);
-    }
-
-    // 🔬 Coverage Technique: Idempotency: Send same request twice — second call must be a no-op or consistent.
-    [Fact]
-    public async Task GetMyQuestToday_MultipleCalls_IsIdempotent()
-    {
-        // Arrange
-        await AuthenticateAsAsync("User");
-
-        var quest = new DailyQuest
-        {
-            Id = Guid.NewGuid(),
-            Title = "Complete 1 step",
-            TargetValue = 1,
-            IsActive = true
-        };
-        _dbContext.DailyQuests.Add(quest);
-        await _dbContext.SaveChangesAsync();
-        _dbContext.ChangeTracker.Clear();
-
-        // Act: Gọi lần 1
-        var response1 = await _client.GetAsync("/api/gamification/quest-today");
-        response1.EnsureSuccessStatusCode();
-
-        // Act: Gọi lần 2
-        var response2 = await _client.GetAsync("/api/gamification/quest-today");
-
-        // Assert: Trả về kết quả nhất quán không đổi state
-        response2.EnsureSuccessStatusCode();
-        var data1 = await response1.Content.ReadAsStringAsync();
-        var data2 = await response2.Content.ReadAsStringAsync();
-        data1.Should().Be(data2);
     }
 }

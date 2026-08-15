@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OrigamiPlatform.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using OrigamiPlatform.Infrastructure.Persistence;
 namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260815041115_DropWeeklyChallengeEntities")]
+    partial class DropWeeklyChallengeEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -152,6 +155,30 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Badges");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.BlockedWord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Word")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Word")
+                        .IsUnique();
+
+                    b.ToTable("BlockedWords");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.Category", b =>
@@ -433,6 +460,29 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("DailyChallengeSubmissions");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.DailyQuest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("TargetValue")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DailyQuests");
                 });
 
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.EmailLog", b =>
@@ -1473,6 +1523,36 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("UserBadges");
                 });
 
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserDailyQuestProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Progress")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("QuestDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("QuestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestId");
+
+                    b.HasIndex("UserId", "QuestId", "QuestDate")
+                        .IsUnique();
+
+                    b.ToTable("UserDailyQuestProgresses");
+                });
+
             modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserPaperPattern", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2185,6 +2265,25 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Badge");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("OrigamiPlatform.Domain.Entities.UserDailyQuestProgress", b =>
+                {
+                    b.HasOne("OrigamiPlatform.Domain.Entities.DailyQuest", "Quest")
+                        .WithMany()
+                        .HasForeignKey("QuestId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OrigamiPlatform.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Quest");
 
                     b.Navigation("User");
                 });

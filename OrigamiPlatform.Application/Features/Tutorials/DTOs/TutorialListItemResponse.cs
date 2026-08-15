@@ -9,5 +9,6 @@ public record TutorialListItemResponse(
     string Difficulty,
     string Status,
     int StepCount,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    Guid? ParentTutorialId
 );

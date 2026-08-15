@@ -71,30 +71,4 @@ public class FT04_TutorialAuthoringTests : IntegrationTestBase
         response.StatusCode.Should().Be(expectedCreateStatus);
     }
 
-    // [Error Path] - Vi phạm từ cấm (BR-COMM-01)
-    [Fact]
-    public async Task ErrorPath_CreateTutorial_WithBlockedWord_ReturnsBadRequest()
-    {
-        var (categoryId, authorId) = await SeedDefaultPrerequisitesAsync();
-
-        // Seed từ cấm
-        _dbContext.BlockedWords.Add(new Domain.Entities.BlockedWord { Word = "badword" });
-        await _dbContext.SaveChangesAsync();
-
-        var token = GenerateJwtToken("Creator", authorId);
-        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-        var request = new
-        {
-            Title = "Tutorial with badword inside",
-            Description = "Valid description here.",
-            CategoryId = categoryId,
-            Difficulty = "Beginner",
-            Type = "Free",
-            Steps = new[] { new { Description = "Step 1", ImageUrl = "url.jpg" } }
-        };
-
-        var response = await _client.PostAsJsonAsync("/api/tutorials", request);
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-    }
 }

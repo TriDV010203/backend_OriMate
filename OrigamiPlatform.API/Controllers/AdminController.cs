@@ -17,9 +17,6 @@ public class AdminController : ControllerBase
     private readonly CreateCategoryHandler _createCategory;
     private readonly UpdateCategoryHandler _updateCategory;
     private readonly DeleteCategoryHandler _deleteCategory;
-    private readonly GetBlockedWordsHandler _getBlockedWords;
-    private readonly CreateBlockedWordHandler _createBlockedWord;
-    private readonly RemoveBlockedWordHandler _removeBlockedWord;
     private readonly GetUsersHandler _getUsers;
     private readonly CreateUserByAdminHandler _createUser;
     private readonly AssignRoleHandler _assignRole;
@@ -32,9 +29,6 @@ public class AdminController : ControllerBase
         CreateCategoryHandler createCategory,
         UpdateCategoryHandler updateCategory,
         DeleteCategoryHandler deleteCategory,
-        GetBlockedWordsHandler getBlockedWords,
-        CreateBlockedWordHandler createBlockedWord,
-        RemoveBlockedWordHandler removeBlockedWord,
         GetUsersHandler getUsers,
         CreateUserByAdminHandler createUser,
         AssignRoleHandler assignRole,
@@ -46,9 +40,6 @@ public class AdminController : ControllerBase
         _createCategory = createCategory;
         _updateCategory = updateCategory;
         _deleteCategory = deleteCategory;
-        _getBlockedWords = getBlockedWords;
-        _createBlockedWord = createBlockedWord;
-        _removeBlockedWord = removeBlockedWord;
         _getUsers = getUsers;
         _createUser = createUser;
         _assignRole = assignRole;
@@ -85,29 +76,6 @@ public class AdminController : ControllerBase
     {
         await _deleteCategory.HandleAsync(new DeleteCategoryCommand(GetCurrentUserId(), id), ct);
         return Ok(new { message = "Category deleted." });
-    }
-
-    // ── BLOCKED WORDS ───────────────────────────────────────────────────
-
-    [HttpGet("blocked-words")]
-    public async Task<IActionResult> GetBlockedWords(CancellationToken ct)
-    {
-        var result = await _getBlockedWords.HandleAsync(new GetBlockedWordsQuery(), ct);
-        return Ok(result);
-    }
-
-    [HttpPost("blocked-words")]
-    public async Task<IActionResult> AddBlockedWord(CreateBlockedWordRequest req, CancellationToken ct)
-    {
-        var result = await _createBlockedWord.HandleAsync(new CreateBlockedWordCommand(GetCurrentUserId(), req), ct);
-        return Ok(result);
-    }
-
-    [HttpDelete("blocked-words/{id:int}")]
-    public async Task<IActionResult> RemoveBlockedWord(int id, CancellationToken ct)
-    {
-        await _removeBlockedWord.HandleAsync(new RemoveBlockedWordCommand(GetCurrentUserId(), id), ct);
-        return Ok(new { message = "Blocked word removed successfully." });
     }
 
     // ── USER MANAGEMENT ─────────────────────────────────────────────────

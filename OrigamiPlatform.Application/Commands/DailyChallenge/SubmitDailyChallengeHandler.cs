@@ -18,26 +18,20 @@ public class SubmitDailyChallengeHandler
     private readonly IDailyChallengeRepository _challenges;
     private readonly IDailyChallengeSubmissionRepository _submissions;
     private readonly ChallengeStreakService _challengeStreak;
-    private readonly IBlockedWordService _blockedWordService;
     private readonly HatGapAwardService _hatGap;
 
     public SubmitDailyChallengeHandler(
         IDailyChallengeRepository challenges,
         IDailyChallengeSubmissionRepository submissions,
         ChallengeStreakService challengeStreak,
-        IBlockedWordService blockedWordService,
         HatGapAwardService hatGap)
-        => (_challenges, _submissions, _challengeStreak, _blockedWordService, _hatGap)
-            = (challenges, submissions, challengeStreak, blockedWordService, hatGap);
+        => (_challenges, _submissions, _challengeStreak, _hatGap)
+            = (challenges, submissions, challengeStreak, hatGap);
 
     public async Task<DailyChallengeSubmissionDto> HandleAsync(
         SubmitDailyChallengeCommand command, CancellationToken ct = default)
     {
         Validate(command.Request.PhotoUrl, command.Request.Note);
-
-        if (!string.IsNullOrWhiteSpace(command.Request.Note)
-            && await _blockedWordService.ContainsBlockedWordAsync(command.Request.Note, ct))
-            throw new DomainException("Nội dung chứa từ ngữ không phù hợp.");
 
         var today = GetTodayGmt7();
         var challenge = await _challenges.GetByDateAsync(today, ct)

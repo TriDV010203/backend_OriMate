@@ -71,45 +71,7 @@ public class TutorialPublishingAndModerationWorkflowTests : IntegrationTestBase
         tutorialInDb!.Status.Should().Be(TutorialStatus.Published);
     }
 
-    // 🔬 Coverage Technique: Workflow — [Error]: Submitting a tutorial with blocked words is rejected immediately.
-    [Fact]
-    public async Task CreateTutorial_WithBlockedWord_ErrorPath_ReturnsBadRequest()
-    {
-        // 1. Arrange
-        await AuthenticateAsAsync("User");
-        var prereq = await SeedDefaultPrerequisitesAsync();
-
-        var createRequest = new
-        {
-            Title = "Banned badword title sample",
-            Description = "This description contains restricted slang or blocked word to test validation rules.",
-            CategoryId = prereq.CategoryId,
-            Type = "Free",
-            Difficulty = "Beginner",
-            CoverImageUrl = "https://example.com/cover.jpg",
-            Steps = new[]
-            {
-                new { StepOrder = 1, Description = "Step 1", ImageUrl = "https://example.com/s1.jpg" },
-                new { StepOrder = 2, Description = "Step 2", ImageUrl = "https://example.com/s2.jpg" },
-                new { StepOrder = 3, Description = "Step 3", ImageUrl = "https://example.com/s3.jpg" }
-            }
-        };
-
-        // Seed blocked word vào DB nếu chưa có
-        _dbContext.BlockedWords.Add(new BlockedWord { Word = "badword", CreatedAt = DateTime.UtcNow });
-        await _dbContext.SaveChangesAsync();
-        _dbContext.ChangeTracker.Clear();
-
-        await AuthenticateAsAsync("User");
-
-        // 2. Act
-        var response = await _client.PostAsJsonAsync("/api/tutorials", createRequest);
-
-        // 3. Assert: Phải bị chặn với mã 400 BadRequest (BR-COMM-01)
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-    }
-
-    // 🔬 Coverage Technique: Workflow — [Compensation]: Manager requests changes -> 
+    // 🔬 Coverage Technique: Workflow — [Compensation]: Manager requests changes ->
     // Tutorial returns to RevisionRequired state -> Creator updates and resubmits successfully.
     [Fact]
     public async Task ManagerReject_AndCreatorResubmit_CompensationWorkflow_Succeeds()

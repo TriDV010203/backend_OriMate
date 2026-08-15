@@ -8,7 +8,6 @@ namespace OrigamiPlatform.Application.Commands.Comments;
 public class AddCommentHandler
 {
     private readonly ICommentRepository _comments;
-    private readonly IBlockedWordService _blockedWordService;
     private readonly INotificationService _notifications;
     private readonly ICommunityPostRepository _posts;
     private readonly ITutorialRepository _tutorials;
@@ -16,14 +15,12 @@ public class AddCommentHandler
 
     public AddCommentHandler(
         ICommentRepository comments,
-        IBlockedWordService blockedWordService,
         INotificationService notifications,
         ICommunityPostRepository posts,
         ITutorialRepository tutorials,
         IStuckThreadRepository stuckThreads)
     {
         _comments = comments;
-        _blockedWordService = blockedWordService;
         _notifications = notifications;
         _posts = posts;
         _tutorials = tutorials;
@@ -36,9 +33,6 @@ public class AddCommentHandler
         {
             throw new DomainException("Comment length must be between 1 and 500 characters.");
         }
-
-        if (await _blockedWordService.ContainsBlockedWordAsync(cmd.Content, ct))
-            throw new DomainException("Your comment contains blocked words and cannot be posted.");
 
         var comment = new Comment
         {

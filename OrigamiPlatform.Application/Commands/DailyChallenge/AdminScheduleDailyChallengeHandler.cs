@@ -6,10 +6,11 @@ using OrigamiPlatform.Domain.Exceptions;
 
 namespace OrigamiPlatform.Application.Commands.DailyChallenge;
 
-// FT-34: Admin/Manager schedules ahead of time — this always leaves the row as Scheduled (never
-// Active directly), even when ChallengeDate is today. Activation (and the author reward/notify
-// side effects that go with it) only ever happens through ActivateDailyChallengeHandler, either
-// via the nightly DailyChallengeSchedulerService job or the admin "run now" endpoint for testing.
+// FT-34: Admin/Manager schedules ahead of time — only ChallengeDate > today (tomorrow onward) is
+// accepted, so a day that's already ongoing can never be edited mid-way. This always leaves the
+// row as Scheduled (never Active directly). Activation (and the author reward/notify side effects
+// that go with it) only ever happens through ActivateDailyChallengeHandler, either via the nightly
+// DailyChallengeSchedulerService job or the admin "run now" endpoint for testing.
 public class AdminScheduleDailyChallengeHandler
 {
     private readonly IDailyChallengeRepository _challenges;
@@ -22,8 +23,8 @@ public class AdminScheduleDailyChallengeHandler
         AdminScheduleDailyChallengeCommand command, CancellationToken ct = default)
     {
         var today = GetTodayGmt7();
-        if (command.Request.ChallengeDate < today)
-            throw new DomainException("Không thể đặt lịch cho ngày trong quá khứ.");
+        if (command.Request.ChallengeDate <= today)
+            throw new DomainException("Chỉ có thể đặt lịch/sửa cho thử thách từ ngày mai trở đi. Thử thách của ngày hôm nay đang diễn ra nên không thể thay đổi giữa chừng.");
 
         var tutorial = await _tutorials.GetByIdWithStepsAsync(command.Request.TutorialId, ct)
             ?? throw new NotFoundException("Tutorial not found.");

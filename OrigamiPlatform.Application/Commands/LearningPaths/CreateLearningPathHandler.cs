@@ -14,12 +14,11 @@ public class CreateLearningPathHandler
     private readonly ILearningPathRepository _learningPathRepo;
     private readonly ITutorialRepository _tutorialRepo;
     private readonly ILearningPathModeRepository _modeRepo;
-    private readonly IBlockedWordService _blockedWords;
 
     public CreateLearningPathHandler(
         ILearningPathRepository learningPathRepo, ITutorialRepository tutorialRepo,
-        ILearningPathModeRepository modeRepo, IBlockedWordService blockedWords)
-        => (_learningPathRepo, _tutorialRepo, _modeRepo, _blockedWords) = (learningPathRepo, tutorialRepo, modeRepo, blockedWords);
+        ILearningPathModeRepository modeRepo)
+        => (_learningPathRepo, _tutorialRepo, _modeRepo) = (learningPathRepo, tutorialRepo, modeRepo);
 
     public async Task<LearningPathDto> HandleAsync(CreateLearningPathCommand command, CancellationToken ct = default)
     {
@@ -29,11 +28,6 @@ public class CreateLearningPathHandler
             throw new DomainException("Title must be between 5 and 150 characters.");
         if (request.Description.Length < 20 || request.Description.Length > 1000)
             throw new DomainException("Description must be between 20 and 1000 characters.");
-
-        if (await _blockedWords.ContainsBlockedWordAsync(request.Title, ct))
-            throw new DomainException("Title contains a blocked word. BR-23.");
-        if (await _blockedWords.ContainsBlockedWordAsync(request.Description, ct))
-            throw new DomainException("Description contains a blocked word. BR-23.");
 
         var mode = await _modeRepo.GetByIdAsync(request.LearningPathModeId, ct)
             ?? throw new NotFoundException($"Learning path mode {request.LearningPathModeId} not found.");

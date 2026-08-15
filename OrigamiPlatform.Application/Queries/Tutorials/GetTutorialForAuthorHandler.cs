@@ -39,6 +39,7 @@ public class GetTutorialForAuthorHandler
             tutorial.Status.ToString(),
             steps,
             tutorial.CreatedAt,
-            tutorial.UpdatedAt);
+            tutorial.UpdatedAt,
+            tutorial.ParentTutorialId);
     }
 }

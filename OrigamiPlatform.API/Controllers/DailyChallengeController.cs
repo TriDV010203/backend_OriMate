@@ -98,7 +98,7 @@ public class DailyChallengeController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>POST /api/daily-challenge/admin/schedule — schedule a tutorial for a given (today or future) date.</summary>
+    /// <summary>POST /api/daily-challenge/admin/schedule — schedule/edit a tutorial for a future date (tomorrow onward only; today's ongoing challenge cannot be changed).</summary>
     [HttpPost("admin/schedule")]
     [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> Schedule(ScheduleDailyChallengeRequest request, CancellationToken ct)

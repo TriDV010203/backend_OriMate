@@ -11,10 +11,9 @@ namespace OrigamiPlatform.Application.Commands.Tutorials;
 public class CreateTutorialHandler
 {
     private readonly ITutorialRepository _tutorialRepo;
-    private readonly IBlockedWordService _blockedWords;
 
-    public CreateTutorialHandler(ITutorialRepository tutorialRepo, IBlockedWordService blockedWords)
-        => (_tutorialRepo, _blockedWords) = (tutorialRepo, blockedWords);
+    public CreateTutorialHandler(ITutorialRepository tutorialRepo)
+        => _tutorialRepo = tutorialRepo;
 
     public async Task<TutorialResponse> HandleAsync(CreateTutorialCommand command, CancellationToken ct = default)
     {
@@ -25,18 +24,6 @@ public class CreateTutorialHandler
             throw new DomainException("Title must be between 5 and 150 characters. BR-12.");
         if (request.Description.Length < 20 || request.Description.Length > 500)
             throw new DomainException("Description must be between 20 and 500 characters. BR-12.");
-
-        // BR-23: blocked word check on user-supplied text
-        if (await _blockedWords.ContainsBlockedWordAsync(request.Title, ct))
-            throw new DomainException("Title contains a blocked word. BR-23.");
-        if (await _blockedWords.ContainsBlockedWordAsync(request.Description, ct))
-            throw new DomainException("Description contains a blocked word. BR-23.");
-
-        // FT-08: SEO metadata is optional but still content text — BR-23 applies when supplied
-        if (!string.IsNullOrWhiteSpace(request.MetaTitle) && await _blockedWords.ContainsBlockedWordAsync(request.MetaTitle, ct))
-            throw new DomainException("Meta title contains a blocked word. BR-23.");
-        if (!string.IsNullOrWhiteSpace(request.MetaDescription) && await _blockedWords.ContainsBlockedWordAsync(request.MetaDescription, ct))
-            throw new DomainException("Meta description contains a blocked word. BR-23.");
 
         if (!Enum.TryParse<TutorialType>(request.Type, ignoreCase: true, out var tutorialType))
             throw new DomainException($"Invalid tutorial type '{request.Type}'. Valid values: Free, VIP.");
@@ -81,10 +68,6 @@ public class CreateTutorialHandler
         {
             foreach (var stepReq in request.Steps)
             {
-                if (!string.IsNullOrWhiteSpace(stepReq.Description)
-                    && await _blockedWords.ContainsBlockedWordAsync(stepReq.Description, ct))
-                    throw new DomainException($"Step {stepReq.StepOrder} description contains a blocked word. BR-23.");
-
                 tutorial.Steps.Add(new TutorialStep
                 {
                     Id = Guid.NewGuid(),

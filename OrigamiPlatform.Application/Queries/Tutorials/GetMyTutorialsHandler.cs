@@ -27,7 +27,8 @@ public class GetMyTutorialsHandler
             t.Difficulty.ToString(),
             t.Status.ToString(),
             t.Steps.Count,
-            t.CreatedAt
+            t.CreatedAt,
+            t.ParentTutorialId
         )).ToList();
 
         return new PagedResult<TutorialListItemResponse>(

@@ -21,8 +21,6 @@ public class CompleteTutorialStepHandler
     private readonly ITutorialStepProgressRepository _progress;
     private readonly IUserRepository _users;
     private readonly IStreakLogRepository _streakLogs;
-    private readonly IDailyQuestRepository _dailyQuests;
-    private readonly IUserDailyQuestProgressRepository _questProgress;
     private readonly HatGapAwardService _hatGap;
     private readonly INotificationService _notifications;
     private readonly BadgeAwardService _badges;
@@ -31,13 +29,11 @@ public class CompleteTutorialStepHandler
         ITutorialStepProgressRepository progress,
         IUserRepository users,
         IStreakLogRepository streakLogs,
-        IDailyQuestRepository dailyQuests,
-        IUserDailyQuestProgressRepository questProgress,
         HatGapAwardService hatGap,
         INotificationService notifications,
         BadgeAwardService badges)
-        => (_progress, _users, _streakLogs, _dailyQuests, _questProgress, _hatGap, _notifications, _badges)
-            = (progress, users, streakLogs, dailyQuests, questProgress, hatGap, notifications, badges);
+        => (_progress, _users, _streakLogs, _hatGap, _notifications, _badges)
+            = (progress, users, streakLogs, hatGap, notifications, badges);
 
     public async Task<TutorialProgressDto> HandleAsync(
         CompleteTutorialStepCommand command, CancellationToken ct = default)
@@ -95,10 +91,9 @@ public class CompleteTutorialStepHandler
                 await AwardTutorialCompletionHatGapAsync(command.UserId, step.Tutorial.Difficulty, ct);
             }
 
-            // FT-26 / FT-27: streak and daily quest only track tutorial-step completions
-            // (not comments/posts) — fired on every step, independent of full-tutorial completion above.
+            // FT-26: streak only tracks tutorial-step completions (not comments/posts) —
+            // fired on every step, independent of full-tutorial completion above.
             await UpdateStreakAsync(command.UserId, ct);
-            await UpdateQuestProgressAsync(command.UserId, ct);
         }
 
         var finalTotal = await _progress.CountStepsAsync(command.TutorialId, ct);
@@ -209,41 +204,6 @@ public class CompleteTutorialStepHandler
 
         // FT-35: badge catalog mirrors the same 7/14/30-day thresholds
         await _badges.TryAwardAsync(userId, $"STREAK_LEARNING_{currentStreak}", ct: ct);
-    }
-
-    // FT-27: Daily Quest bonus = base reward × streak multiplier, capped at ×1.5 on Free Fold Day (Sunday).
-    private async Task UpdateQuestProgressAsync(Guid userId, CancellationToken ct)
-    {
-        try
-        {
-            var quest = (await _dailyQuests.GetActiveAsync(ct)).FirstOrDefault();
-            if (quest is null)
-                return;
-
-            var today = GetTodayGmt7();
-            var progress = await _questProgress.GetOrCreateAsync(userId, quest.Id, today, ct);
-            if (progress.IsCompleted)
-                return;
-
-            progress.Progress++;
-            if (progress.Progress >= quest.TargetValue)
-            {
-                progress.IsCompleted = true;
-
-                var streak = await _streakLogs.GetByUserIdAsync(userId, ct);
-                var isFreeFoldDay = today.DayOfWeek == DayOfWeek.Sunday;
-                var multiplier = HatGapEconomy.GetStreakMultiplier(streak.CurrentStreak, isFreeFoldDay);
-                var reward = (int)Math.Round(HatGapEconomy.DailyQuestBaseReward * multiplier, MidpointRounding.AwayFromZero);
-
-                await _hatGap.AwardAsync(userId, reward, HatGapTransactionType.Earn, "DailyQuestBonus", ct);
-            }
-
-            await _questProgress.UpdateAsync(progress, ct);
-        }
-        catch
-        {
-            // quest progress update failure must not affect the main step-completion flow
-        }
     }
 
     private static DateOnly GetTodayGmt7() => DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7));

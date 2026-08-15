@@ -15,5 +15,6 @@ public record TutorialAuthorDetailResponse(
     string Status,
     IReadOnlyList<TutorialStepDto> Steps,
     DateTime CreatedAt,
-    DateTime? UpdatedAt
+    DateTime? UpdatedAt,
+    Guid? ParentTutorialId
 );

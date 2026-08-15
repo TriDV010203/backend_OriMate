@@ -138,26 +138,6 @@ public class CommunityPostTests : IntegrationTestBase
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
-    // [Error Path] (BR-COMM-01) - Bài đăng chứa từ cấm phải bị chặn
-    [Fact]
-    public async Task CreateCommunityPost_WithBlockedWord_ReturnsBadRequest()
-    {
-        // GIVEN: Giả lập có 1 từ cấm trong DB (có thể Middleware đã cache lại)
-        var adminId = await AuthenticateAsAsync("Admin");
-        await _client.PostAsJsonAsync("/api/admin/blocked-words", new { Word = "badword" });
-
-        // User bình thường cố tình đăng bài
-        await AuthenticateAsAsync("User");
-        var requestContent = new { Content = "This post contains a badword!" };
-
-        // WHEN
-        var response = await _client.PostAsJsonAsync("/api/community-posts", requestContent);
-
-        // THEN
-        response.IsSuccessStatusCode.Should().BeFalse("Hệ thống phải chặn nội dung chứa từ cấm (BR-COMM-01)[cite: 1]");
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-    }
-
     // [Idempotency] - Cố tình report 2 lần cho cùng 1 target
     [Fact]
     public async Task SubmitReport_DuplicateOnSameTarget_ReturnsConflictOrBadRequest()

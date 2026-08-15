@@ -19,10 +19,9 @@ namespace OrigamiPlatform.Application.Commands.Tutorials;
 public class AdminCreateTutorialHandler
 {
     private readonly ITutorialRepository _tutorialRepo;
-    private readonly IBlockedWordService _blockedWords;
 
-    public AdminCreateTutorialHandler(ITutorialRepository tutorialRepo, IBlockedWordService blockedWords)
-        => (_tutorialRepo, _blockedWords) = (tutorialRepo, blockedWords);
+    public AdminCreateTutorialHandler(ITutorialRepository tutorialRepo)
+        => _tutorialRepo = tutorialRepo;
 
     public async Task<TutorialResponse> HandleAsync(AdminCreateTutorialCommand command, CancellationToken ct = default)
     {
@@ -39,11 +38,6 @@ public class AdminCreateTutorialHandler
         var steps = request.Steps ?? new List<CreateTutorialStepRequest>();
         if (steps.Count < 3 || steps.Count > 30)
             throw new DomainException($"Need 3 to 30 steps to publish directly (got {steps.Count}).");
-
-        if (await _blockedWords.ContainsBlockedWordAsync(request.Title, ct))
-            throw new DomainException("Title contains a blocked word. BR-23.");
-        if (await _blockedWords.ContainsBlockedWordAsync(request.Description, ct))
-            throw new DomainException("Description contains a blocked word. BR-23.");
 
         if (!Enum.TryParse<TutorialDifficulty>(request.Difficulty, ignoreCase: true, out var tutorialDifficulty))
             throw new DomainException($"Invalid difficulty '{request.Difficulty}'. Valid values: Beginner, Intermediate, Advanced.");
@@ -76,9 +70,6 @@ public class AdminCreateTutorialHandler
 
         foreach (var stepReq in steps)
         {
-            if (!string.IsNullOrWhiteSpace(stepReq.Description)
-                && await _blockedWords.ContainsBlockedWordAsync(stepReq.Description, ct))
-                throw new DomainException($"Step {stepReq.StepOrder} description contains a blocked word. BR-23.");
             if (string.IsNullOrWhiteSpace(stepReq.Description) || string.IsNullOrWhiteSpace(stepReq.ImageUrl))
                 throw new DomainException($"Step {stepReq.StepOrder} needs both a description and an image to publish directly.");
 

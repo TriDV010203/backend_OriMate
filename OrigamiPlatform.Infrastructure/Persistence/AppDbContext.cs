@@ -48,7 +48,6 @@ public class AppDbContext : DbContext
     // System
     public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
-    public DbSet<BlockedWord> BlockedWords => Set<BlockedWord>();
 
     // Shop
     public DbSet<ShopLink> ShopLinks => Set<ShopLink>();
@@ -63,10 +62,8 @@ public class AppDbContext : DbContext
     public DbSet<LearningPathModeUnlockTest> LearningPathModeUnlockTests => Set<LearningPathModeUnlockTest>();
     public DbSet<ModeUnlockSubmission> ModeUnlockSubmissions => Set<ModeUnlockSubmission>();
 
-    // Gamification (FT-26 Streak, FT-27 Daily Quest, FT-28 Hạt Gấp)
+    // Gamification (FT-26 Streak, FT-28 Hạt Gấp)
     public DbSet<StreakLog> StreakLogs => Set<StreakLog>();
-    public DbSet<DailyQuest> DailyQuests => Set<DailyQuest>();
-    public DbSet<UserDailyQuestProgress> UserDailyQuestProgresses => Set<UserDailyQuestProgress>();
     public DbSet<HatGapTransaction> HatGapTransactions => Set<HatGapTransaction>();
     public DbSet<PaperPattern> PaperPatterns => Set<PaperPattern>(); // FT-28
     public DbSet<UserPaperPattern> UserPaperPatterns => Set<UserPaperPattern>(); // FT-28
@@ -75,10 +72,6 @@ public class AppDbContext : DbContext
     public DbSet<DailyChallenge> DailyChallenges => Set<DailyChallenge>();
     public DbSet<DailyChallengeSubmission> DailyChallengeSubmissions => Set<DailyChallengeSubmission>();
     public DbSet<ChallengeStreakLog> ChallengeStreakLogs => Set<ChallengeStreakLog>();
-
-    // Weekly Challenge — mirror của Daily Challenge, chỉ mở Chủ Nhật, độ khó Advanced
-    public DbSet<WeeklyChallenge> WeeklyChallenges => Set<WeeklyChallenge>();
-    public DbSet<WeeklyChallengeSubmission> WeeklyChallengeSubmissions => Set<WeeklyChallengeSubmission>();
 
     // Badge System (FT-35)
     public DbSet<Badge> Badges => Set<Badge>();

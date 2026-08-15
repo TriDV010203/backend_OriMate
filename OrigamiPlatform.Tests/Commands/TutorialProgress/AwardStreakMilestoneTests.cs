@@ -16,8 +16,6 @@ public class AwardStreakMilestoneTests
     private readonly Mock<ITutorialStepProgressRepository> _progress = new();
     private readonly Mock<IUserRepository> _users = new();
     private readonly Mock<IStreakLogRepository> _streakLogs = new();
-    private readonly Mock<IDailyQuestRepository> _dailyQuests = new();
-    private readonly Mock<IUserDailyQuestProgressRepository> _questProgress = new();
     private readonly Mock<IHatGapTransactionRepository> _hatGapTransactions = new();
     private readonly Mock<INotificationService> _notifications = new();
     private readonly Mock<IBadgeRepository> _badges = new();
@@ -30,8 +28,6 @@ public class AwardStreakMilestoneTests
             _progress.Object,
             _users.Object,
             _streakLogs.Object,
-            _dailyQuests.Object,
-            _questProgress.Object,
             new HatGapAwardService(_hatGapTransactions.Object),
             _notifications.Object,
             new BadgeAwardService(_badges.Object, _userBadges.Object, _notifications.Object));
@@ -59,9 +55,6 @@ public class AwardStreakMilestoneTests
         _progress.Setup(p => p.CountStepsAsync(tutorialId, default)).ReturnsAsync(2);
         _progress.Setup(p => p.GetCompletedStepIdsAsync(userId, tutorialId, default))
             .ReturnsAsync(new List<Guid> { stepId });
-
-        // No active Daily Quest -> UpdateQuestProgressAsync returns early, no interference.
-        _dailyQuests.Setup(d => d.GetActiveAsync(default)).ReturnsAsync(new List<DailyQuest>());
 
         _streakLogs.Setup(s => s.UpdateAsync(It.IsAny<StreakLog>(), default)).Returns(Task.CompletedTask);
     }

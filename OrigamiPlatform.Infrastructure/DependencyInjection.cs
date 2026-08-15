@@ -22,7 +22,6 @@ using OrigamiPlatform.Application.Commands.Tutorials;
 using OrigamiPlatform.Application.Commands.Uploads;
 using OrigamiPlatform.Application.Commands.Users;
 using OrigamiPlatform.Application.Commands.Webhooks;
-using OrigamiPlatform.Application.Commands.WeeklyChallenge;
 using OrigamiPlatform.Application.Commands.Wishlists;
 using OrigamiPlatform.Application.Common;
 using OrigamiPlatform.Application.Interfaces;
@@ -41,7 +40,6 @@ using OrigamiPlatform.Application.Queries.Subscriptions;
 using OrigamiPlatform.Application.Queries.TutorialProgress;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Application.Queries.Users;
-using OrigamiPlatform.Application.Queries.WeeklyChallenge;
 using OrigamiPlatform.Application.Queries.Wishlists;
 using OrigamiPlatform.Infrastructure.BackgroundJobs;
 using OrigamiPlatform.Infrastructure.Options;
@@ -67,7 +65,6 @@ public static class DependencyInjection
         services.AddScoped<ICommunityPostRepository, CommunityPostRepository>();
         services.AddScoped<ILikeRepository, LikeRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
-        services.AddScoped<IBlockedWordRepository, BlockedWordRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
@@ -81,8 +78,6 @@ public static class DependencyInjection
         services.AddScoped<IShopLinkRepository, ShopLinkRepository>();
         services.AddScoped<IPersonalMilestoneRepository, PersonalMilestoneRepository>();
         services.AddScoped<IStreakLogRepository, StreakLogRepository>();
-        services.AddScoped<IDailyQuestRepository, DailyQuestRepository>();
-        services.AddScoped<IUserDailyQuestProgressRepository, UserDailyQuestProgressRepository>();
         services.AddScoped<IHatGapTransactionRepository, HatGapTransactionRepository>();
         services.AddScoped<ILearningPathRepository, LearningPathRepository>();
         services.AddScoped<ILearningPathCompletionRepository, LearningPathCompletionRepository>();
@@ -92,8 +87,6 @@ public static class DependencyInjection
         services.AddScoped<IDailyChallengeRepository, DailyChallengeRepository>();
         services.AddScoped<IDailyChallengeSubmissionRepository, DailyChallengeSubmissionRepository>();
         services.AddScoped<IChallengeStreakRepository, ChallengeStreakRepository>();
-        services.AddScoped<IWeeklyChallengeRepository, WeeklyChallengeRepository>();
-        services.AddScoped<IWeeklyChallengeSubmissionRepository, WeeklyChallengeSubmissionRepository>();
         services.AddScoped<IBadgeRepository, BadgeRepository>();
         services.AddScoped<IUserBadgeRepository, UserBadgeRepository>();
         services.AddScoped<ITutorialVariantRepository, TutorialVariantRepository>();
@@ -103,7 +96,6 @@ public static class DependencyInjection
         // Services
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
-        services.AddSingleton<IBlockedWordService, BlockedWordService>();
         services.AddScoped<IEmailService, EmailService>();
         // 1. Đăng ký service gốc (không dùng interface để tránh đụng độ)
         services.AddScoped<NotificationService>();
@@ -179,9 +171,6 @@ public static class DependencyInjection
         services.AddScoped<CreateCategoryHandler>();
         services.AddScoped<UpdateCategoryHandler>();
         services.AddScoped<DeleteCategoryHandler>();
-        services.AddScoped<GetBlockedWordsHandler>();
-        services.AddScoped<CreateBlockedWordHandler>();
-        services.AddScoped<RemoveBlockedWordHandler>();
         services.AddScoped<GetUsersHandler>();
         services.AddScoped<CreateUserByAdminHandler>();
         services.AddScoped<AssignRoleHandler>();
@@ -231,10 +220,9 @@ public static class DependencyInjection
         services.AddScoped<GetTutorialProgressHandler>();
         services.AddScoped<RaiseStuckFlagHandler>();
 
-        // Handlers — Gamification (FT-25 Skill Level, FT-26 Streak, FT-27 Daily Quest, FT-28 Hạt Gấp)
+        // Handlers — Gamification (FT-25 Skill Level, FT-26 Streak, FT-28 Hạt Gấp)
         services.AddScoped<GetMySkillLevelHandler>();
         services.AddScoped<GetMyStreakHandler>();
-        services.AddScoped<GetMyQuestProgressHandler>();
         services.AddScoped<GetMyHatGapBalanceHandler>();
         services.AddScoped<GetMyHatGapLevelHandler>();
         services.AddScoped<PurchaseStreakFreezeHandler>();
@@ -297,16 +285,6 @@ public static class DependencyInjection
         services.AddScoped<GetChallengeResultHandler>();
         services.AddScoped<GetChallengeSuggestionsHandler>();
         services.AddScoped<GetAdminChallengeCalendarHandler>();
-
-        // Handlers — Weekly Challenge (mirror Daily Challenge, chỉ mở Chủ Nhật)
-        services.AddScoped<AdminScheduleWeeklyChallengeHandler>();
-        services.AddScoped<SubmitWeeklyChallengeHandler>();
-        services.AddScoped<ActivateWeeklyChallengeHandler>();
-        services.AddScoped<CloseWeeklyChallengeResultHandler>();
-        services.AddScoped<GetCurrentWeeklyChallengeHandler>();
-        services.AddScoped<GetWeeklyChallengeSubmissionsHandler>();
-        services.AddScoped<GetWeeklyChallengeSuggestionsHandler>();
-        services.AddScoped<GetAdminWeeklyChallengeCalendarHandler>();
 
         // Background jobs
         services.AddHostedService<DailyChallengeSchedulerService>();

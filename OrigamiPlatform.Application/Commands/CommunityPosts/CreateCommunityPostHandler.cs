@@ -7,10 +7,9 @@ namespace OrigamiPlatform.Application.Commands.CommunityPosts;
 public class CreateCommunityPostHandler
 {
     private readonly ICommunityPostRepository _posts;
-    private readonly IBlockedWordService _blockedWordService;
 
-    public CreateCommunityPostHandler(ICommunityPostRepository posts, IBlockedWordService blockedWordService)
-        => (_posts, _blockedWordService) = (posts, blockedWordService);
+    public CreateCommunityPostHandler(ICommunityPostRepository posts)
+        => _posts = posts;
 
     public async Task<Guid> HandleAsync(CreateCommunityPostCommand cmd, CancellationToken ct = default)
     {
@@ -23,9 +22,6 @@ public class CreateCommunityPostHandler
         {
             throw new DomainException("A post can have a maximum of 10 media items.");
         }
-
-        if (await _blockedWordService.ContainsBlockedWordAsync(cmd.Content, ct))
-            throw new DomainException("Your post contains blocked words and cannot be published.");
 
         var postId = Guid.NewGuid();
         var now = DateTime.UtcNow;

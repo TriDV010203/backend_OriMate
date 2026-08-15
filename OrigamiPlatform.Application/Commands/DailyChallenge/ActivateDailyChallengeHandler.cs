@@ -9,7 +9,6 @@ namespace OrigamiPlatform.Application.Commands.DailyChallenge;
 // FT-34: idempotent — safe to call repeatedly for the same day. If Admin/Manager already
 // scheduled today's challenge, promotes it to Active; otherwise auto-picks a tutorial as a
 // safety net so a day is never left without a challenge.
-// Chủ Nhật không có Thử thách ngày — ngày đó dành cho Thử thách tuần (xem ActivateWeeklyChallengeHandler).
 public class ActivateDailyChallengeHandler
 {
     // Random tự động chỉ chọn Dễ/Trung bình (không bao giờ ra Khó) — tỉ lệ chuẩn hoá từ 50:35 gốc.
@@ -30,9 +29,6 @@ public class ActivateDailyChallengeHandler
     public async Task HandleAsync(ActivateDailyChallengeCommand command, CancellationToken ct = default)
     {
         var today = GetTodayGmt7();
-        if (today.DayOfWeek == DayOfWeek.Sunday)
-            return; // Chủ Nhật dành riêng cho Thử thách tuần
-
         var existing = await _challenges.GetByDateAsync(today, ct);
 
         if (existing is not null)

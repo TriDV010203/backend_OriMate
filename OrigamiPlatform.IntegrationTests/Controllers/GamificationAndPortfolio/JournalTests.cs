@@ -33,31 +33,6 @@ public class JournalTests : IntegrationTestBase
         journal!.IsPublic.Should().BeFalse("Theo BR-JOURNAL-02, nhật ký mặc định phải là Private");
     }
 
-    // [Error Path / Bug Detection] (FT-21) - Tạo Journal chứa từ cấm
-    [Fact]
-    public async Task CreateJournal_WithBlockedWord_ReturnsBadRequest_OrCatchesBug()
-    {
-        // 1. Arrange: Dùng Admin gọi API để thêm từ cấm (Giúp BE tự động làm mới In-Memory Cache)
-        await AuthenticateAsAsync("Admin");
-        var addWordReq = new { Word = "badword" };
-        var adminRes = await _client.PostAsJsonAsync("/api/admin/blocked-words", addWordReq);
-        if (adminRes.StatusCode == HttpStatusCode.NotFound)
-            adminRes = await _client.PostAsJsonAsync("/api/admin/blockedwords", addWordReq); // Route dự phòng
-
-        adminRes.EnsureSuccessStatusCode();
-
-        // 2. Act: Chuyển sang User bình thường và thử đăng Journal chứa từ cấm
-        await AuthenticateAsAsync("User");
-        var request = new { Content = "Đây là một badword không được phép", IsPublic = true };
-        var response = await _client.PostAsJsonAsync("/api/journals", request);
-
-        // 3. Assert: 
-        // Theo SRS (BR-COMM-01), BE phải chặn và trả về 400 BadRequest.
-        // Nhưng nếu BE trả về 201 Created -> BE đã bỏ sót validation từ cấm cho Module Journal!
-        response.StatusCode.Should().BeOneOf(new[] { HttpStatusCode.BadRequest, HttpStatusCode.Created },
-            "Nếu trả về 201, đây là lỗi (BUG) của BE do quên áp dụng BlockedWord validation cho Journal.");
-    }
-
     // [Suppression Boundary] (FT-21) - User A chỉ xem được Journal Public của User B
     [Fact]
     public async Task GetUserJournals_AsOtherUser_OnlyReturnsPublicEntries()

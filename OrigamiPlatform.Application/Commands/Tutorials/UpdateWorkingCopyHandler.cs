@@ -10,10 +10,9 @@ namespace OrigamiPlatform.Application.Commands.Tutorials;
 public class UpdateWorkingCopyHandler
 {
     private readonly ITutorialRepository _tutorialRepo;
-    private readonly IBlockedWordService _blockedWords;
 
-    public UpdateWorkingCopyHandler(ITutorialRepository tutorialRepo, IBlockedWordService blockedWords)
-        => (_tutorialRepo, _blockedWords) = (tutorialRepo, blockedWords);
+    public UpdateWorkingCopyHandler(ITutorialRepository tutorialRepo)
+        => _tutorialRepo = tutorialRepo;
 
     public async Task<TutorialResponse> HandleAsync(UpdateWorkingCopyCommand command, CancellationToken ct = default)
     {
@@ -27,18 +26,6 @@ public class UpdateWorkingCopyHandler
 
         if (workingCopy.AuthorId != command.AuthorId)
             throw new ForbiddenException("You are not the author of this tutorial.");
-
-        // BR-23: blocked word checks
-        if (await _blockedWords.ContainsBlockedWordAsync(request.Title, ct))
-            throw new DomainException("Title contains a blocked word. BR-23.");
-        if (await _blockedWords.ContainsBlockedWordAsync(request.Description, ct))
-            throw new DomainException("Description contains a blocked word. BR-23.");
-
-        // FT-08: SEO metadata is optional but still content text — BR-23 applies when supplied
-        if (!string.IsNullOrWhiteSpace(request.MetaTitle) && await _blockedWords.ContainsBlockedWordAsync(request.MetaTitle, ct))
-            throw new DomainException("Meta title contains a blocked word. BR-23.");
-        if (!string.IsNullOrWhiteSpace(request.MetaDescription) && await _blockedWords.ContainsBlockedWordAsync(request.MetaDescription, ct))
-            throw new DomainException("Meta description contains a blocked word. BR-23.");
 
         if (!Enum.TryParse<TutorialType>(request.Type, ignoreCase: true, out var tutorialType))
             throw new DomainException($"Invalid tutorial type '{request.Type}'. Valid values: Free, VIP.");
@@ -77,10 +64,6 @@ public class UpdateWorkingCopyHandler
         {
             foreach (var stepReq in request.Steps)
             {
-                if (!string.IsNullOrWhiteSpace(stepReq.Description)
-                    && await _blockedWords.ContainsBlockedWordAsync(stepReq.Description, ct))
-                    throw new DomainException($"Step {stepReq.StepOrder} description contains a blocked word. BR-23.");
-
                 newSteps.Add(new TutorialStep
                 {
                     Id = Guid.NewGuid(),

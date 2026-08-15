@@ -15,7 +15,6 @@ public class GamificationController : ControllerBase
 {
     private readonly GetMySkillLevelHandler _getMySkillLevel;
     private readonly GetMyStreakHandler _getMyStreak;
-    private readonly GetMyQuestProgressHandler _getMyQuestProgress;
     private readonly GetMyHatGapBalanceHandler _getMyHatGapBalance;
     private readonly GetMyHatGapLevelHandler _getMyHatGapLevel;
     private readonly PurchaseStreakFreezeHandler _purchaseStreakFreeze;
@@ -25,14 +24,13 @@ public class GamificationController : ControllerBase
     public GamificationController(
         GetMySkillLevelHandler getMySkillLevel,
         GetMyStreakHandler getMyStreak,
-        GetMyQuestProgressHandler getMyQuestProgress,
         GetMyHatGapBalanceHandler getMyHatGapBalance,
         GetMyHatGapLevelHandler getMyHatGapLevel,
         PurchaseStreakFreezeHandler purchaseStreakFreeze,
         GetBadgeCatalogHandler getBadgeCatalog,
         GetMyBadgesHandler getMyBadges)
-        => (_getMySkillLevel, _getMyStreak, _getMyQuestProgress, _getMyHatGapBalance, _getMyHatGapLevel, _purchaseStreakFreeze, _getBadgeCatalog, _getMyBadges)
-            = (getMySkillLevel, getMyStreak, getMyQuestProgress, getMyHatGapBalance, getMyHatGapLevel, purchaseStreakFreeze, getBadgeCatalog, getMyBadges);
+        => (_getMySkillLevel, _getMyStreak, _getMyHatGapBalance, _getMyHatGapLevel, _purchaseStreakFreeze, _getBadgeCatalog, _getMyBadges)
+            = (getMySkillLevel, getMyStreak, getMyHatGapBalance, getMyHatGapLevel, purchaseStreakFreeze, getBadgeCatalog, getMyBadges);
 
     /// <summary>GET /api/gamification/skill-level — current user's SkillPoints and SkillLevel (FT-25).</summary>
     [HttpGet("skill-level")]
@@ -47,14 +45,6 @@ public class GamificationController : ControllerBase
     public async Task<IActionResult> GetMyStreak(CancellationToken ct)
     {
         var result = await _getMyStreak.HandleAsync(new GetMyStreakQuery(GetCurrentUserId()), ct);
-        return Ok(result);
-    }
-
-    /// <summary>GET /api/gamification/quest-today — current user's Daily Quest progress (FT-27).</summary>
-    [HttpGet("quest-today")]
-    public async Task<IActionResult> GetMyQuestToday(CancellationToken ct)
-    {
-        var result = await _getMyQuestProgress.HandleAsync(new GetMyQuestProgressQuery(GetCurrentUserId()), ct);
         return Ok(result);
     }
 
