@@ -10,31 +10,11 @@ namespace OrigamiPlatform.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Model3DPosterUrl",
-                table: "Tutorials");
-
-            migrationBuilder.DropColumn(
-                name: "Model3DUrl",
-                table: "Tutorials");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "Model3DPosterUrl",
-                table: "Tutorials",
-                type: "nvarchar(512)",
-                maxLength: 512,
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "Model3DUrl",
-                table: "Tutorials",
-                type: "nvarchar(512)",
-                maxLength: 512,
-                nullable: true);
         }
     }
 }

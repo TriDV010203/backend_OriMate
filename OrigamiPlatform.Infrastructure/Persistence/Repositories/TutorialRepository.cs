@@ -136,7 +136,7 @@ public class TutorialRepository : ITutorialRepository
         Guid authorId, int page, int pageSize, CancellationToken ct = default)
     {
         var query = _db.Tutorials
-            .Where(t => t.AuthorId == authorId && !t.IsDeleted)
+            .Where(t => t.AuthorId == authorId && t.Status != TutorialStatus.Merged && !t.IsDeleted)
             .Include(t => t.Steps)
             .AsQueryable();
 
