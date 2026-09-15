@@ -4,4 +4,5 @@
   <Project Path="OrigamiPlatform.Application/OrigamiPlatform.Application.csproj" />
   <Project Path="OrigamiPlatform.Domain/OrigamiPlatform.Domain.csproj" />
   <Project Path="OrigamiPlatform.Infrastructure/OrigamiPlatform.Infrastructure.csproj" />
+  <Project Path="OrigamiPlatform.IntegrationTests/OrigamiPlatform.IntegrationTests.csproj" />
 </Solution>
