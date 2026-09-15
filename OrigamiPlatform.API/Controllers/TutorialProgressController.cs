@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrigamiPlatform.Application.Commands.TutorialProgress;
 using OrigamiPlatform.Application.DTOs.TutorialProgress;
-using OrigamiPlatform.Application.Queries.TutorialProgress;
 using OrigamiPlatform.Domain.Exceptions;
 
 namespace OrigamiPlatform.API.Controllers;
@@ -14,36 +13,13 @@ namespace OrigamiPlatform.API.Controllers;
 [Authorize]
 public class TutorialProgressController : ControllerBase
 {
-    private readonly CompleteTutorialStepHandler _complete;
-    private readonly UncompleteTutorialStepHandler _uncomplete;
     private readonly CompleteTutorialHandler _completeTutorial;
-    private readonly GetTutorialProgressHandler _getProgress;
     private readonly RaiseStuckFlagHandler _raiseStuck;
 
     public TutorialProgressController(
-        CompleteTutorialStepHandler complete,
-        UncompleteTutorialStepHandler uncomplete,
         CompleteTutorialHandler completeTutorial,
-        GetTutorialProgressHandler getProgress,
         RaiseStuckFlagHandler raiseStuck)
-        => (_complete, _uncomplete, _completeTutorial, _getProgress, _raiseStuck)
-            = (complete, uncomplete, completeTutorial, getProgress, raiseStuck);
-
-    [HttpPost("{tutorialId:guid}/steps/{stepId:guid}/complete")]
-    public async Task<IActionResult> CompleteStep(Guid tutorialId, Guid stepId, CancellationToken ct)
-    {
-        var result = await _complete.HandleAsync(
-            new CompleteTutorialStepCommand(GetCurrentUserId(), tutorialId, stepId), ct);
-        return Ok(result);
-    }
-
-    [HttpDelete("{tutorialId:guid}/steps/{stepId:guid}/complete")]
-    public async Task<IActionResult> UncompleteStep(Guid tutorialId, Guid stepId, CancellationToken ct)
-    {
-        var result = await _uncomplete.HandleAsync(
-            new UncompleteTutorialStepCommand(GetCurrentUserId(), tutorialId, stepId), ct);
-        return Ok(result);
-    }
+        => (_completeTutorial, _raiseStuck) = (completeTutorial, raiseStuck);
 
     [HttpPost("{tutorialId:guid}/complete")]
     public async Task<IActionResult> CompleteTutorial(
@@ -53,14 +29,6 @@ public class TutorialProgressController : ControllerBase
             new CompleteTutorialCommand(
                 GetCurrentUserId(), tutorialId, request.PerceivedDifficulty, request.PhotoUrl, request.Note, request.IsPublic),
             ct);
-        return Ok(result);
-    }
-
-    [HttpGet("{tutorialId:guid}/progress")]
-    public async Task<IActionResult> GetProgress(Guid tutorialId, CancellationToken ct)
-    {
-        var result = await _getProgress.HandleAsync(
-            new GetTutorialProgressQuery(GetCurrentUserId(), tutorialId), ct);
         return Ok(result);
     }
 

@@ -5,7 +5,7 @@ using OrigamiPlatform.Domain.Enums;
 namespace OrigamiPlatform.Application.Common;
 
 // FT-35: shared badge-award helper, mirrors HatGapAwardService's role for the Hạt Gấp ledger.
-// Called from existing trigger points (CreateAchievementHandler, CompleteTutorialStepHandler)
+// Called from existing trigger points (CreateAchievementHandler, CompleteTutorialHandler)
 // and the new DailyChallenge handlers — never fails the caller's main flow.
 public class BadgeAwardService
 {

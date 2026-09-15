@@ -27,7 +27,25 @@ public class ManagerApproveEditHandler
         var originalId = workingCopy.ParentTutorialId.Value;
 
         // Snapshot step data before loading original — avoids cross-context tracking issues
-        var newSteps = workingCopy.Steps.Select(s => new TutorialStep
+        var editedSteps = workingCopy.Steps.OrderBy(s => s.StepOrder).ToList();
+
+        var original = await _tutorialRepo.GetByIdWithStepsAsync(originalId, ct)
+            ?? throw new NotFoundException($"Original tutorial {originalId} not found.");
+
+        // Reconcile steps by position instead of delete-all-then-insert: updating existing rows
+        // in place (rather than dropping and recreating every row) avoids unnecessary DB churn.
+        var originalSteps = original.Steps.OrderBy(s => s.StepOrder).ToList();
+        var reuseCount = Math.Min(originalSteps.Count, editedSteps.Count);
+
+        for (var i = 0; i < reuseCount; i++)
+        {
+            originalSteps[i].StepOrder = editedSteps[i].StepOrder;
+            originalSteps[i].Description = editedSteps[i].Description;
+            originalSteps[i].ImageUrl = editedSteps[i].ImageUrl;
+            originalSteps[i].UpdatedAt = DateTime.UtcNow;
+        }
+
+        var stepsToAdd = editedSteps.Skip(reuseCount).Select(s => new TutorialStep
         {
             Id = Guid.NewGuid(),
             TutorialId = originalId,
@@ -37,8 +55,7 @@ public class ManagerApproveEditHandler
             CreatedAt = DateTime.UtcNow
         }).ToList();
 
-        var original = await _tutorialRepo.GetByIdWithStepsAsync(originalId, ct)
-            ?? throw new NotFoundException($"Original tutorial {originalId} not found.");
+        var stepsToRemove = originalSteps.Skip(reuseCount).ToList();
 
         // Swap content fields (id, slug, publishedAt stay untouched)
         original.Title = workingCopy.Title;
@@ -49,11 +66,14 @@ public class ManagerApproveEditHandler
         original.CoverImageUrl = workingCopy.CoverImageUrl;
         original.UpdatedAt = DateTime.UtcNow;
 
+        // Flushes the scalar field changes above together with the reused-step updates set earlier
         await _tutorialRepo.UpdateAsync(original, ct);
 
-        // Replace original steps: ExecuteDelete bypasses change tracker, then insert clones
-        await _tutorialRepo.DeleteStepsByTutorialIdAsync(originalId, ct);
-        await _tutorialRepo.AddStepsAsync(newSteps, ct);
+        if (stepsToAdd.Count > 0)
+            await _tutorialRepo.AddStepsAsync(stepsToAdd, ct);
+
+        if (stepsToRemove.Count > 0)
+            await _tutorialRepo.RemoveStepsAsync(stepsToRemove, ct);
 
         // IMMUTABLE — INSERT only (BR-17), recorded on the original tutorial
         await _tutorialRepo.AddReviewHistoryAsync(new TutorialReviewHistory

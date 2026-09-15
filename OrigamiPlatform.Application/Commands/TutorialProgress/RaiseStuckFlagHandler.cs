@@ -8,15 +8,15 @@ namespace OrigamiPlatform.Application.Commands.TutorialProgress;
 
 public class RaiseStuckFlagHandler
 {
-    private readonly ITutorialStepProgressRepository _steps;
+    private readonly ITutorialRepository _tutorials;
     private readonly IStuckThreadRepository _stuckThreads;
 
-    public RaiseStuckFlagHandler(ITutorialStepProgressRepository steps, IStuckThreadRepository stuckThreads)
-        => (_steps, _stuckThreads) = (steps, stuckThreads);
+    public RaiseStuckFlagHandler(ITutorialRepository tutorials, IStuckThreadRepository stuckThreads)
+        => (_tutorials, _stuckThreads) = (tutorials, stuckThreads);
 
     public async Task<StuckThreadDto> HandleAsync(RaiseStuckFlagCommand command, CancellationToken ct = default)
     {
-        var step = await _steps.GetStepWithTutorialAsync(command.StepId, ct)
+        var step = await _tutorials.GetStepWithTutorialAsync(command.StepId, ct)
             ?? throw new NotFoundException("Tutorial step not found.");
 
         if (step.TutorialId != command.TutorialId)

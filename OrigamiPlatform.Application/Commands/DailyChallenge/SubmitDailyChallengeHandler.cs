@@ -8,7 +8,7 @@ using OrigamiPlatform.Domain.Exceptions;
 
 namespace OrigamiPlatform.Application.Commands.DailyChallenge;
 
-// FT-34: honor-system photo submission — deliberately NOT gated on TutorialStepProgress.
+// FT-34: honor-system photo submission — deliberately not gated on tutorial completion state.
 // A user who forgot how to fold can jump to the tutorial and come back to submit later.
 public class SubmitDailyChallengeHandler
 {

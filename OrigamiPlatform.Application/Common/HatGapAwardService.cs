@@ -6,7 +6,7 @@ using OrigamiPlatform.Domain.Exceptions;
 namespace OrigamiPlatform.Application.Common;
 
 // FT-28: shared Hạt Gấp ledger writer — used by DailyQuest bonus, Advanced-tutorial reward
-// (CompleteTutorialStepHandler) and Streak Freeze purchase (PurchaseStreakFreezeHandler).
+// (CompleteTutorialHandler) and Streak Freeze purchase (PurchaseStreakFreezeHandler).
 public class HatGapAwardService
 {
     private readonly IHatGapTransactionRepository _transactions;

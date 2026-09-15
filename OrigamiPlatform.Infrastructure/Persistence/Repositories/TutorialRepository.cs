@@ -232,6 +232,17 @@ public class TutorialRepository : ITutorialRepository
         await _db.SaveChangesAsync(ct);
     }
 
+    public async Task RemoveStepsAsync(IEnumerable<TutorialStep> steps, CancellationToken ct = default)
+    {
+        _db.TutorialSteps.RemoveRange(steps);
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public Task<TutorialStep?> GetStepWithTutorialAsync(Guid stepId, CancellationToken ct = default)
+        => _db.TutorialSteps
+            .Include(s => s.Tutorial)
+            .FirstOrDefaultAsync(s => s.Id == stepId, ct);
+
     public async Task<List<Tutorial>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
     {
         return await _db.Tutorials

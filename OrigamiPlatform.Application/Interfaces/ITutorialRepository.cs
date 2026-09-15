@@ -45,6 +45,12 @@ public interface ITutorialRepository
     Task DeleteStepsByTutorialIdAsync(Guid tutorialId, CancellationToken ct = default);
     Task AddStepsAsync(IEnumerable<TutorialStep> steps, CancellationToken ct = default);
 
+    // FT-07 approve-edit reconciliation — updates steps in place by position instead of delete-all-then-insert
+    Task RemoveStepsAsync(IEnumerable<TutorialStep> steps, CancellationToken ct = default);
+
+    /// <summary>The step with its parent tutorial loaded (to validate status), or null.</summary>
+    Task<TutorialStep?> GetStepWithTutorialAsync(Guid stepId, CancellationToken ct = default);
+
     Task<List<Tutorial>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default);
 
     // Manager review queue

@@ -24,8 +24,5 @@ public record TutorialDetailDto(
     TutorialRatingSummaryDto? RatingSummary = null,
     bool HasAchievement = false,
     bool HasRated = false,
-    int CompletedStepCount = 0,
-    int TotalStepCount = 0,
-    int ProgressPercent = 0,
     int CompletedCount = 0
 );

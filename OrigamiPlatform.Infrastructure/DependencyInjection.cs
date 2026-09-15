@@ -37,7 +37,6 @@ using OrigamiPlatform.Application.Queries.Notifications;
 using OrigamiPlatform.Application.Queries.Reports;
 using OrigamiPlatform.Application.Queries.Shop;
 using OrigamiPlatform.Application.Queries.Subscriptions;
-using OrigamiPlatform.Application.Queries.TutorialProgress;
 using OrigamiPlatform.Application.Queries.Tutorials;
 using OrigamiPlatform.Application.Queries.Users;
 using OrigamiPlatform.Application.Queries.Wishlists;
@@ -71,7 +70,6 @@ public static class DependencyInjection
         services.AddScoped<IWishlistRepository, WishlistRepository>();
         services.AddScoped<IFollowRepository, FollowRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
-        services.AddScoped<ITutorialStepProgressRepository, TutorialStepProgressRepository>();
         services.AddScoped<ITutorialDifficultyRatingRepository, TutorialDifficultyRatingRepository>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddScoped<IStuckThreadRepository, StuckThreadRepository>();
@@ -213,11 +211,8 @@ public static class DependencyInjection
         services.AddScoped<CompleteOnboardingHandler>();
         services.AddScoped<GetOnboardingStatusHandler>();
 
-        // Handlers — Tutorial step progress (per user)
-        services.AddScoped<CompleteTutorialStepHandler>();
-        services.AddScoped<UncompleteTutorialStepHandler>();
+        // Handlers — Tutorial completion (per user)
         services.AddScoped<CompleteTutorialHandler>();
-        services.AddScoped<GetTutorialProgressHandler>();
         services.AddScoped<RaiseStuckFlagHandler>();
 
         // Handlers — Gamification (FT-25 Skill Level, FT-26 Streak, FT-28 Hạt Gấp)
