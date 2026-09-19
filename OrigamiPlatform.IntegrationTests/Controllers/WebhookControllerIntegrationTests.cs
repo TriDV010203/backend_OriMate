@@ -57,27 +57,123 @@ public sealed class WebhookControllerIntegrationTests : IClassFixture<CustomWebA
             .Should().Be(TransactionStatus.Confirmed);
     }
 
-    private async Task<HttpResponseMessage> SendWebhookAsync(HttpClient client, object payload)
+    [Fact]
+    public async Task ProcessSePayWebhook_MissingApiKey_ReturnsUnauthorized()
+    {
+        await _factory.ResetDatabaseAsync();
+        var transaction = await SeedPendingTransactionAsync();
+        using var client = _factory.CreateClient();
+        var payload = BuildPayload(transaction, 700003);
+
+        var response = await SendWebhookAsync(client, payload, apiKey: null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task ProcessSePayWebhook_WrongApiKey_ReturnsUnauthorized()
+    {
+        await _factory.ResetDatabaseAsync();
+        var transaction = await SeedPendingTransactionAsync();
+        using var client = _factory.CreateClient();
+        var payload = BuildPayload(transaction, 700004);
+
+        var response = await SendWebhookAsync(client, payload, "wrong-api-key");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task ProcessSePayWebhook_PartialPaymentAmount_UpdatesTransactionButDoesNotCreateVip()
+    {
+        await _factory.ResetDatabaseAsync();
+        var transaction = await SeedPendingTransactionAsync();
+        using var client = _factory.CreateClient();
+        var payload = BuildPayload(transaction, 700005, transferAmount: 10000m);
+
+        var response = await SendWebhookAsync(client, payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        (await db.Transactions.SingleAsync(t => t.Id == transaction.Id)).Status
+            .Should().Be(TransactionStatus.PendingConfirmation);
+        (await db.VipSubscriptions.CountAsync(s => s.TransactionId == transaction.Id)).Should().Be(0);
+        (await db.SePayWebhookLogs.SingleAsync(l => l.SePayTransactionId == 700005))
+            .MatchResult.Should().Be(SePayWebhookMatchResult.AmountMismatch);
+    }
+
+    [Fact]
+    public async Task ProcessSePayWebhook_OverPaymentAmount_ConfirmsTransactionAndCreatesVip()
+    {
+        await _factory.ResetDatabaseAsync();
+        var transaction = await SeedPendingTransactionAsync();
+        using var client = _factory.CreateClient();
+        var payload = BuildPayload(transaction, 700006, transferAmount: 50000m);
+
+        var response = await SendWebhookAsync(client, payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        (await db.Transactions.SingleAsync(t => t.Id == transaction.Id)).Status
+            .Should().Be(TransactionStatus.PendingConfirmation);
+        (await db.VipSubscriptions.CountAsync(s => s.TransactionId == transaction.Id)).Should().Be(0);
+        (await db.SePayWebhookLogs.SingleAsync(l => l.SePayTransactionId == 700006))
+            .MatchResult.Should().Be(SePayWebhookMatchResult.AmountMismatch);
+    }
+
+    [Fact]
+    public async Task ProcessSePayWebhook_InvalidPaymentCode_ReturnsNotFound()
+    {
+        await _factory.ResetDatabaseAsync();
+        var transaction = await SeedPendingTransactionAsync();
+        using var client = _factory.CreateClient();
+        var payload = BuildPayload(
+            transaction,
+            700007,
+            paymentCode: "OMVIPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+
+        var response = await SendWebhookAsync(client, payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        (await db.Transactions.SingleAsync(t => t.Id == transaction.Id)).Status
+            .Should().Be(TransactionStatus.PendingConfirmation);
+        (await db.SePayWebhookLogs.SingleAsync(l => l.SePayTransactionId == 700007))
+            .MatchResult.Should().Be(SePayWebhookMatchResult.NoMatch);
+    }
+
+    private async Task<HttpResponseMessage> SendWebhookAsync(
+        HttpClient client,
+        object payload,
+        string? apiKey = "Orimate2026")
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "/api/webhooks/sepay")
         {
             Content = JsonContent.Create(payload)
         };
-        request.Headers.Add("Authorization", "Apikey Orimate2026");
+        if (apiKey is not null)
+            request.Headers.Add("Authorization", $"Apikey {apiKey}");
         return await client.SendAsync(request);
     }
 
-    private static object BuildPayload(Transaction transaction, long sePayId) => new
+    private static object BuildPayload(
+        Transaction transaction,
+        long sePayId,
+        decimal? transferAmount = null,
+        string? paymentCode = null) => new
     {
         id = sePayId,
         gateway = "MBBank",
         transactionDate = "2026-09-15 10:00:00",
         accountNumber = "4238659887986",
         subAccount = "",
-        code = transaction.PaymentCode,
-        content = transaction.PaymentCode,
+        code = paymentCode ?? transaction.PaymentCode,
+        content = paymentCode ?? transaction.PaymentCode,
         transferType = "in",
-        transferAmount = transaction.Amount,
+        transferAmount = transferAmount ?? transaction.Amount,
         accumulated = 0,
         referenceCode = "REF-TEST",
         description = "Integration test payment"

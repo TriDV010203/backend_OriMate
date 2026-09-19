@@ -19,6 +19,71 @@ namespace OrigamiPlatform.Application.UnitTests.Tutorials;
 public class GetTutorialBySlugHandlerTests
 {
     // ──────────────────────────────────────────────
+    [Fact]
+    public async Task HandleAsync_VipTutorial_CurrentUserIsAuthor_ReturnsAllStepsVisible()
+    {
+        var tutorial = BuildTutorial(TutorialType.VIP, stepCount: 5);
+        var query = new GetTutorialBySlugQuery(tutorial.Slug, tutorial.AuthorId);
+
+        _tutorialsMock
+            .Setup(r => r.GetPublishedBySlugAsync(tutorial.Slug, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tutorial);
+        SetupZeroSocialCounts(tutorial.Id);
+        _likesMock
+            .Setup(r => r.GetLikeAsync(tutorial.AuthorId, tutorial.Id, TargetType.Tutorial))
+            .ReturnsAsync((Like?)null);
+        _wishlistsMock
+            .Setup(r => r.GetByUserAndTargetAsync(tutorial.AuthorId, tutorial.Id, TargetType.Tutorial, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Wishlist?)null);
+        _achievementsMock
+            .Setup(r => r.GetByUserAndTutorialAsync(tutorial.AuthorId, tutorial.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Achievement?)null);
+        _ratingsMock
+            .Setup(r => r.ExistsAsync(tutorial.AuthorId, tutorial.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var result = await CreateSut().HandleAsync(query);
+
+        result.IsVipLocked.Should().BeFalse("the tutorial author can always view their own VIP content");
+        result.HasVipAccess.Should().BeTrue();
+        result.Steps.Should().AllSatisfy(step =>
+        {
+            step.IsLocked.Should().BeFalse();
+            step.Description.Should().NotBeNullOrEmpty();
+            step.ImageUrl.Should().NotBeNullOrEmpty();
+        });
+        _vipMock.Verify(
+            r => r.HasActiveSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_VipTutorial_CurrentUserEmailIsAuthor_ReturnsAllStepsVisible()
+    {
+        var tutorial = BuildTutorial(TutorialType.VIP, stepCount: 5);
+        var query = new GetTutorialBySlugQuery(tutorial.Slug, null, tutorial.Author.Email);
+
+        _tutorialsMock
+            .Setup(r => r.GetPublishedBySlugAsync(tutorial.Slug, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tutorial);
+        SetupZeroSocialCounts(tutorial.Id);
+        _likesMock
+            .Setup(r => r.GetLikeAsync(It.IsAny<Guid>(), tutorial.Id, TargetType.Tutorial))
+            .ReturnsAsync((Like?)null);
+        _wishlistsMock
+            .Setup(r => r.GetByUserAndTargetAsync(It.IsAny<Guid>(), tutorial.Id, TargetType.Tutorial, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Wishlist?)null);
+
+        var result = await CreateSut().HandleAsync(query);
+
+        result.IsVipLocked.Should().BeFalse("the tutorial author's email can identify the owner when the subject claim is unavailable");
+        result.HasVipAccess.Should().BeTrue();
+        result.Steps.Should().AllSatisfy(step => step.IsLocked.Should().BeFalse());
+        _vipMock.Verify(
+            r => r.HasActiveSubscriptionAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
     // Shared mocks
     // ──────────────────────────────────────────────
     private readonly Mock<ITutorialRepository>                _tutorialsMock   = new();

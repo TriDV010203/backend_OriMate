@@ -122,7 +122,7 @@ public class TutorialsController : ControllerBase
     public async Task<IActionResult> GetBySlug([FromRoute] string slug, CancellationToken ct)
     {
         var result = await _getTutorialBySlug.HandleAsync(
-            new GetTutorialBySlugQuery(slug, GetCurrentUserId()), ct);
+            new GetTutorialBySlugQuery(slug, GetCurrentUserId(), GetCurrentUserEmail()), ct);
         return Ok(result);
     }
 
@@ -422,6 +422,12 @@ public class TutorialsController : ControllerBase
     {
         var value = User.FindFirstValue(ClaimTypes.NameIdentifier)
                  ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-        return value is null ? null : Guid.Parse(value);
+        return Guid.TryParse(value, out var userId) ? userId : null;
+    }
+
+    private string? GetCurrentUserEmail()
+    {
+        return User.FindFirstValue(ClaimTypes.Email)
+            ?? User.FindFirstValue(JwtRegisteredClaimNames.Email);
     }
 }

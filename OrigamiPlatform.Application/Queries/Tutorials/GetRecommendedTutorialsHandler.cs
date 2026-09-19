@@ -109,7 +109,9 @@ public class GetRecommendedTutorialsHandler
                 t.IsOfficial ? null : t.Author.Profile?.AvatarUrl),
             t.Steps.Count,
             t.PublishedAt ?? t.CreatedAt,
-            IsVipLocked: t.Type == TutorialType.VIP && !subscribedCreatorIds.Contains(t.Author.Id),
+            IsVipLocked: t.Type == TutorialType.VIP
+                && (!query.UserId.HasValue || query.UserId.Value != t.Author.Id)
+                && !subscribedCreatorIds.Contains(t.Author.Id),
 
             LikeCount: likeCounts.GetValueOrDefault(t.Id, 0),
             WishlistCount: wishlistCounts.GetValueOrDefault(t.Id, 0),

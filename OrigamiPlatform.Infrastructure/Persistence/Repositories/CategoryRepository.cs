@@ -16,6 +16,9 @@ public class CategoryRepository : ICategoryRepository
     public Task<Category?> GetByIdAsync(int id, CancellationToken ct = default)
         => _db.Categories.FirstOrDefaultAsync(c => c.Id == id, ct);
 
+    public Task<bool> HasTutorialsAsync(int categoryId, CancellationToken ct = default)
+        => _db.Tutorials.AnyAsync(t => t.CategoryId == categoryId, ct);
+
     public Task<bool> ExistsByNameAsync(string name, int? excludeId = null, CancellationToken ct = default)
         => _db.Categories.AnyAsync(c =>
             !c.IsDeleted && c.Name.ToLower() == name.Trim().ToLower() && (excludeId == null || c.Id != excludeId), ct);

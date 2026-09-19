@@ -55,14 +55,19 @@ public sealed class TutorialsControllerIntegrationTests : IClassFixture<CustomWe
         result.Steps.ElementAt(2).IsLocked.Should().BeTrue();
     }
 
-    private async Task<Tutorial> SeedTutorialAsync(TutorialType type, string slug)
+    private async Task<Tutorial> SeedTutorialAsync(
+        TutorialType type = TutorialType.Free,
+        string? slug = null,
+        int? categoryId = null,
+        TutorialDifficulty difficulty = TutorialDifficulty.Beginner,
+        TutorialStatus status = TutorialStatus.Published)
     {
         var authorId = Guid.NewGuid();
         var tutorialId = Guid.NewGuid();
         var now = DateTime.UtcNow;
         var category = new Category
         {
-            Id = Random.Shared.Next(1000, 100000),
+            Id = categoryId ?? Random.Shared.Next(1000, 100000),
             Name = "Integration Category",
             IsActive = true,
             CreatedAt = now
@@ -85,11 +90,11 @@ public sealed class TutorialsControllerIntegrationTests : IClassFixture<CustomWe
             Category = category,
             Title = "Integration Origami",
             Description = "A seeded integration tutorial",
-            Slug = slug,
+            Slug = slug ?? $"integration-origami-{Guid.NewGuid():N}",
             Type = type,
-            Status = TutorialStatus.Published,
-            Difficulty = TutorialDifficulty.Beginner,
-            PublishedAt = now,
+            Status = status,
+            Difficulty = difficulty,
+            PublishedAt = status == TutorialStatus.Published ? now : null,
             CreatedAt = now,
             Steps = Enumerable.Range(1, 4).Select(step => new TutorialStep
             {
@@ -104,10 +109,100 @@ public sealed class TutorialsControllerIntegrationTests : IClassFixture<CustomWe
 
         await using var scope = _factory.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        db.Categories.Add(category);
+        var existingCategory = await db.Categories.FindAsync(category.Id);
+        if (existingCategory is null)
+            db.Categories.Add(category);
+        else
+            tutorial.Category = existingCategory;
         db.Users.Add(author);
         db.Tutorials.Add(tutorial);
         await db.SaveChangesAsync();
         return tutorial;
+    }
+
+    [Fact]
+    public async Task GetTutorials_FilterByCategory_ReturnsOnlyMatchingTutorials()
+    {
+        await _factory.ResetDatabaseAsync();
+        var categoryId = 1001;
+        var otherCategoryId = 1002;
+
+        await SeedTutorialAsync(categoryId: categoryId, slug: "category-match-1");
+        await SeedTutorialAsync(categoryId: categoryId, slug: "category-match-2");
+        await SeedTutorialAsync(categoryId: otherCategoryId, slug: "category-other");
+
+        using var client = _factory.CreateClient();
+
+        var response = await client.GetAsync($"/api/tutorials?categoryId={categoryId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<TutorialListItemDto>>();
+        result.Should().NotBeNull();
+        result!.Items.Should().HaveCount(2);
+        result.Items.Should().OnlyContain(tutorial => tutorial.CategoryId == categoryId);
+    }
+
+    [Fact]
+    public async Task GetTutorials_FilterByDifficulty_ReturnsOnlyMatchingTutorials()
+    {
+        await _factory.ResetDatabaseAsync();
+
+        await SeedTutorialAsync(difficulty: TutorialDifficulty.Intermediate, slug: "difficulty-intermediate");
+        await SeedTutorialAsync(difficulty: TutorialDifficulty.Beginner, slug: "difficulty-beginner");
+        await SeedTutorialAsync(difficulty: TutorialDifficulty.Advanced, slug: "difficulty-advanced");
+
+        using var client = _factory.CreateClient();
+
+        var response = await client.GetAsync("/api/tutorials?difficulty=Intermediate");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<TutorialListItemDto>>();
+        result.Should().NotBeNull();
+        result!.Items.Should().NotBeEmpty();
+        result.Items.Should().OnlyContain(tutorial =>
+            tutorial.Difficulty == nameof(TutorialDifficulty.Intermediate));
+    }
+
+    [Fact]
+    public async Task GetTutorials_Pagination_ReturnsCorrectPageSize()
+    {
+        await _factory.ResetDatabaseAsync();
+
+        for (var index = 0; index < 15; index++)
+            await SeedTutorialAsync(slug: $"pagination-{index}");
+
+        using var client = _factory.CreateClient();
+
+        var response = await client.GetAsync("/api/tutorials?page=2&pageSize=10");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<TutorialListItemDto>>();
+        result.Should().NotBeNull();
+        result!.Items.Should().HaveCount(5);
+        result.TotalPages.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task GetTutorialBySlug_NotFound_Returns404()
+    {
+        await _factory.ResetDatabaseAsync();
+        using var client = _factory.CreateClient();
+
+        var response = await client.GetAsync($"/api/tutorials/missing-{Guid.NewGuid():N}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetTutorialBySlug_DraftStatus_GuestUser_Returns404()
+    {
+        await _factory.ResetDatabaseAsync();
+        var tutorial = await SeedTutorialAsync(status: TutorialStatus.Draft);
+
+        using var client = _factory.CreateClient();
+
+        var response = await client.GetAsync($"/api/tutorials/{tutorial.Slug}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }

@@ -1,3 +1,6 @@
 namespace OrigamiPlatform.Application.Queries.Tutorials;
 
-public record GetTutorialBySlugQuery(string Slug, Guid? CurrentUserId = null);
+public record GetTutorialBySlugQuery(
+	string Slug,
+	Guid? CurrentUserId = null,
+	string? CurrentUserEmail = null);

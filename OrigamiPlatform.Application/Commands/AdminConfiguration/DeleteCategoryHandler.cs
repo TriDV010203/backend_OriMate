@@ -21,6 +21,9 @@ public class DeleteCategoryHandler
         var category = await _categoryRepo.GetByIdAsync(command.CategoryId, ct)
             ?? throw new NotFoundException($"Category {command.CategoryId} not found.");
 
+        if (await _categoryRepo.HasTutorialsAsync(command.CategoryId, ct))
+            throw new ConflictException("Không thể xóa danh mục vì vẫn còn tutorial liên quan. Hãy chuyển tutorial sang danh mục khác trước.");
+
         category.IsDeleted = true;
         category.IsActive = false;
         category.UpdatedAt = DateTime.UtcNow;

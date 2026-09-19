@@ -44,9 +44,17 @@ public class GetTutorialBySlugHandler
         var isVip = tutorial.Type == TutorialType.VIP;
         var hasAccess = false;
 
-        if (isVip && query.CurrentUserId.HasValue)
-            hasAccess = await _vipSubscriptions
-                .HasActiveSubscriptionAsync(query.CurrentUserId.Value, tutorial.AuthorId, ct);
+        if (isVip)
+        {
+            var isAuthor = query.CurrentUserId == tutorial.AuthorId
+                || (!string.IsNullOrWhiteSpace(query.CurrentUserEmail)
+                    && string.Equals(query.CurrentUserEmail, tutorial.Author.Email, StringComparison.OrdinalIgnoreCase));
+
+            hasAccess = isAuthor
+                || (query.CurrentUserId.HasValue
+                    && await _vipSubscriptions
+                        .HasActiveSubscriptionAsync(query.CurrentUserId.Value, tutorial.AuthorId, ct));
+        }
 
         var isVipLocked = isVip && !hasAccess;
 
@@ -109,6 +117,7 @@ public class GetTutorialBySlugHandler
             steps,
             tutorial.PublishedAt ?? tutorial.CreatedAt,
             IsVipLocked: isVipLocked,
+            HasVipAccess: hasAccess,
             LikeCount: likeCount,
             WishlistCount: wishlistCount,
             IsLikedByCurrentUser: isLiked,
